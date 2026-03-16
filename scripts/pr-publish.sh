@@ -32,11 +32,11 @@ if [[ -z "$pr_body_file" ]]; then
   pr_body_file="$(bash ./scripts/pr-summary.sh)"
 fi
 
-if env -u GH_TOKEN gh auth status >/dev/null 2>&1; then
+if bash ./scripts/with-repo-env.sh gh auth status >/dev/null 2>&1; then
   if [[ -n "$pr_body_file" ]]; then
-    env -u GH_TOKEN gh pr create --fill --title "$pr_title" --body-file "$pr_body_file"
+    bash ./scripts/with-repo-env.sh gh pr create --fill --title "$pr_title" --body-file "$pr_body_file"
   else
-    env -u GH_TOKEN gh pr create --fill --title "$pr_title"
+    bash ./scripts/with-repo-env.sh gh pr create --fill --title "$pr_title"
   fi
 else
   echo "gh is not authenticated cleanly. Push succeeded, but PR creation was skipped."

@@ -72,7 +72,7 @@ bash ./scripts/main-sync.sh
 
 ## Notes
 
-- `GH_TOKEN` in the environment can interfere with `gh` authentication checks. The scripts call `gh` with `GH_TOKEN` unset.
-- CodeRabbit review on GitHub depends on the repo/app integration. If the GitHub app review does not trigger automatically, use `./scripts/pr-review.sh`.
-- `./scripts/pr-watch.sh` and `./scripts/pr-merge.sh` require clean `gh` authentication.
-- `./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
+- `wazaker` uses a repo-local `.envrc` that clears `GH_TOKEN` and `GITHUB_TOKEN` through `direnv`, so GitHub CLI behavior in this repo is isolated from your global shell setup.
+- CodeRabbit review on GitHub depends on the repo/app integration. If the GitHub app review does not trigger automatically, use `bash ./scripts/pr-review.sh`.
+- `bash ./scripts/pr-watch.sh` and `bash ./scripts/pr-merge.sh` require clean `gh` authentication.
+- `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.

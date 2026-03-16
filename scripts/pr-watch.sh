@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if ! env -u GH_TOKEN gh auth status >/dev/null 2>&1; then
+if ! bash ./scripts/with-repo-env.sh gh auth status >/dev/null 2>&1; then
   echo "gh is not authenticated cleanly. Cannot poll PR review state."
   exit 1
 fi
@@ -20,11 +20,11 @@ comments_file="$output_dir/${safe_branch}-review-comments.json"
 
 count=1
 while (( count <= max_checks )); do
-  env -u GH_TOKEN gh pr view "$branch_name" \
+  bash ./scripts/with-repo-env.sh gh pr view "$branch_name" \
     --json number,url,title,reviewDecision,latestReviews,reviews,comments,statusCheckRollup,mergeStateStatus \
     > "$pr_json_file"
 
-  env -u GH_TOKEN gh api "repos/{owner}/{repo}/pulls/$(jq -r '.number' "$pr_json_file")/comments" > "$comments_file"
+  bash ./scripts/with-repo-env.sh gh api "repos/{owner}/{repo}/pulls/$(jq -r '.number' "$pr_json_file")/comments" > "$comments_file"
 
   if jq -e '
     (
