@@ -28,6 +28,10 @@ fi
 
 git push -u origin "$current_branch"
 
+if [[ -z "$pr_body_file" ]]; then
+  pr_body_file="$(bash ./scripts/pr-summary.sh)"
+fi
+
 if env -u GH_TOKEN gh auth status >/dev/null 2>&1; then
   if [[ -n "$pr_body_file" ]]; then
     env -u GH_TOKEN gh pr create --fill --title "$pr_title" --body-file "$pr_body_file"
@@ -37,4 +41,5 @@ if env -u GH_TOKEN gh auth status >/dev/null 2>&1; then
 else
   echo "gh is not authenticated cleanly. Push succeeded, but PR creation was skipped."
   echo "Create the PR manually from: https://github.com/Hany-R-Mahmoud/wazaker/pull/new/$current_branch"
+  echo "Suggested PR body file: $pr_body_file"
 fi
