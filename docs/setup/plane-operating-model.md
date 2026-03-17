@@ -134,16 +134,43 @@ The repository will automate:
 
 - checked-in backlog structure
 - CSV export for Plane import
+- direct Plane sync through the official work-items API
 - role ownership labels
 - predictable issue descriptions from repo data
 
-The repository will not assume direct Plane API control until credentials or an integration method are intentionally added.
+The repository uses the official Plane REST API only when credentials are intentionally supplied through environment variables.
 
-That is the right constraint today. It keeps execution automated without hiding state in a brittle unofficial integration.
+Required environment variables:
+
+- `PLANE_API_KEY`
+- `PLANE_WORKSPACE_SLUG`
+- `PLANE_PROJECT_ID`
+
+Optional:
+
+- `PLANE_API_BASE_URL`
+- `PLANE_DEFAULT_ASSIGNEE_EMAIL`
+
+Use:
+
+```sh
+bash ./scripts/plane-sync-backlog.sh
+```
+
+This script:
+
+- reads `docs/product/plane-backlog.json`
+- fetches states, labels, and work items from Plane
+- optionally resolves a real Plane assignee from `PLANE_DEFAULT_ASSIGNEE_EMAIL`
+- creates missing labels
+- creates or updates work items
+- keeps matching stable through a hidden repo-owned sync marker in `description_html`
 
 ## Current Recommended Setup
 
 - Use `docs/product/plane-backlog.json` as the repo-side canonical backlog mirror.
 - Generate `docs/product/plane-backlog.csv` before backlog imports.
 - Use Plane for status, sequencing, and execution visibility.
+- Use `bash ./scripts/plane-sync-backlog.sh` when API credentials are available.
+- If you want every synced item assigned to your real Plane user, set `PLANE_DEFAULT_ASSIGNEE_EMAIL`.
 - Keep acceptance criteria and spec details in GitHub docs and link them from Plane items.

@@ -36,6 +36,7 @@
 - local repo scaffolding
 - docs and backlog seeds
 - Plane backlog export generation
+- Plane work-item sync via official API
 - setup checklists
 - integration placeholders through `.env.example`
 
