@@ -137,7 +137,7 @@ ensure_label_id() {
   ' | head -n 1)"
 
   if [[ -n "$existing_id" ]]; then
-    printf '%s' "$existing_id"
+    printf '%s\n' "$existing_id"
     return 0
   fi
 
