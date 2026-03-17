@@ -1,0 +1,230 @@
+{
+  "project": "wazaker",
+  "schemaVersion": "1.0",
+  "generatedFrom": [
+    "docs/product/backlog-seed.md",
+    "docs/product/user-stories.md"
+  ],
+  "items": [
+    {
+      "id": "EPIC-FOUNDATION",
+      "type": "epic",
+      "title": "Project Foundation",
+      "summary": "Establish the repo, PM, design, and workflow foundations for Wazaker.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "orchestrator",
+      "parentId": "",
+      "labels": [
+        "phase:foundation",
+        "lane:ops",
+        "owner:orchestrator"
+      ],
+      "acceptance": [
+        "GitHub, Plane, Penpot, and Stitch links are registered in repo docs.",
+        "The PR workflow is documented and automated.",
+        "The backlog can be exported into Plane-ready CSV."
+      ]
+    },
+    {
+      "id": "EPIC-PRODUCT",
+      "type": "epic",
+      "title": "Product Definition",
+      "summary": "Lock the MVP promise, constraints, and user-facing trust model.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "product-discovery",
+      "parentId": "",
+      "labels": [
+        "phase:mvp",
+        "lane:product",
+        "owner:product-discovery"
+      ],
+      "acceptance": [
+        "MVP promise and explicit non-goals are documented.",
+        "The first approved user flow is defined.",
+        "Bilingual content rules are agreed."
+      ]
+    },
+    {
+      "id": "EPIC-FEASIBILITY",
+      "type": "epic",
+      "title": "Recitation Feasibility Spike",
+      "summary": "Evaluate whether the speech-recognition and alignment approach is good enough for Quran revision.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "speech-evaluation",
+      "parentId": "",
+      "labels": [
+        "phase:spike",
+        "lane:ai",
+        "owner:speech-evaluation"
+      ],
+      "acceptance": [
+        "At least one candidate ASR path is tested on short Quran passages.",
+        "Confidence and error taxonomy are documented.",
+        "A proceed-or-stop recommendation exists."
+      ]
+    },
+    {
+      "id": "EPIC-MOBILE",
+      "type": "epic",
+      "title": "Mobile App Foundation",
+      "summary": "Build the first runnable Expo shell for the recitation MVP.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "",
+      "labels": [
+        "phase:mvp",
+        "lane:mobile",
+        "owner:mobile-engineering"
+      ],
+      "acceptance": [
+        "The app boots in Expo.",
+        "The recitation flow shell exists.",
+        "The app supports Arabic and English structure."
+      ]
+    },
+    {
+      "id": "US-001",
+      "type": "story",
+      "title": "Select target passage before recitation",
+      "summary": "As a Quran learner, I want to choose a surah, ayah range, or page before reciting so that the app knows what text to compare against.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "product-discovery",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:story",
+        "lane:product",
+        "owner:product-discovery"
+      ],
+      "acceptance": [
+        "The user can choose a constrained target passage.",
+        "The selected target is visible before recording starts.",
+        "The app stores the target metadata with the session."
+      ]
+    },
+    {
+      "id": "US-002",
+      "type": "story",
+      "title": "Record recitation on device",
+      "summary": "As a Quran learner, I want to record my recitation from the phone so that I can test my memorization without another person present.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:story",
+        "lane:mobile",
+        "owner:mobile-engineering"
+      ],
+      "acceptance": [
+        "The app requests microphone permission clearly.",
+        "The user can start, stop, and retry recording.",
+        "The app handles cancellation and permission denial gracefully."
+      ]
+    },
+    {
+      "id": "US-003",
+      "type": "story",
+      "title": "Compare recitation against expected text",
+      "summary": "As a Quran learner, I want the app to compare my recitation to the expected text so that I can find mistakes in revision.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-FEASIBILITY",
+      "labels": [
+        "type:story",
+        "lane:ai",
+        "owner:systems-architect"
+      ],
+      "acceptance": [
+        "The analysis is tied to the selected target passage.",
+        "The system returns a structured comparison result.",
+        "The response format is stable enough for mobile UI integration."
+      ]
+    },
+    {
+      "id": "US-004",
+      "type": "story",
+      "title": "Show revision feedback clearly",
+      "summary": "As a Quran learner, I want to see what I missed or changed so that I know what to revise.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "interface-and-design",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:story",
+        "lane:ux",
+        "owner:interface-and-design"
+      ],
+      "acceptance": [
+        "Feedback distinguishes likely omission, insertion, and substitution.",
+        "Low-confidence results are labeled clearly.",
+        "The feedback is readable in Arabic and understandable without technical terms."
+      ]
+    },
+    {
+      "id": "US-005",
+      "type": "story",
+      "title": "Retry immediately after results",
+      "summary": "As a Quran learner, I want to retry immediately after feedback so that I can improve within the same study session.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:story",
+        "lane:mobile",
+        "owner:mobile-engineering"
+      ],
+      "acceptance": [
+        "The user can start a new attempt from the result view.",
+        "Previous session data is preserved.",
+        "The flow is fast enough for repeat use."
+      ]
+    },
+    {
+      "id": "TASK-001",
+      "type": "task",
+      "title": "Create first Spec Kit feature spec for recitation MVP",
+      "summary": "Write the Phase 1 recitation revision spec as the first execution artifact on top of the operating system.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:task",
+        "lane:product",
+        "owner:orchestrator"
+      ],
+      "acceptance": [
+        "The spec defines the selected passage, recording, analysis, feedback, and retry flow.",
+        "The spec states explicit V1 non-goals.",
+        "The spec is ready for plan generation."
+      ]
+    },
+    {
+      "id": "SPIKE-001",
+      "type": "spike",
+      "title": "Benchmark first ASR option on short passages",
+      "summary": "Run the first speech-recognition benchmark on a constrained Quran sample set and document quality limits.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "speech-evaluation",
+      "parentId": "EPIC-FEASIBILITY",
+      "labels": [
+        "type:spike",
+        "lane:ai",
+        "owner:speech-evaluation"
+      ],
+      "acceptance": [
+        "The sample set is defined.",
+        "At least one ASR path is measured.",
+        "Mismatch patterns and confidence issues are documented."
+      ]
+    }
+  ]
+}
