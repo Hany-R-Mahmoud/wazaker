@@ -24,6 +24,8 @@
 ## Artifact Map
 
 - user stories: `docs/product/user-stories.md` and mirrored into Plane
+- Plane backlog source: `docs/product/plane-backlog.json`
+- Plane import export: `docs/product/plane-backlog.csv`
 - MVP scope: `docs/product/mvp-scope.md`
 - architecture decisions: `docs/architecture/adrs/`
 - research: `docs/research/`
@@ -33,6 +35,7 @@
 
 - local repo scaffolding
 - docs and backlog seeds
+- Plane backlog export generation
 - setup checklists
 - integration placeholders through `.env.example`
 
