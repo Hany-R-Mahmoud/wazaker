@@ -13,6 +13,41 @@ if [[ ! -f "$status_file" || ! -f "$comments_file" ]]; then
   exit 1
 fi
 
+has_actionable_comments() {
+  local actionable_review_comments
+  local actionable_status_comments
+
+  actionable_review_comments="$(jq '
+    [
+      .[]?
+      | select(
+          ((.body // "") | test("!\\[P[0-3] Badge\\]|Inline comments:|Nitpick comments:"; "i"))
+        )
+    ] | length
+  ' "$comments_file")"
+
+  actionable_status_comments="$(jq '
+    [
+      .comments[]?
+      | select(
+          ((.author.login // "") | ascii_downcase | contains("coderabbit"))
+          and ((.body // "") | test("!\\[P[0-3] Badge\\]|Inline comments:|Nitpick comments:"; "i"))
+        )
+    ] | length
+  ' "$status_file")"
+
+  if (( actionable_review_comments > 0 || actionable_status_comments > 0 )); then
+    return 0
+  fi
+
+  return 1
+}
+
+if ! has_actionable_comments; then
+  echo "No actionable review findings detected in saved artifacts."
+  exit 0
+fi
+
 prompt_file="$(mktemp)"
 cat > "$prompt_file" <<EOF
 You are resolving pull request review feedback for the current repository.
