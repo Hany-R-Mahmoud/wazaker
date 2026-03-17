@@ -60,6 +60,11 @@ For the full automated review-fix loop on an open PR:
 bash ./scripts/pr-review-cycle.sh 1
 ```
 
+This loop also:
+- replies to bot-originated review threads
+- resolves those threads after fixes land
+- blocks merge while review threads remain unresolved
+
 ### 6. Resolve review comments on the same branch
 
 If review artifacts were fetched and you want an automated fix loop:
@@ -69,6 +74,18 @@ bash ./scripts/pr-resolve-review.sh
 ```
 
 This reads the saved PR review artifacts, runs a Codex fix pass, then commits and pushes if changes were made.
+
+To sync GitHub review threads after fixes:
+
+```sh
+bash ./scripts/pr-thread-sync.sh 1
+```
+
+To verify that the PR has no unresolved review threads before merge:
+
+```sh
+bash ./scripts/pr-check-unresolved.sh 1
+```
 
 ### 7. Merge and sync main
 
@@ -90,3 +107,4 @@ bash ./scripts/main-sync.sh
 - The repo-local skill `.agents/skills/pr-review-resolver/SKILL.md` is the preferred agent entry point for PR-page review handling.
 - `bash ./scripts/pr-watch.sh` and `bash ./scripts/pr-merge.sh` require clean `gh` authentication.
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
+- `bash ./scripts/pr-thread-sync.sh` only auto-replies to bot-originated review threads; unresolved human threads still block merge.

@@ -27,6 +27,8 @@ while (( cycle <= max_cycles )); do
   bash ./scripts/pr-resolve-review.sh
   after_head="$(git rev-parse HEAD)"
 
+  bash ./scripts/pr-thread-sync.sh "$pr_number" "$(git branch --show-current)" || true
+
   if [[ "$before_head" == "$after_head" ]]; then
     echo "No new changes were committed while resolving review feedback."
     break
@@ -36,4 +38,8 @@ while (( cycle <= max_cycles )); do
 done
 
 echo "Review loop finished for PR #$pr_number"
-echo "If the PR is clean, merge with: bash ./scripts/pr-merge.sh"
+if bash ./scripts/pr-check-unresolved.sh "$pr_number" "$(git branch --show-current)"; then
+  echo "PR review threads are clean. Merge with: bash ./scripts/pr-merge.sh"
+else
+  echo "PR still has unresolved review threads. Re-run the review cycle before merging."
+fi

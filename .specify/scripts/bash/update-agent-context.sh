@@ -411,13 +411,6 @@ update_existing_agent_file() {
         new_change_entry="- $CURRENT_BRANCH: Added $NEW_DB"
     fi
 
-    local should_prepend_change_entry=false
-    local max_existing_changes=3
-    if [[ -n "$new_change_entry" ]] && ! grep -Fqx -- "$new_change_entry" "$target_file"; then
-        should_prepend_change_entry=true
-        max_existing_changes=2
-    fi
-    
     # Check if sections exist in the file
     local has_active_technologies=0
     local has_recent_changes=0
@@ -436,7 +429,7 @@ update_existing_agent_file() {
     local tech_entries_added=false
     local changes_entries_added=false
     local existing_changes_count=0
-    local file_ended=false
+    local change_entry_added=false
     
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Handle Active Technologies section
@@ -450,8 +443,14 @@ update_existing_agent_file() {
                 printf '%s\n' "${new_tech_entries[@]}" >> "$temp_file"
                 tech_entries_added=true
             fi
-            echo "$line" >> "$temp_file"
             in_tech_section=false
+            if [[ "$line" == "## Recent Changes" ]]; then
+                echo "$line" >> "$temp_file"
+                in_changes_section=true
+                changes_entries_added=true
+            else
+                echo "$line" >> "$temp_file"
+            fi
             continue
         elif [[ $in_tech_section == true ]] && [[ -z "$line" ]]; then
             # Add new tech entries before empty line in tech section
@@ -466,20 +465,44 @@ update_existing_agent_file() {
         # Handle Recent Changes section
         if [[ "$line" == "## Recent Changes" ]]; then
             echo "$line" >> "$temp_file"
-            # Add new change entry right after the heading
-            if [[ "$should_prepend_change_entry" == true ]]; then
-                echo "$new_change_entry" >> "$temp_file"
-            fi
             in_changes_section=true
             changes_entries_added=true
             continue
         elif [[ $in_changes_section == true ]] && [[ "$line" =~ ^##[[:space:]] ]]; then
+            if [[ -n "$new_change_entry" ]] && [[ $change_entry_added == false ]]; then
+                echo "$new_change_entry" >> "$temp_file"
+                change_entry_added=true
+                existing_changes_count=$((existing_changes_count + 1))
+            fi
             echo "$line" >> "$temp_file"
             in_changes_section=false
             continue
-        elif [[ $in_changes_section == true ]] && [[ "$line" == "- "* ]]; then
-            # Keep a 3-item history window, accounting for any prepended change.
-            if [[ $existing_changes_count -lt $max_existing_changes ]]; then
+        elif [[ $in_changes_section == true ]] && [[ -z "$line" ]]; then
+            if [[ -n "$new_change_entry" ]] && [[ $change_entry_added == false ]]; then
+                echo "$new_change_entry" >> "$temp_file"
+                change_entry_added=true
+                existing_changes_count=$((existing_changes_count + 1))
+            fi
+            echo "$line" >> "$temp_file"
+            continue
+        elif [[ $in_changes_section == true ]] && [[ "$line" =~ ^-[[:space:]] ]]; then
+            if [[ -n "$new_change_entry" ]] && [[ "$line" == "$new_change_entry" ]]; then
+                if [[ $change_entry_added == false ]]; then
+                    echo "$new_change_entry" >> "$temp_file"
+                    change_entry_added=true
+                    existing_changes_count=$((existing_changes_count + 1))
+                fi
+                continue
+            fi
+
+            if [[ -n "$new_change_entry" ]] && [[ $change_entry_added == false ]]; then
+                echo "$new_change_entry" >> "$temp_file"
+                change_entry_added=true
+                existing_changes_count=$((existing_changes_count + 1))
+            fi
+
+            # Keep a 3-item history window, including the current-branch entry.
+            if [[ $existing_changes_count -lt 3 ]]; then
                 echo "$line" >> "$temp_file"
                 existing_changes_count=$((existing_changes_count + 1))
             fi
@@ -511,6 +534,9 @@ update_existing_agent_file() {
     if [[ $has_recent_changes -eq 0 ]] && [[ -n "$new_change_entry" ]]; then
         echo "" >> "$temp_file"
         echo "## Recent Changes" >> "$temp_file"
+        echo "$new_change_entry" >> "$temp_file"
+        changes_entries_added=true
+    elif [[ $has_recent_changes -eq 1 ]] && [[ -n "$new_change_entry" ]] && [[ $change_entry_added == false ]]; then
         echo "$new_change_entry" >> "$temp_file"
         changes_entries_added=true
     fi

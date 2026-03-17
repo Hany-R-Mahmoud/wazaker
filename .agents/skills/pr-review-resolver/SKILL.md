@@ -34,6 +34,8 @@ Use this skill when a pull request already exists and the job is to inspect revi
 - `bash ./scripts/pr-resolve-review.sh`
 - `bash ./scripts/pr-trigger-coderabbit.sh`
 - `bash ./scripts/pr-review-cycle.sh`
+- `bash ./scripts/pr-thread-sync.sh`
+- `bash ./scripts/pr-check-unresolved.sh`
 - `bash ./scripts/pr-merge.sh`
 - `bash ./scripts/with-repo-env.sh gh ...`
 
@@ -44,12 +46,13 @@ Use this skill when a pull request already exists and the job is to inspect revi
 3. If CodeRabbit feedback is not present yet, trigger it on the PR.
 4. Run `bash ./scripts/pr-watch.sh` to fetch current PR review artifacts into `docs/pr-reviews/`.
 5. Run `bash ./scripts/pr-resolve-review.sh` to apply the smallest coherent fixes for valid findings.
-6. If fixes were made, let the script commit and push them on the same branch.
-7. Repeat the watch and resolve loop until:
+6. Run `bash ./scripts/pr-thread-sync.sh` to reply to bot review threads and mark them resolved after fixes are pushed.
+7. If fixes were made, let the script commit and push them on the same branch.
+8. Repeat the watch and resolve loop until:
    - no valid unresolved findings remain, or
    - the bot has not produced new actionable feedback, or
    - a human decision is required.
-8. Merge only when the PR is clean enough to merge and no remaining conflicts or unresolved blocking comments are present.
+9. Merge only when the PR is clean enough to merge and no remaining conflicts or unresolved blocking comments are present.
 
 ## Preferred Command
 
@@ -68,6 +71,7 @@ Before merge:
 - confirm the working tree is clean
 - confirm the branch has been pushed
 - confirm review artifacts do not show new unresolved bot feedback
+- confirm `bash ./scripts/pr-check-unresolved.sh` reports zero open review threads
 - confirm mergeability via GitHub CLI if available
 
 Then merge with:
