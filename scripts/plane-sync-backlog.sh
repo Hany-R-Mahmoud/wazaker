@@ -32,14 +32,14 @@ api() {
   local data="${3:-}"
 
   if [[ -n "$data" ]]; then
-    curl -sS -L \
+    curl --fail -sS -L \
       -X "$method" \
       -H "X-API-Key: $api_key" \
       -H "Content-Type: application/json" \
       "$plane_base_url$path" \
       --data "$data"
   else
-    curl -sS -L \
+    curl --fail -sS -L \
       -X "$method" \
       -H "X-API-Key: $api_key" \
       "$plane_base_url$path"
@@ -151,7 +151,7 @@ ensure_label_id() {
 find_existing_work_item_id() {
   local external_id="$1"
   local title="$2"
-  local work_items_json="$2"
+  local work_items_json="$3"
   local marker
   marker="<!-- wazaker-sync-id:${external_id} -->"
 
@@ -181,9 +181,32 @@ work_item_url() {
   printf '%s' "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/${work_item_id}/"
 }
 
+work_items_path() {
+  printf '%s' "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state,created_at,parent"
+}
+
+fetch_work_items_json() {
+  local next_path
+  local page_json
+  local page_results
+  local combined_results='[]'
+
+  next_path="$(work_items_path)"
+
+  while [[ -n "$next_path" ]]; do
+    page_json="$(api GET "$next_path")"
+    page_results="$(printf '%s' "$page_json" | jq -c '(.results // .)')"
+    combined_results="$(jq -nc --argjson existing "$combined_results" --argjson page "$page_results" '$existing + $page')"
+    next_path="$(printf '%s' "$page_json" | jq -r '.next // empty')"
+    next_path="${next_path#"$plane_base_url"}"
+  done
+
+  jq -nc --argjson results "$combined_results" '{results: $results}'
+}
+
 states_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/states/")"
 labels_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/labels/")"
-work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state,created_at")"
+work_items_json="$(fetch_work_items_json)"
 members_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/members/")"
 
 default_assignee_id=""
@@ -203,8 +226,13 @@ if [[ -n "$default_assignee_email" ]]; then
 fi
 
 declare -A created_or_existing_ids
+declare -A desired_parent_ids
 
-mapfile -t item_lines < <(jq -c '.items[]' "$source_file")
+item_lines_json="$(jq -c '.items[]' "$source_file")"
+item_lines=()
+if [[ -n "$item_lines_json" ]]; then
+  mapfile -t item_lines <<< "$item_lines_json"
+fi
 
 for item_json in "${item_lines[@]}"; do
   external_id="$(printf '%s' "$item_json" | jq -r '.id')"
@@ -257,6 +285,7 @@ for item_json in "${item_lines[@]}"; do
   if [[ -n "$existing_work_item_id" ]]; then
     api PATCH "$(work_item_url "$existing_work_item_id")" "$payload" >/dev/null
     created_or_existing_ids["$external_id"]="$existing_work_item_id"
+    desired_parent_ids["$external_id"]="$parent_external_id"
     echo "Updated Plane work item ${external_id} -> ${existing_work_item_id}"
     continue
   fi
@@ -271,7 +300,26 @@ for item_json in "${item_lines[@]}"; do
   fi
 
   created_or_existing_ids["$external_id"]="$created_id"
+  desired_parent_ids["$external_id"]="$parent_external_id"
   echo "Created Plane work item ${external_id} -> ${created_id}"
 
-  work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state,created_at")"
+  work_items_json="$(fetch_work_items_json)"
+done
+
+for external_id in "${!desired_parent_ids[@]}"; do
+  parent_external_id="${desired_parent_ids[$external_id]}"
+
+  if [[ -z "$parent_external_id" ]]; then
+    continue
+  fi
+
+  parent_id="${created_or_existing_ids[$parent_external_id]:-}"
+  child_id="${created_or_existing_ids[$external_id]:-}"
+
+  if [[ -z "$parent_id" || -z "$child_id" ]]; then
+    echo "Could not resolve parent mapping for backlog item ${external_id} -> ${parent_external_id}"
+    exit 1
+  fi
+
+  api PATCH "$(work_item_url "$child_id")" "$(jq -nc --arg parent "$parent_id" '{parent: $parent}')" >/dev/null
 done

@@ -1,5 +1,6 @@
 {
   "project": "wazaker",
+  "schemaVersion": "1.0",
   "generatedFrom": [
     "docs/product/backlog-seed.md",
     "docs/product/user-stories.md"

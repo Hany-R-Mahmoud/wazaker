@@ -25,7 +25,7 @@
 
 - user stories: `docs/product/user-stories.md` and mirrored into Plane
 - Plane backlog source: `docs/product/plane-backlog.json`
-- Plane import export: `docs/product/plane-backlog.csv`
+- Plane import CSV: `docs/product/plane-backlog.csv`
 - MVP scope: `docs/product/mvp-scope.md`
 - architecture decisions: `docs/architecture/adrs/`
 - research: `docs/research/`

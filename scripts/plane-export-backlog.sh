@@ -6,11 +6,13 @@ source_file="${1:-docs/product/plane-backlog.json}"
 output_file="${2:-docs/product/plane-backlog.csv}"
 
 if [[ ! -f "$source_file" ]]; then
-  echo "Source backlog file not found: $source_file"
+  echo "Source backlog file not found: $source_file" >&2
   exit 1
 fi
 
 mkdir -p "$(dirname "$output_file")"
+tmp_file="$(mktemp "${output_file}.tmp.XXXXXX")"
+trap 'rm -f "$tmp_file"' EXIT
 
 {
   printf 'External ID,Type,Title,Summary,State,Priority,Parent ID,Agent Owner,Labels,Acceptance Criteria\n'
@@ -30,6 +32,9 @@ mkdir -p "$(dirname "$output_file")"
       ]
     | @csv
   ' "$source_file"
-} > "$output_file"
+} > "$tmp_file"
+
+mv "$tmp_file" "$output_file"
+trap - EXIT
 
 echo "Generated $output_file from $source_file"
