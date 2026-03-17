@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+if [[ -f ".env.local" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ".env.local"
+  set +a
+fi
+
 source_file="${1:-docs/product/plane-backlog.json}"
 plane_base_url="${PLANE_API_BASE_URL:-https://api.plane.so}"
 workspace_slug="${PLANE_WORKSPACE_SLUG:-wazaker}"

@@ -157,6 +157,8 @@ Use:
 bash ./scripts/plane-sync-backlog.sh
 ```
 
+For convenience, the script will also load a repo-local ignored `.env.local` file if it exists.
+
 This script:
 
 - reads `docs/product/plane-backlog.json`
