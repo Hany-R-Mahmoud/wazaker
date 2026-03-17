@@ -45,7 +45,7 @@ Spec Kit is installed and initialized for this repository with `codex` support.
 To use the generated prompt commands from this repo context:
 
 ```sh
-export CODEX_HOME=/Users/hanyramadan/wazaker/.codex
+export CODEX_HOME="$PWD/.codex"
 ```
 
 Primary commands:
