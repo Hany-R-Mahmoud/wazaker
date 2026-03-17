@@ -17,12 +17,12 @@ api_key="${PLANE_API_KEY:-}"
 default_assignee_email="${PLANE_DEFAULT_ASSIGNEE_EMAIL:-}"
 
 if [[ -z "$api_key" ]]; then
-  echo "PLANE_API_KEY is required."
+  echo "PLANE_API_KEY is required." >&2
   exit 1
 fi
 
 if [[ ! -f "$source_file" ]]; then
-  echo "Source backlog file not found: $source_file"
+  echo "Source backlog file not found: $source_file" >&2
   exit 1
 fi
 
@@ -228,7 +228,10 @@ fi
 declare -A created_or_existing_ids
 declare -A desired_parent_ids
 
-item_lines_json="$(jq -c '.items[]' "$source_file")"
+item_lines_json="$(jq -ce '.items[]' "$source_file")" || {
+  echo "Failed to parse backlog items from $source_file" >&2
+  exit 1
+}
 item_lines=()
 if [[ -n "$item_lines_json" ]]; then
   mapfile -t item_lines <<< "$item_lines_json"
@@ -256,17 +259,11 @@ for item_json in "${item_lines[@]}"; do
 
   labels_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/labels/")"
 
-  parent_id=""
-  if [[ -n "$parent_external_id" && -n "${created_or_existing_ids[$parent_external_id]:-}" ]]; then
-    parent_id="${created_or_existing_ids[$parent_external_id]}"
-  fi
-
   payload="$(jq -nc \
     --arg name "$title" \
     --arg description_html "$description_html" \
     --arg state "$state_id" \
     --arg priority "$priority" \
-    --arg parent "$parent_id" \
     --arg assignee "$default_assignee_id" \
     --argjson labels "$(printf '%s\n' "${label_ids[@]}" | jq -R . | jq -s 'map(select(length > 0))')" '
       {
@@ -276,14 +273,19 @@ for item_json in "${item_lines[@]}"; do
         priority: $priority,
         labels: $labels
       }
-      + (if ($parent | length) > 0 then {parent: $parent} else {} end)
       + (if ($assignee | length) > 0 then {assignees: [$assignee]} else {} end)
     ')"
 
   existing_work_item_id="$(find_existing_work_item_id "$external_id" "$title" "$work_items_json")"
 
   if [[ -n "$existing_work_item_id" ]]; then
-    api PATCH "$(work_item_url "$existing_work_item_id")" "$payload" >/dev/null
+    patch_response="$(api PATCH "$(work_item_url "$existing_work_item_id")" "$payload")"
+    patched_id="$(printf '%s' "$patch_response" | jq -r '.id')"
+    if [[ -z "$patched_id" || "$patched_id" == "null" ]]; then
+      echo "Failed to update Plane work item for ${external_id}" >&2
+      printf '%s\n' "$patch_response"
+      exit 1
+    fi
     created_or_existing_ids["$external_id"]="$existing_work_item_id"
     desired_parent_ids["$external_id"]="$parent_external_id"
     echo "Updated Plane work item ${external_id} -> ${existing_work_item_id}"
@@ -294,7 +296,7 @@ for item_json in "${item_lines[@]}"; do
   created_id="$(printf '%s' "$created_json" | jq -r '.id')"
 
   if [[ -z "$created_id" || "$created_id" == "null" ]]; then
-    echo "Failed to create Plane work item for ${external_id}"
+    echo "Failed to create Plane work item for ${external_id}" >&2
     printf '%s\n' "$created_json"
     exit 1
   fi
@@ -317,9 +319,16 @@ for external_id in "${!desired_parent_ids[@]}"; do
   child_id="${created_or_existing_ids[$external_id]:-}"
 
   if [[ -z "$parent_id" || -z "$child_id" ]]; then
-    echo "Could not resolve parent mapping for backlog item ${external_id} -> ${parent_external_id}"
+    echo "Could not resolve parent mapping for backlog item ${external_id} -> ${parent_external_id}" >&2
     exit 1
   fi
 
-  api PATCH "$(work_item_url "$child_id")" "$(jq -nc --arg parent "$parent_id" '{parent: $parent}')" >/dev/null
+  parent_patch_response="$(api PATCH "$(work_item_url "$child_id")" "$(jq -nc --arg parent "$parent_id" '{parent: $parent}')")"
+  patched_parent="$(printf '%s' "$parent_patch_response" | jq -r '.parent // empty')"
+  if [[ "$patched_parent" != "$parent_id" ]]; then
+    echo "Failed to set parent for backlog item ${external_id} -> ${parent_external_id}" >&2
+    printf '%s\n' "$parent_patch_response"
+    exit 1
+  fi
+  echo "Linked Plane parent ${external_id} -> ${parent_external_id}"
 done
