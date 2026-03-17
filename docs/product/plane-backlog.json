@@ -12,7 +12,7 @@
       "title": "Project Foundation",
       "summary": "Establish the repo, PM, design, and workflow foundations for Wazaker.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "orchestrator",
       "parentId": "",
       "labels": [
@@ -32,7 +32,7 @@
       "title": "Product Definition",
       "summary": "Lock the MVP promise, constraints, and user-facing trust model.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "In Progress",
       "agentOwner": "product-discovery",
       "parentId": "",
       "labels": [
@@ -72,7 +72,7 @@
       "title": "Mobile App Foundation",
       "summary": "Build the first runnable Expo shell for the recitation MVP.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "In Progress",
       "agentOwner": "mobile-engineering",
       "parentId": "",
       "labels": [
@@ -192,7 +192,7 @@
       "title": "Create first Spec Kit feature spec for recitation MVP",
       "summary": "Write the Phase 1 recitation revision spec as the first execution artifact on top of the operating system.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "orchestrator",
       "parentId": "EPIC-PRODUCT",
       "labels": [
@@ -204,6 +204,46 @@
         "The spec defines the selected passage, recording, analysis, feedback, and retry flow.",
         "The spec states explicit V1 non-goals.",
         "The spec is ready for plan generation."
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "type": "task",
+      "title": "Generate technical implementation plan for recitation MVP",
+      "summary": "Create the first plan.md and supporting design artifacts so implementation and the ASR spike can proceed from a shared technical blueprint.",
+      "priority": "urgent",
+      "state": "Done",
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:task",
+        "lane:architecture",
+        "owner:systems-architect"
+      ],
+      "acceptance": [
+        "A technical plan exists for the recitation MVP.",
+        "Research decisions, data model, and contracts are documented.",
+        "The plan is ready to break down into implementation tasks and inform the ASR feasibility spike."
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "type": "task",
+      "title": "Break recitation MVP plan into implementation tasks",
+      "summary": "Generate the dependency-aware task breakdown so implementation, QA, and the ASR spike can be sequenced cleanly.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:task",
+        "lane:product",
+        "owner:orchestrator"
+      ],
+      "acceptance": [
+        "A tasks.md file exists for the recitation MVP.",
+        "Tasks are grouped by user story and include file paths.",
+        "Dependencies and MVP-first sequencing are explicit."
       ]
     },
     {
