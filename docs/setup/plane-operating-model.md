@@ -167,6 +167,7 @@ This script:
 - creates missing labels
 - creates or updates work items
 - keeps matching stable through a hidden repo-owned sync marker in `description_html`
+- falls back to unique exact-title matching when the remote description marker is unavailable
 
 ## Current Recommended Setup
 
@@ -174,5 +175,6 @@ This script:
 - Generate `docs/product/plane-backlog.csv` before backlog imports.
 - Use Plane for status, sequencing, and execution visibility.
 - Use `bash ./scripts/plane-sync-backlog.sh` when API credentials are available.
+- Use `bash ./scripts/plane-dedupe-backlog.sh` if a partial sync or retry created duplicates.
 - If you want every synced item assigned to your real Plane user, set `PLANE_DEFAULT_ASSIGNEE_EMAIL`.
 - Keep acceptance criteria and spec details in GitHub docs and link them from Plane items.

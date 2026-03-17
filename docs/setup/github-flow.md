@@ -93,6 +93,12 @@ bash ./scripts/pr-check-unresolved.sh 1
 bash ./scripts/pr-merge.sh
 ```
 
+For a single command that waits for review, resolves comments, and merges when clean:
+
+```sh
+bash ./scripts/pr-autofinish.sh 1
+```
+
 If `gh` is unavailable, merge in GitHub, then run:
 
 ```sh
@@ -108,3 +114,4 @@ bash ./scripts/main-sync.sh
 - `bash ./scripts/pr-watch.sh` and `bash ./scripts/pr-merge.sh` require clean `gh` authentication.
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
 - `bash ./scripts/pr-thread-sync.sh` only auto-replies to bot-originated review threads; unresolved human threads still block merge.
+- `bash ./scripts/pr-autofinish.sh` is the preferred no-interruption path once a PR is open.

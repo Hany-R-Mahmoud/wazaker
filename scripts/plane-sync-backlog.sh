@@ -150,12 +150,29 @@ ensure_label_id() {
 
 find_existing_work_item_id() {
   local external_id="$1"
+  local title="$2"
   local work_items_json="$2"
+  local marker
+  marker="<!-- wazaker-sync-id:${external_id} -->"
 
-  printf '%s' "$work_items_json" | jq -r --arg marker "<!-- wazaker-sync-id:${external_id} -->" '
-    (.results // .)[]?
-    | select((.description_html // "") | contains($marker))
-    | .id
+  printf '%s' "$work_items_json" | jq -r --arg marker "$marker" --arg title "$title" '
+    [
+      (.results // .)[]?
+      | select((.description_html // "") | contains($marker))
+    ] as $marker_matches
+    | if ($marker_matches | length) > 0 then
+        $marker_matches[0].id
+      else
+        [
+          (.results // .)[]?
+          | select((.name // "") == $title)
+        ] as $title_matches
+        | if ($title_matches | length) == 1 then
+            $title_matches[0].id
+          else
+            empty
+          end
+      end
   ' | head -n 1
 }
 
@@ -166,7 +183,7 @@ work_item_url() {
 
 states_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/states/")"
 labels_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/labels/")"
-work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state")"
+work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state,created_at")"
 members_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/members/")"
 
 default_assignee_id=""
@@ -235,7 +252,7 @@ for item_json in "${item_lines[@]}"; do
       + (if ($assignee | length) > 0 then {assignees: [$assignee]} else {} end)
     ')"
 
-  existing_work_item_id="$(find_existing_work_item_id "$external_id" "$work_items_json")"
+  existing_work_item_id="$(find_existing_work_item_id "$external_id" "$title" "$work_items_json")"
 
   if [[ -n "$existing_work_item_id" ]]; then
     api PATCH "$(work_item_url "$existing_work_item_id")" "$payload" >/dev/null
@@ -256,5 +273,5 @@ for item_json in "${item_lines[@]}"; do
   created_or_existing_ids["$external_id"]="$created_id"
   echo "Created Plane work item ${external_id} -> ${created_id}"
 
-  work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state")"
+  work_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,state,created_at")"
 done
