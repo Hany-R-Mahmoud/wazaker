@@ -277,6 +277,10 @@ get_language_conventions() {
     echo "$lang: Follow standard conventions"
 }
 
+escape_sed_replacement() {
+    printf '%s' "$1" | sed 's/[\\&|]/\\&/g'
+}
+
 create_new_agent_file() {
     local target_file="$1"
     local temp_file="$2"
@@ -310,43 +314,37 @@ create_new_agent_file() {
     local language_conventions
     language_conventions=$(get_language_conventions "$NEW_LANG")
     
-    # Perform substitutions with error checking using safer approach
-    # Escape special characters for sed by using a different delimiter or escaping
-    local escaped_lang=$(printf '%s\n' "$NEW_LANG" | sed 's/[\[\.*^$()+{}|]/\\&/g')
-    local escaped_framework=$(printf '%s\n' "$NEW_FRAMEWORK" | sed 's/[\[\.*^$()+{}|]/\\&/g')
-    local escaped_branch=$(printf '%s\n' "$CURRENT_BRANCH" | sed 's/[\[\.*^$()+{}|]/\\&/g')
-    
     # Build technology stack and recent change strings conditionally
     local tech_stack
-    if [[ -n "$escaped_lang" && -n "$escaped_framework" ]]; then
-        tech_stack="- $escaped_lang + $escaped_framework ($escaped_branch)"
-    elif [[ -n "$escaped_lang" ]]; then
-        tech_stack="- $escaped_lang ($escaped_branch)"
-    elif [[ -n "$escaped_framework" ]]; then
-        tech_stack="- $escaped_framework ($escaped_branch)"
+    if [[ -n "$NEW_LANG" && -n "$NEW_FRAMEWORK" ]]; then
+        tech_stack="- $NEW_LANG + $NEW_FRAMEWORK ($CURRENT_BRANCH)"
+    elif [[ -n "$NEW_LANG" ]]; then
+        tech_stack="- $NEW_LANG ($CURRENT_BRANCH)"
+    elif [[ -n "$NEW_FRAMEWORK" ]]; then
+        tech_stack="- $NEW_FRAMEWORK ($CURRENT_BRANCH)"
     else
-        tech_stack="- ($escaped_branch)"
+        tech_stack="- ($CURRENT_BRANCH)"
     fi
 
     local recent_change
-    if [[ -n "$escaped_lang" && -n "$escaped_framework" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_lang + $escaped_framework"
-    elif [[ -n "$escaped_lang" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_lang"
-    elif [[ -n "$escaped_framework" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_framework"
+    if [[ -n "$NEW_LANG" && -n "$NEW_FRAMEWORK" ]]; then
+        recent_change="- $CURRENT_BRANCH: Added $NEW_LANG + $NEW_FRAMEWORK"
+    elif [[ -n "$NEW_LANG" ]]; then
+        recent_change="- $CURRENT_BRANCH: Added $NEW_LANG"
+    elif [[ -n "$NEW_FRAMEWORK" ]]; then
+        recent_change="- $CURRENT_BRANCH: Added $NEW_FRAMEWORK"
     else
-        recent_change="- $escaped_branch: Added"
+        recent_change="- $CURRENT_BRANCH: Added"
     fi
 
     local substitutions=(
-        "s|\[PROJECT NAME\]|$project_name|"
-        "s|\[DATE\]|$current_date|"
-        "s|\[EXTRACTED FROM ALL PLAN.MD FILES\]|$tech_stack|"
-        "s|\[ACTUAL STRUCTURE FROM PLANS\]|$project_structure|g"
-        "s|\[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES\]|$commands|"
-        "s|\[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE\]|$language_conventions|"
-        "s|\[LAST 3 FEATURES AND WHAT THEY ADDED\]|$recent_change|"
+        "s|\[PROJECT NAME\]|$(escape_sed_replacement "$project_name")|"
+        "s|\[DATE\]|$(escape_sed_replacement "$current_date")|"
+        "s|\[EXTRACTED FROM ALL PLAN.MD FILES\]|$(escape_sed_replacement "$tech_stack")|"
+        "s|\[ACTUAL STRUCTURE FROM PLANS\]|$(escape_sed_replacement "$project_structure")|g"
+        "s|\[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES\]|$(escape_sed_replacement "$commands")|"
+        "s|\[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE\]|$(escape_sed_replacement "$language_conventions")|"
+        "s|\[LAST 3 FEATURES AND WHAT THEY ADDED\]|$(escape_sed_replacement "$recent_change")|"
     )
     
     for substitution in "${substitutions[@]}"; do
@@ -398,11 +396,11 @@ update_existing_agent_file() {
     local new_change_entry=""
     
     # Prepare new technology entries
-    if [[ -n "$tech_stack" ]] && ! grep -q "$tech_stack" "$target_file"; then
+    if [[ -n "$tech_stack" ]] && ! grep -Fq -- "$tech_stack" "$target_file"; then
         new_tech_entries+=("- $tech_stack ($CURRENT_BRANCH)")
     fi
     
-    if [[ -n "$NEW_DB" ]] && [[ "$NEW_DB" != "N/A" ]] && [[ "$NEW_DB" != "NEEDS CLARIFICATION" ]] && ! grep -q "$NEW_DB" "$target_file"; then
+    if [[ -n "$NEW_DB" ]] && [[ "$NEW_DB" != "N/A" ]] && [[ "$NEW_DB" != "NEEDS CLARIFICATION" ]] && ! grep -Fq -- "$NEW_DB" "$target_file"; then
         new_tech_entries+=("- $NEW_DB ($CURRENT_BRANCH)")
     fi
     
@@ -411,6 +409,13 @@ update_existing_agent_file() {
         new_change_entry="- $CURRENT_BRANCH: Added $tech_stack"
     elif [[ -n "$NEW_DB" ]] && [[ "$NEW_DB" != "N/A" ]] && [[ "$NEW_DB" != "NEEDS CLARIFICATION" ]]; then
         new_change_entry="- $CURRENT_BRANCH: Added $NEW_DB"
+    fi
+
+    local should_prepend_change_entry=false
+    local max_existing_changes=3
+    if [[ -n "$new_change_entry" ]] && ! grep -Fqx -- "$new_change_entry" "$target_file"; then
+        should_prepend_change_entry=true
+        max_existing_changes=2
     fi
     
     # Check if sections exist in the file
@@ -462,7 +467,7 @@ update_existing_agent_file() {
         if [[ "$line" == "## Recent Changes" ]]; then
             echo "$line" >> "$temp_file"
             # Add new change entry right after the heading
-            if [[ -n "$new_change_entry" ]]; then
+            if [[ "$should_prepend_change_entry" == true ]]; then
                 echo "$new_change_entry" >> "$temp_file"
             fi
             in_changes_section=true
@@ -473,10 +478,10 @@ update_existing_agent_file() {
             in_changes_section=false
             continue
         elif [[ $in_changes_section == true ]] && [[ "$line" == "- "* ]]; then
-            # Keep only first 2 existing changes
-            if [[ $existing_changes_count -lt 2 ]]; then
+            # Keep a 3-item history window, accounting for any prepended change.
+            if [[ $existing_changes_count -lt $max_existing_changes ]]; then
                 echo "$line" >> "$temp_file"
-                ((existing_changes_count++))
+                existing_changes_count=$((existing_changes_count + 1))
             fi
             continue
         fi
