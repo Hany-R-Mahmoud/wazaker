@@ -28,8 +28,11 @@ while (( count <= max_checks )); do
 
   if jq -e '
     (
-      [.latestReviews[]?.author.login // empty, .reviews[]?.author.login // empty] |
-      map(ascii_downcase | contains("coderabbit"))
+      [
+        .latestReviews[]?.author.login // empty,
+        .reviews[]?.author.login // empty,
+        .comments[]?.author.login // empty
+      ] | map(ascii_downcase | contains("coderabbit"))
     ) | any
   ' "$pr_json_file" >/dev/null 2>&1; then
     echo "CodeRabbit review detected."

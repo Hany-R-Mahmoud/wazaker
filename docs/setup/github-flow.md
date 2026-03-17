@@ -54,6 +54,12 @@ If auto-review does not start after the PR is opened, trigger it manually:
 bash ./scripts/pr-trigger-coderabbit.sh 1
 ```
 
+For the full automated review-fix loop on an open PR:
+
+```sh
+bash ./scripts/pr-review-cycle.sh 1
+```
+
 ### 6. Resolve review comments on the same branch
 
 If review artifacts were fetched and you want an automated fix loop:
@@ -81,5 +87,6 @@ bash ./scripts/main-sync.sh
 - `wazaker` uses a repo-local `.envrc` that clears `GH_TOKEN` and `GITHUB_TOKEN` through `direnv`, so GitHub CLI behavior in this repo is isolated from your global shell setup.
 - CodeRabbit review on GitHub depends on the repo/app integration. If the GitHub app review does not trigger automatically, use `bash ./scripts/pr-review.sh`.
 - `.coderabbit.yaml` enables repository-level automatic review behavior once the CodeRabbit GitHub App is installed and authorized for this repository.
+- The repo-local skill `.agents/skills/pr-review-resolver/SKILL.md` is the preferred agent entry point for PR-page review handling.
 - `bash ./scripts/pr-watch.sh` and `bash ./scripts/pr-merge.sh` require clean `gh` authentication.
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
