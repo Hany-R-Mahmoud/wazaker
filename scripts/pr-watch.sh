@@ -11,6 +11,7 @@ pr_ref="${1:-}"
 branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
 max_checks="${MAX_CHECKS:-20}"
+review_settle_seconds="${REVIEW_SETTLE_SECONDS:-240}"
 output_dir="docs/pr-reviews"
 safe_branch="${branch_name//\//-}"
 
@@ -26,6 +27,8 @@ else
   pr_view_ref="${pr_ref:-$branch_name}"
 fi
 
+settle_window_start_epoch="$(date +%s)"
+
 count=1
 while (( count <= max_checks )); do
   bash ./scripts/with-repo-env.sh gh pr view "$pr_view_ref" \
@@ -34,6 +37,9 @@ while (( count <= max_checks )); do
 
   npx agent-reviews --pr "$(jq -r '.number' "$pr_json_file")" --unresolved --bots-only --json > "$raw_comments_file"
   python3 ./scripts/pr-filter-agent-reviews.py "$raw_comments_file" "$comments_file" >/dev/null
+
+  now_epoch="$(date +%s)"
+  seconds_since_watch_start=$(( now_epoch - settle_window_start_epoch ))
 
   if jq -e 'length > 0' "$comments_file" >/dev/null 2>&1; then
     echo "Actionable bot review comments detected."
@@ -58,12 +64,21 @@ while (( count <= max_checks )); do
       ]
       | if length == 0 then false else .[-1] | contains("review in progress") end
     ' "$pr_json_file" >/dev/null 2>&1; then
-      :
+      echo "Bot review still in progress; waiting."
     else
-      echo "CodeRabbit review completed with no actionable bot comments."
-      echo "$pr_json_file"
-      exit 0
+      if (( seconds_since_watch_start >= review_settle_seconds )); then
+        echo "Bot review completed with no actionable bot comments after settle window."
+        echo "$pr_json_file"
+        exit 0
+      fi
+      echo "Bot review seen, but settle window is still open (${seconds_since_watch_start}s/${review_settle_seconds}s). Waiting."
     fi
+  elif (( seconds_since_watch_start >= review_settle_seconds )); then
+    echo "No bot review activity after settle window; treating PR as clear of actionable bot comments."
+    echo "$pr_json_file"
+    exit 0
+  else
+    echo "No actionable bot review comments yet; settle window is still open (${seconds_since_watch_start}s/${review_settle_seconds}s). Waiting."
   fi
 
   sleep "$poll_seconds"

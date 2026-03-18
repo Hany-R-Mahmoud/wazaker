@@ -5,7 +5,8 @@ set -euo pipefail
 pr_number="${1:-}"
 max_cycles="${MAX_REVIEW_CYCLES:-3}"
 poll_seconds="${POLL_SECONDS:-15}"
-max_checks="${MAX_CHECKS:-12}"
+review_settle_seconds="${REVIEW_SETTLE_SECONDS:-240}"
+max_checks="${MAX_CHECKS:-0}"
 
 if [[ -z "$pr_number" ]]; then
   pr_number="$(bash ./scripts/with-repo-env.sh gh pr view --json number -q .number)"
@@ -16,12 +17,16 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
+if (( max_checks <= 0 )); then
+  max_checks=$(( (review_settle_seconds + poll_seconds - 1) / poll_seconds + 2 ))
+fi
+
 cycle=1
 while (( cycle <= max_cycles )); do
   echo "Review cycle $cycle of $max_cycles for PR #$pr_number"
 
   bash ./scripts/pr-trigger-coderabbit.sh "$pr_number" || true
-  POLL_SECONDS="$poll_seconds" MAX_CHECKS="$max_checks" bash ./scripts/pr-watch.sh
+  POLL_SECONDS="$poll_seconds" MAX_CHECKS="$max_checks" REVIEW_SETTLE_SECONDS="$review_settle_seconds" bash ./scripts/pr-watch.sh "$pr_number"
 
   before_head="$(git rev-parse HEAD)"
   bash ./scripts/pr-resolve-review.sh
