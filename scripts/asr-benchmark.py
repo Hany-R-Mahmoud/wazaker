@@ -148,11 +148,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    transcript_dir = args.transcript_dir.resolve()
+    output_json = args.output_json.resolve()
+    output_md = args.output_md.resolve()
     samples = manifest.get("samples", [])
     if not samples:
         raise SystemExit("Manifest contains no samples")
 
-    results = [analyze_sample(sample, args.transcript_dir) for sample in samples]
+    results = [analyze_sample(sample, transcript_dir) for sample in samples]
     average_wer = sum(item.word_error_rate for item in results) / len(results)
 
     json_payload = {
@@ -174,8 +177,8 @@ def main() -> int:
         ],
     }
 
-    args.output_json.parent.mkdir(parents=True, exist_ok=True)
-    args.output_json.write_text(json.dumps(json_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(json_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     lines = [
         f"# Local ASR Benchmark Results: {args.provider}",
@@ -191,11 +194,11 @@ def main() -> int:
             f"| {item.sample_id} | {item.passage_label} | {item.word_error_rate:.3f} | "
             f"{len(item.missing_tokens)} | {len(item.inserted_tokens)} | {item.substitutions} |"
         )
-    args.output_md.parent.mkdir(parents=True, exist_ok=True)
-    args.output_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    output_md.parent.mkdir(parents=True, exist_ok=True)
+    output_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    print(f"Wrote {args.output_json}")
-    print(f"Wrote {args.output_md}")
+    print(f"Wrote {output_json}")
+    print(f"Wrote {output_md}")
     return 0
 
 

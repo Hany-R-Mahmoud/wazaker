@@ -32,6 +32,12 @@ bash ./scripts/asr-run-local.sh \
   --output-dir benchmarks/asr/runs/whisper-cpp
 ```
 
+By default, the local runner forces CPU mode with `--no-gpu` for stability on Macs where Metal initialization can crash. If you later want to try GPU mode explicitly, set:
+
+```sh
+export WHISPER_CPP_USE_GPU=1
+```
+
 4. Score the transcript outputs with:
 
 ```sh

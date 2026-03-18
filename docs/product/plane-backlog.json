@@ -252,7 +252,7 @@
       "title": "Build key-free local ASR benchmark harness",
       "summary": "Create the local sample manifest, normalization rules, and offline evaluation scripts needed to run the feasibility spike without paid APIs.",
       "priority": "urgent",
-      "state": "In Progress",
+      "state": "Done",
       "agentOwner": "speech-evaluation",
       "parentId": "EPIC-FEASIBILITY",
       "labels": [
@@ -264,6 +264,26 @@
         "A local sample manifest exists for the short-passage spike.",
         "Normalization rules are documented and reusable.",
         "A local benchmark runner can score transcript outputs without a paid provider."
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "type": "task",
+      "title": "Document local Whisper baseline findings and recommendation",
+      "summary": "Capture the first real free/local benchmark results and make an explicit recommendation about whether the local route is good enough for learner-facing recitation feedback.",
+      "priority": "urgent",
+      "state": "Done",
+      "agentOwner": "speech-evaluation",
+      "parentId": "EPIC-FEASIBILITY",
+      "labels": [
+        "type:task",
+        "lane:ai",
+        "owner:speech-evaluation"
+      ],
+      "acceptance": [
+        "A findings document compares the local base and small Whisper runs.",
+        "The recommendation is explicit about whether the trust bar is met.",
+        "The next action is clear for the feasibility epic."
       ]
     },
     {
