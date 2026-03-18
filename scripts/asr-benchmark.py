@@ -7,7 +7,6 @@ import argparse
 import json
 import re
 import unicodedata
-from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +15,8 @@ from typing import Any
 PUNCT_TRANSLATION = str.maketrans("", "", ".,;:!?\"'()[]{}<>/\\|`~@#$%^&*_+=،؛؟ـ")
 ARABIC_DIACRITICS = re.compile(r"[\u0610-\u061A\u064B-\u065F\u06D6-\u06ED]")
 WHITESPACE_RE = re.compile(r"\s+")
+SUPERSCRIPT_ALIF = "\u0670"
+ALIF_WASLA = "\u0671"
 
 
 @dataclass
@@ -34,22 +35,26 @@ def normalize_text(text: str) -> str:
     normalized = unicodedata.normalize("NFKC", text)
     normalized = normalized.translate(PUNCT_TRANSLATION)
     normalized = ARABIC_DIACRITICS.sub("", normalized)
+    normalized = normalized.replace(SUPERSCRIPT_ALIF, "")
     normalized = normalized.replace("آ", "ا").replace("أ", "ا").replace("إ", "ا")
+    normalized = normalized.replace(ALIF_WASLA, "ا")
     normalized = normalized.replace("ى", "ي").replace("ة", "ه")
     normalized = normalized.replace("ؤ", "و").replace("ئ", "ي")
     normalized = WHITESPACE_RE.sub(" ", normalized).strip()
     return normalized
 
 
-def levenshtein(tokens_a: list[str], tokens_b: list[str]) -> tuple[int, int, int, int]:
+def levenshtein_with_alignment(
+    tokens_a: list[str], tokens_b: list[str]
+) -> tuple[int, list[str], list[str], int]:
     rows = len(tokens_a) + 1
     cols = len(tokens_b) + 1
     dp = [[0] * cols for _ in range(rows)]
 
     for i in range(rows):
-      dp[i][0] = i
+        dp[i][0] = i
     for j in range(cols):
-      dp[0][j] = j
+        dp[0][j] = j
 
     for i in range(1, rows):
         for j in range(1, cols):
@@ -63,15 +68,15 @@ def levenshtein(tokens_a: list[str], tokens_b: list[str]) -> tuple[int, int, int
     i = len(tokens_a)
     j = len(tokens_b)
     substitutions = 0
-    deletions = 0
-    insertions = 0
+    missing_tokens: list[str] = []
+    inserted_tokens: list[str] = []
 
     while i > 0 or j > 0:
         if i > 0 and dp[i][j] == dp[i - 1][j] + 1:
-            deletions += 1
+            missing_tokens.append(tokens_a[i - 1])
             i -= 1
         elif j > 0 and dp[i][j] == dp[i][j - 1] + 1:
-            insertions += 1
+            inserted_tokens.append(tokens_b[j - 1])
             j -= 1
         else:
             if i > 0 and j > 0 and tokens_a[i - 1] != tokens_b[j - 1]:
@@ -79,7 +84,9 @@ def levenshtein(tokens_a: list[str], tokens_b: list[str]) -> tuple[int, int, int
             i -= 1
             j -= 1
 
-    return dp[-1][-1], deletions, insertions, substitutions
+    missing_tokens.reverse()
+    inserted_tokens.reverse()
+    return dp[-1][-1], missing_tokens, inserted_tokens, substitutions
 
 
 def read_transcript_text(path: Path) -> str:
@@ -115,13 +122,10 @@ def analyze_sample(sample: dict[str, Any], transcript_dir: Path) -> SampleResult
 
     expected_tokens = expected.split() if expected else []
     observed_tokens = observed.split() if observed else []
-    distance, _, _, substitutions = levenshtein(expected_tokens, observed_tokens)
+    distance, missing_tokens, inserted_tokens, substitutions = levenshtein_with_alignment(
+        expected_tokens, observed_tokens
+    )
     wer = distance / max(1, len(expected_tokens))
-
-    expected_counter = Counter(expected_tokens)
-    observed_counter = Counter(observed_tokens)
-    missing_tokens = sorted((expected_counter - observed_counter).elements())
-    inserted_tokens = sorted((observed_counter - expected_counter).elements())
 
     return SampleResult(
         sample_id=sample["sampleId"],

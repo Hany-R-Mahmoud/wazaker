@@ -62,13 +62,16 @@ python3 - "$manifest" "$output_dir" <<'PY'
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 manifest_path = Path(sys.argv[1])
 output_dir = Path(sys.argv[2]).resolve()
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+manifest_dir = manifest_path.resolve().parent
 binary = os.environ["WHISPER_CPP_BIN"]
 model = os.environ["WHISPER_CPP_MODEL"]
 use_gpu = os.environ.get("WHISPER_CPP_USE_GPU", "0") == "1"
@@ -79,10 +82,34 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 for sample in manifest.get("samples", []):
     sample_id = sample["sampleId"]
-    audio_path = Path(sample["audioPath"]).resolve()
+    audio_path = (manifest_dir / sample["audioPath"]).resolve()
     if not audio_path.exists():
         print(f"Skipping {sample_id}: missing audio file {audio_path}", file=sys.stderr)
         continue
+
+    temp_audio_path = None
+    if audio_path.suffix.lower() == ".m4a":
+        afconvert = shutil.which("afconvert")
+        if not afconvert:
+            raise SystemExit(
+                "Sample uses .m4a input but afconvert is unavailable; convert to wav or install a converter."
+            )
+
+        temp_dir = Path(tempfile.mkdtemp(prefix=f"{sample_id}-", dir=str(output_dir)))
+        temp_audio_path = temp_dir / f"{sample_id}.wav"
+        subprocess.run(
+            [
+                afconvert,
+                "-f",
+                "WAVE",
+                "-d",
+                "LEI16@16000",
+                str(audio_path),
+                str(temp_audio_path),
+            ],
+            check=True,
+        )
+        audio_path = temp_audio_path
 
     output_file = output_dir / f"{sample_id}.txt"
     command = [
@@ -111,5 +138,7 @@ for sample in manifest.get("samples", []):
         raise SystemExit(f"No transcript text extracted for {sample_id}")
 
     output_file.write_text(transcript_text + "\n", encoding="utf-8")
+    if temp_audio_path:
+        shutil.rmtree(temp_audio_path.parent, ignore_errors=True)
     print(f"Created transcript for {sample_id}: {output_file}")
 PY
