@@ -31,6 +31,10 @@ while (( cycle <= max_cycles )); do
 
   if [[ "$before_head" == "$after_head" ]]; then
     echo "No new changes were committed while resolving review feedback."
+    if bash ./scripts/pr-check-unresolved.sh "$pr_number" "$(git branch --show-current)"; then
+      break
+    fi
+    echo "Actionable review comments still remain after a no-op resolver pass."
     break
   fi
 

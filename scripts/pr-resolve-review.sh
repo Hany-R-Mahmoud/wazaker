@@ -9,39 +9,13 @@ status_file="$output_dir/${safe_branch}-pr-status.json"
 comments_file="$output_dir/${safe_branch}-review-comments.json"
 prompts_file="$output_dir/${safe_branch}-review-prompts.md"
 
-if [[ ! -f "$status_file" || ! -f "$comments_file" ]]; then
+if [[ ! -f "$comments_file" ]]; then
   echo "Missing review artifacts. Run ./scripts/pr-watch.sh first."
   exit 1
 fi
 
 has_actionable_comments() {
-  local actionable_review_comments
-  local actionable_status_comments
-
-  actionable_review_comments="$(jq '
-    [
-      .[]?
-      | select(
-          ((.body // "") | test("!\\[P[0-3] Badge\\]|Inline comments:|Nitpick comments:"; "i"))
-        )
-    ] | length
-  ' "$comments_file")"
-
-  actionable_status_comments="$(jq '
-    [
-      .comments[]?
-      | select(
-          ((.author.login // "") | ascii_downcase | contains("coderabbit"))
-          and ((.body // "") | test("!\\[P[0-3] Badge\\]|Inline comments:|Nitpick comments:"; "i"))
-        )
-    ] | length
-  ' "$status_file")"
-
-  if (( actionable_review_comments > 0 || actionable_status_comments > 0 )); then
-    return 0
-  fi
-
-  return 1
+  jq -e 'length > 0' "$comments_file" >/dev/null 2>&1
 }
 
 if ! has_actionable_comments; then
@@ -90,9 +64,13 @@ codex exec --full-auto -C "$(pwd)" "$(cat "$prompt_file")"
 rm -f "$prompt_file"
 
 if [[ -n "$(git status --porcelain)" ]]; then
-  git add .
-  git commit -m "fix: address pr review feedback"
-  git push
+  git add -A
+  if ! git diff --cached --quiet; then
+    git commit -m "fix: address pr review feedback"
+    git push
+  else
+    echo "No staged source changes produced while resolving review feedback."
+  fi
 else
   echo "No changes produced while resolving review feedback."
 fi

@@ -37,6 +37,7 @@ Use this skill when a pull request already exists and the job is to inspect revi
 - `bash ./scripts/pr-thread-sync.sh`
 - `bash ./scripts/pr-check-unresolved.sh`
 - `bash ./scripts/pr-merge.sh`
+- `npx agent-reviews ...`
 - `bash ./scripts/with-repo-env.sh gh ...`
 
 ## Workflow
@@ -45,14 +46,15 @@ Use this skill when a pull request already exists and the job is to inspect revi
 2. Ensure GitHub CLI works in repo-local mode through `scripts/with-repo-env.sh`.
 3. If CodeRabbit feedback is not present yet, trigger it on the PR.
 4. Run `bash ./scripts/pr-watch.sh` to fetch current PR review artifacts into `docs/pr-reviews/`.
-5. Run `bash ./scripts/pr-resolve-review.sh` to apply the smallest coherent fixes for valid findings.
-6. Run `bash ./scripts/pr-thread-sync.sh` to reply to bot review threads and mark them resolved after fixes are pushed.
-7. If fixes were made, let the script commit and push them on the same branch.
-8. Repeat the watch and resolve loop until:
+5. Treat `agent-reviews` output as the source of truth for actionable bot comments; ignore status-only comments such as "Review triggered".
+6. Run `bash ./scripts/pr-resolve-review.sh` to apply the smallest coherent fixes for valid findings.
+7. Run `bash ./scripts/pr-thread-sync.sh` to reply to actionable bot review threads and mark them resolved after fixes are pushed.
+8. If fixes were made, let the script commit and push them on the same branch.
+9. Repeat the watch and resolve loop until:
    - no valid unresolved findings remain, or
    - the bot has not produced new actionable feedback, or
    - a human decision is required.
-9. Merge only when the PR is clean enough to merge and no remaining conflicts or unresolved blocking comments are present.
+10. Merge only when the PR is clean enough to merge and no remaining conflicts or unresolved blocking comments are present.
 
 ## Preferred Command
 
@@ -83,5 +85,5 @@ bash ./scripts/pr-merge.sh
 ## Practical Notes
 
 - Review artifacts are generated files under `docs/pr-reviews/` and are not part of source control.
-- `pr-resolve-review.sh` uses `codex exec` to perform the actual fix pass, so it should be treated as an agent handoff step.
+- `pr-resolve-review.sh` still uses `codex exec` to perform the actual fix pass, but actionable comment discovery and thread resolution now come from `agent-reviews`.
 - If GitHub app reviews are not available, you can still use `bash ./scripts/pr-review.sh committed` for a local CodeRabbit review.

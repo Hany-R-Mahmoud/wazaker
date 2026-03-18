@@ -47,6 +47,7 @@ bash ./scripts/pr-watch.sh
 ```
 
 This polls the current branch PR and saves review artifacts into `docs/pr-reviews/`.
+The workflow now uses `agent-reviews` to store only actionable bot comments, while ignoring CodeRabbit status noise such as "Review triggered" comments.
 
 If auto-review does not start after the PR is opened, trigger it manually:
 
@@ -60,10 +61,12 @@ For the full automated review-fix loop on an open PR:
 bash ./scripts/pr-review-cycle.sh 1
 ```
 
-This loop also:
-- replies to bot-originated review threads
+This loop now:
+- fetches actionable bot feedback through `agent-reviews`
+- ignores bot status noise that should not block merge
+- replies to actionable bot review threads
 - resolves those threads after fixes land
-- blocks merge while review threads remain unresolved
+- blocks merge while actionable review threads remain unresolved
 
 ### 6. Resolve review comments on the same branch
 
@@ -73,13 +76,15 @@ If review artifacts were fetched and you want an automated fix loop:
 bash ./scripts/pr-resolve-review.sh
 ```
 
-This reads the saved PR review artifacts, runs a Codex fix pass, then commits and pushes if changes were made.
+This reads the filtered review artifacts, runs a Codex fix pass, then commits and pushes only when real source changes were produced.
 
 To sync GitHub review threads after fixes:
 
 ```sh
 bash ./scripts/pr-thread-sync.sh 1
 ```
+
+This uses `agent-reviews --reply ... --resolve` for actionable bot comments.
 
 To verify that the PR has no unresolved review threads before merge:
 
@@ -113,5 +118,5 @@ bash ./scripts/main-sync.sh
 - The repo-local skill `.agents/skills/pr-review-resolver/SKILL.md` is the preferred agent entry point for PR-page review handling.
 - `bash ./scripts/pr-watch.sh` and `bash ./scripts/pr-merge.sh` require clean `gh` authentication.
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
-- `bash ./scripts/pr-thread-sync.sh` only auto-replies to bot-originated review threads; unresolved human threads still block merge.
+- `bash ./scripts/pr-thread-sync.sh` now uses `agent-reviews` for actionable bot review threads; unresolved human threads still block merge.
 - `bash ./scripts/pr-autofinish.sh` is the preferred no-interruption path once a PR is open.
