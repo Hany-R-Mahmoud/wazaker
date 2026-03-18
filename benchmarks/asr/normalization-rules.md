@@ -12,12 +12,13 @@ These rules define how expected Quran text and recognized transcript text should
 
 1. Remove tatweel.
 2. Remove Arabic tashkeel marks for the first scoring pass.
-3. Normalize hamza and alif variants to bare alif.
+3. Normalize alif variants `آ`, `أ`, `إ`, and `ٱ` to bare alif `ا`.
 4. Normalize `ى` to `ي`.
 5. Normalize `ة` to `ه` for the first pass.
-6. Remove punctuation and decorative Quranic symbols.
-7. Collapse repeated whitespace.
-8. Trim leading and trailing whitespace.
+6. Normalize hamza-on-carrier variants `ؤ` -> `و` and `ئ` -> `ي` for ASR scoring consistency with `normalize_text`.
+7. Remove punctuation and decorative Quranic symbols, including superscript alif `ٰ`.
+8. Collapse repeated whitespace.
+9. Trim leading and trailing whitespace.
 
 ## Known Tradeoff
 

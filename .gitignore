@@ -12,6 +12,8 @@ coverage/
 !.codex/prompts/
 !.codex/prompts/**
 docs/pr-reviews/
+__pycache__/
+*.pyc
 benchmarks/asr/samples/*.wav
 benchmarks/asr/samples/*.m4a
 benchmarks/asr/runs/**
