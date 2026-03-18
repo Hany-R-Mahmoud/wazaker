@@ -9,7 +9,7 @@ status_file="$output_dir/${safe_branch}-pr-status.json"
 comments_file="$output_dir/${safe_branch}-review-comments.json"
 prompt_file="${2:-$output_dir/${safe_branch}-review-prompts.md}"
 
-if [[ ! -f "$status_file" || ! -f "$comments_file" ]]; then
+if [[ ! -f "$comments_file" ]]; then
   echo "Missing review artifacts. Run ./scripts/pr-watch.sh first." >&2
   exit 1
 fi
@@ -28,7 +28,6 @@ def load_json(path: Path):
     with path.open("r", encoding="utf-8") as fh:
         return json.load(fh)
 
-status = load_json(status_path)
 comments = load_json(comments_path)
 
 pattern = re.compile(
@@ -43,10 +42,12 @@ for item in comments:
     path = item.get("path") or ""
     sources.append((author, path, body))
 
-for item in status.get("comments", []):
-    body = item.get("body") or ""
-    author = (item.get("author") or {}).get("login") or ""
-    sources.append((author, "", body))
+if status_path.exists():
+    status = load_json(status_path)
+    for item in status.get("comments", []):
+        body = item.get("body") or ""
+        author = (item.get("author") or {}).get("login") or ""
+        sources.append((author, "", body))
 
 prompts = []
 seen = set()

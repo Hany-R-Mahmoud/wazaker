@@ -287,6 +287,26 @@
       ]
     },
     {
+      "id": "TASK-006",
+      "type": "task",
+      "title": "Adopt agent-reviews-first PR automation based on live trial",
+      "summary": "Document the live trial on PR #7, replace fragile custom bot-thread handling with agent-reviews, and record the expected workflow improvement as a long-term reference.",
+      "priority": "high",
+      "state": "In Progress",
+      "agentOwner": "review-and-pr-operations",
+      "parentId": "EPIC-FOUNDATION",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:review-and-pr-operations"
+      ],
+      "acceptance": [
+        "A written trial note captures what succeeded, what failed, and the recommended direction.",
+        "The PR workflow uses agent-reviews for actionable bot comment detection and thread resolution.",
+        "Bot status noise no longer blocks merge or triggers no-op review cycles."
+      ]
+    },
+    {
       "id": "SPIKE-001",
       "type": "spike",
       "title": "Benchmark first ASR option on short passages",
