@@ -247,6 +247,26 @@
       ]
     },
     {
+      "id": "TASK-004",
+      "type": "task",
+      "title": "Build key-free local ASR benchmark harness",
+      "summary": "Create the local sample manifest, normalization rules, and offline evaluation scripts needed to run the feasibility spike without paid APIs.",
+      "priority": "urgent",
+      "state": "In Progress",
+      "agentOwner": "speech-evaluation",
+      "parentId": "EPIC-FEASIBILITY",
+      "labels": [
+        "type:task",
+        "lane:ai",
+        "owner:speech-evaluation"
+      ],
+      "acceptance": [
+        "A local sample manifest exists for the short-passage spike.",
+        "Normalization rules are documented and reusable.",
+        "A local benchmark runner can score transcript outputs without a paid provider."
+      ]
+    },
+    {
       "id": "SPIKE-001",
       "type": "spike",
       "title": "Benchmark first ASR option on short passages",

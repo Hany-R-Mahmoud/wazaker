@@ -1,0 +1,37 @@
+{
+  "manifestVersion": "1.0",
+  "name": "phase2-sample-set",
+  "description": "Short-passage local ASR benchmark set for the Wazaker feasibility spike.",
+  "samples": [
+    {
+      "sampleId": "fatiha-speaker-a-correct",
+      "speakerId": "speaker-a",
+      "passageId": "surah-001-full",
+      "passageLabel": "Al-Fatiha",
+      "attemptStyle": "correct",
+      "audioPath": "benchmarks/asr/samples/fatiha-speaker-a-correct.wav",
+      "expectedText": "بسم الله الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم مالك يوم الدين اياك نعبد واياك نستعين اهدنا الصراط المستقيم صراط الذين انعمت عليهم غير المغضوب عليهم ولا الضالين",
+      "notes": "Replace with a real recording from mobile capture."
+    },
+    {
+      "sampleId": "ikhlas-speaker-b-pause",
+      "speakerId": "speaker-b",
+      "passageId": "surah-112-full",
+      "passageLabel": "Al-Ikhlas",
+      "attemptStyle": "hesitation",
+      "audioPath": "benchmarks/asr/samples/ikhlas-speaker-b-pause.wav",
+      "expectedText": "قل هو الله احد الله الصمد لم يلد ولم يولد ولم يكن له كفوا احد",
+      "notes": "Use this to observe how pauses and restarts affect scoring."
+    },
+    {
+      "sampleId": "baqarah-1-5-speaker-c-imperfect",
+      "speakerId": "speaker-c",
+      "passageId": "surah-002-ayah-001-005",
+      "passageLabel": "Al-Baqarah 1-5",
+      "attemptStyle": "intentionally-imperfect",
+      "audioPath": "benchmarks/asr/samples/baqarah-1-5-speaker-c-imperfect.wav",
+      "expectedText": "الم ذلك الكتاب لا ريب فيه هدى للمتقين الذين يؤمنون بالغيب ويقيمون الصلاة ومما رزقناهم ينفقون والذين يؤمنون بما انزل اليك وما انزل من قبلك وبالاخرة هم يوقنون اولئك على هدى من ربهم واولئك هم المفلحون",
+      "notes": "Use one known omission or substitution so mismatch behavior can be inspected."
+    }
+  ]
+}

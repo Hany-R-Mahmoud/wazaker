@@ -22,15 +22,19 @@ This spike should answer:
 
 ## Candidate Paths
 
-### Candidate A: OpenAI `whisper-1` baseline
+### Candidate A: `whisper.cpp` local baseline
+
+Use a local Whisper-family runner as the first benchmark path so the team can produce real transcription output without API spend. The purpose here is not production quality. It is to establish whether constrained Quran recitation can be aligned and scored usefully enough to justify deeper investment.
+
+### Candidate B: OpenAI `whisper-1` hosted baseline
 
 Use `whisper-1` as the first baseline because OpenAI documents it as generally available for transcription and supports richer transcription response formats than the newer 4o transcription models, including `verbose_json`. That makes it the easiest first candidate when alignment detail matters.
 
-### Candidate B: OpenAI `gpt-4o-transcribe`
+### Candidate C: OpenAI `gpt-4o-transcribe`
 
 Use `gpt-4o-transcribe` as the higher-quality transcription comparator. OpenAI documents it as an improved speech-to-text model relative to Whisper, but its output options are more limited. This makes it a strong quality comparison candidate even if `whisper-1` remains the easier first integration for alignment-heavy experiments.
 
-### Candidate C: Tarteel-inspired benchmark, not a dependency
+### Candidate D: Tarteel-inspired benchmark, not a dependency
 
 Tarteel’s official help content clearly shows production features for Quran voice search and memorization mistake detection, and TarteelAI maintains public ML repositories for Quran speech data and training workflows. However, I did not find clear public developer API documentation for a hosted recitation-analysis API during this planning pass. Because of that, we should treat Tarteel as a benchmark and product reference, not as the initial integration dependency.
 
@@ -120,16 +124,17 @@ Stop or narrow scope if:
 1. Prepare canonical text fixtures from Quran.com for the selected passages.
 2. Record the sample set on real phones.
 3. Run Candidate A on the full set.
-4. Run Candidate B on the same set.
-5. Score both candidates against the same normalization rules.
+4. Score Candidate A against the normalization rules.
+5. If the signal is promising, run Candidate B or C as quality comparators later.
 6. Fill the results template and write the recommendation.
 
 ## Current Recommendation
 
 Start with:
 
-1. `whisper-1` baseline for richer transcript structure and easier alignment experimentation
-2. `gpt-4o-transcribe` comparator for quality benchmarking
+1. `whisper.cpp` local baseline for zero-cost feasibility signal
+2. `whisper-1` as the first paid comparator if we later need a stronger reference point
+3. `gpt-4o-transcribe` as the higher-quality paid comparator if the baseline is promising
 
 Do not block this spike on Tarteel API integration. Treat Tarteel as a benchmark reference unless a public developer path becomes clearly available later.
 
