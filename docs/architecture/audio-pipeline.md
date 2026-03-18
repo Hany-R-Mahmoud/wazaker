@@ -37,3 +37,23 @@ Before implementation, test short passages using multiple speakers and real phon
 - which recognition option performs best on constrained Quran recitation
 - whether token-level alignment is reliable enough for feedback
 - where confidence thresholds should block or soften correction
+
+## Phase 2 Spike Shape
+
+The first spike should not start by wiring the Expo app directly to a production provider. It should start as an evaluation harness with:
+
+1. canonical target passages from Quran.com
+2. real phone recordings from a constrained sample set
+3. one baseline transcription path
+4. one quality-comparator transcription path
+5. normalization rules applied before scoring
+6. a structured results template for go/no-go decisions
+
+## Current Provider Bias
+
+At this stage, the most practical path is:
+
+- baseline: OpenAI `whisper-1`
+- comparator: OpenAI `gpt-4o-transcribe`
+
+This is a speed and evidence decision, not a final architectural commitment. If these paths fail the spike, the next step is to evaluate Quran-specific model routes or partner APIs before exposing learner-facing correction.

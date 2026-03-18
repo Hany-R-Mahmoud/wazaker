@@ -52,7 +52,7 @@
       "title": "Recitation Feasibility Spike",
       "summary": "Evaluate whether the speech-recognition and alignment approach is good enough for Quran revision.",
       "priority": "urgent",
-      "state": "Backlog",
+      "state": "In Progress",
       "agentOwner": "speech-evaluation",
       "parentId": "",
       "labels": [
@@ -252,7 +252,7 @@
       "title": "Benchmark first ASR option on short passages",
       "summary": "Run the first speech-recognition benchmark on a constrained Quran sample set and document quality limits.",
       "priority": "urgent",
-      "state": "Backlog",
+      "state": "In Progress",
       "agentOwner": "speech-evaluation",
       "parentId": "EPIC-FEASIBILITY",
       "labels": [
