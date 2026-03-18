@@ -292,7 +292,7 @@
       "title": "Adopt agent-reviews-first PR automation based on live trial",
       "summary": "Document the live trial on PR #7, replace fragile custom bot-thread handling with agent-reviews, and record the expected workflow improvement as a long-term reference.",
       "priority": "high",
-      "state": "In Progress",
+      "state": "Done",
       "agentOwner": "review-and-pr-operations",
       "parentId": "EPIC-FOUNDATION",
       "labels": [
