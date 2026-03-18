@@ -27,7 +27,7 @@ else
   pr_view_ref="${pr_ref:-$branch_name}"
 fi
 
-latest_commit_epoch="$(git log -1 --format=%ct HEAD)"
+settle_window_start_epoch="$(date +%s)"
 
 count=1
 while (( count <= max_checks )); do
@@ -39,7 +39,7 @@ while (( count <= max_checks )); do
   python3 ./scripts/pr-filter-agent-reviews.py "$raw_comments_file" "$comments_file" >/dev/null
 
   now_epoch="$(date +%s)"
-  seconds_since_commit=$(( now_epoch - latest_commit_epoch ))
+  seconds_since_watch_start=$(( now_epoch - settle_window_start_epoch ))
 
   if jq -e 'length > 0' "$comments_file" >/dev/null 2>&1; then
     echo "Actionable bot review comments detected."
@@ -66,19 +66,19 @@ while (( count <= max_checks )); do
     ' "$pr_json_file" >/dev/null 2>&1; then
       echo "Bot review still in progress; waiting."
     else
-      if (( seconds_since_commit >= review_settle_seconds )); then
+      if (( seconds_since_watch_start >= review_settle_seconds )); then
         echo "Bot review completed with no actionable bot comments after settle window."
         echo "$pr_json_file"
         exit 0
       fi
-      echo "Bot review seen, but settle window is still open (${seconds_since_commit}s/${review_settle_seconds}s). Waiting."
+      echo "Bot review seen, but settle window is still open (${seconds_since_watch_start}s/${review_settle_seconds}s). Waiting."
     fi
-  elif (( seconds_since_commit >= review_settle_seconds )); then
+  elif (( seconds_since_watch_start >= review_settle_seconds )); then
     echo "No bot review activity after settle window; treating PR as clear of actionable bot comments."
     echo "$pr_json_file"
     exit 0
   else
-    echo "No actionable bot review comments yet; settle window is still open (${seconds_since_commit}s/${review_settle_seconds}s). Waiting."
+    echo "No actionable bot review comments yet; settle window is still open (${seconds_since_watch_start}s/${review_settle_seconds}s). Waiting."
   fi
 
   sleep "$poll_seconds"
