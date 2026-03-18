@@ -48,6 +48,7 @@ bash ./scripts/pr-watch.sh
 
 This polls the current branch PR and saves review artifacts into `docs/pr-reviews/`.
 The workflow now uses `agent-reviews` to store only actionable bot comments, while ignoring CodeRabbit status noise such as "Review triggered" comments.
+It also enforces a review settle window before a PR with no comments can be treated as clear, so late-starting bot reviews do not get bypassed by an early merge. The default settle window is `240` seconds and can be changed with `REVIEW_SETTLE_SECONDS`.
 
 If auto-review does not start after the PR is opened, trigger it manually:
 
@@ -64,6 +65,7 @@ bash ./scripts/pr-review-cycle.sh 1
 This loop now:
 - fetches actionable bot feedback through `agent-reviews`
 - ignores bot status noise that should not block merge
+- waits through the review settle window before treating a comment-free PR as clean
 - replies to actionable bot review threads
 - resolves those threads after fixes land
 - blocks merge while actionable review threads remain unresolved
