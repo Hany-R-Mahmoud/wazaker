@@ -21,6 +21,8 @@ ALIF_WASLA = "\u0671"
 
 @dataclass
 class SampleResult:
+    """Normalized benchmark output for a single manifest sample."""
+
     sample_id: str
     passage_label: str
     word_error_rate: float
@@ -32,6 +34,8 @@ class SampleResult:
 
 
 def normalize_text(text: str) -> str:
+    """Apply Quran-specific normalization before token-level comparison."""
+
     normalized = unicodedata.normalize("NFKC", text)
     normalized = normalized.translate(PUNCT_TRANSLATION)
     normalized = ARABIC_DIACRITICS.sub("", normalized)
@@ -47,6 +51,8 @@ def normalize_text(text: str) -> str:
 def levenshtein_with_alignment(
     tokens_a: list[str], tokens_b: list[str]
 ) -> tuple[int, list[str], list[str], int]:
+    """Return edit distance plus aligned missing, inserted, and substituted tokens."""
+
     rows = len(tokens_a) + 1
     cols = len(tokens_b) + 1
     dp = [[0] * cols for _ in range(rows)]
@@ -90,6 +96,8 @@ def levenshtein_with_alignment(
 
 
 def read_transcript_text(path: Path) -> str:
+    """Read plain text or a supported JSON transcript payload."""
+
     raw = path.read_text(encoding="utf-8").strip()
     if not raw:
         return ""
@@ -105,6 +113,8 @@ def read_transcript_text(path: Path) -> str:
 
 
 def resolve_transcript_path(transcript_dir: Path, sample_id: str) -> Path:
+    """Locate the transcript artifact for a sample in the expected formats."""
+
     candidates = [
         transcript_dir / f"{sample_id}.txt",
         transcript_dir / f"{sample_id}.json",
@@ -116,6 +126,8 @@ def resolve_transcript_path(transcript_dir: Path, sample_id: str) -> Path:
 
 
 def analyze_sample(sample: dict[str, Any], transcript_dir: Path) -> SampleResult:
+    """Score one manifest sample against its generated transcript."""
+
     transcript_path = resolve_transcript_path(transcript_dir, sample["sampleId"])
     observed = normalize_text(read_transcript_text(transcript_path))
     expected = normalize_text(sample["expectedText"])
@@ -140,6 +152,8 @@ def analyze_sample(sample: dict[str, Any], transcript_dir: Path) -> SampleResult
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments for the benchmark runner."""
+
     parser = argparse.ArgumentParser(description="Benchmark local ASR transcripts against expected text.")
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--transcript-dir", required=True, type=Path)
@@ -150,6 +164,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    """Load inputs, score all samples, and write JSON and Markdown summaries."""
+
     args = parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     transcript_dir = args.transcript_dir.resolve()
