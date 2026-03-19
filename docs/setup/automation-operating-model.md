@@ -138,6 +138,24 @@ These are local runtime artifacts and are intentionally git-ignored.
 - helpers: `delivery_prepare_task`, `delivery_implement_task`, `delivery_publish_task`, `pr_autofinish`
 - output: `docs/automation/delivery-runs/`
 
+## Checked-In Extension Workflow Map
+
+These workflow definitions are now present in `automation/n8n/` and ready to import into the live `n8n` instance:
+
+- `CtxMgrRefresh01` — Context Manager Refresh
+- `HealthMonitor01` — Automation Health Monitor
+- `GhWebhookRouter01` — GitHub Webhook Router
+- `CommitSummaryPlane01` — Commit Summarizer Plane Sync
+- `GhIssueTriage01` — GitHub Issue Triage
+- `PrReviewFirstPass01` — PR Review First Pass
+- `PlnTaskDecomp01` — Plane Task Decomposer Writeback
+- `PlnStaleTask01` — Plane Stale Task Detector
+- `SprintRetro01` — Sprint Retrospective
+- `ReleaseNotes01` — Release Notes Generator
+- `SpeechQa01` — Speech QA Regression
+- `UiConsistency01` — UI Consistency Audit
+- `ErrorRecovery01` — Error Recovery Agent
+
 ## Safety Model
 
 The automation layer must refuse unsafe states.

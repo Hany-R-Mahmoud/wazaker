@@ -218,6 +218,24 @@ Checked-in workflow definitions live in:
 - publishes the PR and queues `pr_autofinish`
 - writes the delivery report to `docs/automation/delivery-runs/`
 
+## Extension Workflows
+
+The repo now also includes checked-in workflow definitions for the next automation layer:
+
+- `Context Manager Refresh`
+- `Automation Health Monitor`
+- `GitHub Webhook Router`
+- `Commit Summarizer Plane Sync`
+- `GitHub Issue Triage`
+- `PR Review First Pass`
+- `Plane Task Decomposer Writeback`
+- `Plane Stale Task Detector`
+- `Sprint Retrospective`
+- `Release Notes Generator`
+- `Speech QA Regression`
+- `UI Consistency Audit`
+- `Error Recovery Agent`
+
 ## Validation Completed
 
 - local `Ollama` installation verified
@@ -238,9 +256,9 @@ Checked-in workflow definitions live in:
 
 ## Next Recommended Automations
 
-1. Plane comment write-back for accepted expansion suggestions
-2. PR review packet generation for large or risky changes
-3. selective notifications once the current local-first loop feels stable
+1. import and publish the new extension workflows into the live `n8n` instance
+2. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
+3. add Plane state and label conventions for task decomposition approvals
 
 ## Related Docs
 
