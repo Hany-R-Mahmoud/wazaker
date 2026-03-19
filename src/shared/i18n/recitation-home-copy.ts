@@ -8,7 +8,7 @@ type RecitationListItem = {
 type RecitationSessionItem = {
   title: BilingualText;
   status: BilingualText;
-  time: string;
+  occurredAtIso: string;
 };
 
 type RecitationFeedbackItem = {
@@ -32,6 +32,11 @@ export const recitationHomeCopy = {
       'Phase 1 is limited to smart recitation, passage selection, results, and quick retry.',
     ),
   },
+  sections: {
+    quickActions: createBilingualText('الخطوات الأساسية', 'Core actions'),
+    feedback: createBilingualText('نمط التغذية الراجعة', 'Feedback model'),
+    sessions: createBilingualText('جلسات أخيرة', 'Recent sessions'),
+  },
   quickActions: [
     {
       title: createBilingualText('ابدأ التسميع', 'Start Recitation'),
@@ -50,12 +55,12 @@ export const recitationHomeCopy = {
     {
       title: createBilingualText('الفاتحة', 'Al-Fatiha'),
       status: createBilingualText('دقة جيدة', 'Good accuracy'),
-      time: 'Today · 7:40 PM',
+      occurredAtIso: '2026-03-19T19:40:00.000Z',
     },
     {
       title: createBilingualText('البقرة 1-5', 'Al-Baqarah 1-5'),
       status: createBilingualText('يحتاج مراجعة', 'Needs revision'),
-      time: 'Yesterday · 9:15 PM',
+      occurredAtIso: '2026-03-18T21:15:00.000Z',
     },
   ] satisfies readonly RecitationSessionItem[],
   feedback: [

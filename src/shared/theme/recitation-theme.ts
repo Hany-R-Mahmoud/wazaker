@@ -25,10 +25,14 @@ export const recitationTheme = {
   },
   typography: {
     heroArabic: 30,
+    heroEnglish: 18,
     sectionArabic: 20,
     body: 15,
     meta: 14,
     label: 13,
+    bodyLarge: 16,
+    kicker: 14,
+    footerTitle: 18,
   },
 } as const;
 

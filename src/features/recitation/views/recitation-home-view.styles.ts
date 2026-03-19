@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   },
   kicker: {
     color: recitationTheme.colors.brandSoft,
-    fontSize: 14,
+    fontSize: recitationTheme.typography.kicker,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
@@ -32,12 +32,12 @@ export const styles = StyleSheet.create({
   },
   heroEnglish: {
     color: recitationTheme.colors.surface,
-    fontSize: 18,
+    fontSize: recitationTheme.typography.heroEnglish,
     fontWeight: '600',
   },
   heroArabicBody: {
     color: recitationTheme.colors.brandSoft,
-    fontSize: 16,
+    fontSize: recitationTheme.typography.bodyLarge,
     lineHeight: 24,
     textAlign: 'right',
     writingDirection: 'rtl',
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
   feedbackCard: {
     backgroundColor: recitationTheme.colors.brandSoft,
     borderRadius: recitationTheme.radius.sm,
-    padding: 16,
+    padding: recitationTheme.spacing.lg,
     gap: recitationTheme.spacing.sm,
   },
   sessionCard: {
@@ -123,12 +123,12 @@ export const styles = StyleSheet.create({
   },
   footerTitleEnglish: {
     color: recitationTheme.colors.surface,
-    fontSize: 18,
+    fontSize: recitationTheme.typography.footerTitle,
     fontWeight: '700',
   },
   footerBodyArabic: {
     color: recitationTheme.colors.brandSoft,
-    fontSize: 16,
+    fontSize: recitationTheme.typography.bodyLarge,
     lineHeight: 24,
     textAlign: 'right',
     writingDirection: 'rtl',

@@ -16,7 +16,7 @@ export interface QuickAction {
 export interface SessionCardData {
   title: BilingualText;
   status: BilingualText;
-  time: string;
+  occurredAtIso: string;
 }
 
 export interface FeedbackItem {

@@ -9,7 +9,8 @@ import { SessionCard } from './session-card';
 import { recitationHomeCopy } from '../../../shared/i18n/recitation-home-copy';
 
 export function RecitationHomeView() {
-  const { quickActions, sessions, feedback, hero, focus, footer } = recitationHomeCopy;
+  const { quickActions, sessions, feedback, hero, focus, footer, sections } =
+    recitationHomeCopy;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -29,21 +30,25 @@ export function RecitationHomeView() {
         </View>
 
         <View style={styles.section}>
-          <BilingualLine ar="الخطوات الأساسية" en="Core actions" tone="brand" />
+          <BilingualLine
+            ar={sections.quickActions.ar}
+            en={sections.quickActions.en}
+            tone="brand"
+          />
           {quickActions.map((item) => (
             <ActionCard key={item.title.en} item={item} />
           ))}
         </View>
 
         <View style={styles.section}>
-          <BilingualLine ar="نمط التغذية الراجعة" en="Feedback model" tone="brand" />
+          <BilingualLine ar={sections.feedback.ar} en={sections.feedback.en} tone="brand" />
           {feedback.map((item) => (
             <FeedbackCard key={item.label.en} item={item} />
           ))}
         </View>
 
         <View style={styles.section}>
-          <BilingualLine ar="جلسات أخيرة" en="Recent sessions" tone="brand" />
+          <BilingualLine ar={sections.sessions.ar} en={sections.sessions.en} tone="brand" />
           {sessions.map((item) => (
             <SessionCard key={item.title.en} item={item} />
           ))}
