@@ -5,6 +5,8 @@ set -euo pipefail
 pr_number="${1:-}"
 current_branch="$(git branch --show-current)"
 delivery_lock_file=".automation/delivery-lock.json"
+safe_branch="${current_branch//\//-}"
+gate_file="docs/pr-reviews/${safe_branch}-review-gate.json"
 
 if [[ "$current_branch" == "main" ]]; then
   echo "Already on main. Expected a feature branch."
@@ -32,6 +34,17 @@ fi
 
 if ! bash ./scripts/pr-check-unresolved.sh "$pr_number" "$current_branch"; then
   echo "PR #$pr_number still has unresolved review threads. Refusing to merge."
+  exit 1
+fi
+
+if [[ ! -f "$gate_file" ]]; then
+  echo "Missing review gate artifact at $gate_file. Run the review cycle before merging."
+  exit 1
+fi
+
+if [[ "$(jq -r '.clearToMerge' "$gate_file")" != "true" ]]; then
+  echo "PR #$pr_number is not clear to merge yet."
+  jq -r '.reasons[]?' "$gate_file"
   exit 1
 fi
 

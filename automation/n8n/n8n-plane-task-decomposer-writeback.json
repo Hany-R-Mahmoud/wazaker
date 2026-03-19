@@ -13,7 +13,7 @@
                 "field": "days",
                 "daysInterval": 1,
                 "triggerAtHour": 10,
-                "triggerAtMinute": 0
+                "triggerAtMinute": 45
               }
             ]
           }
@@ -37,6 +37,9 @@
                 "value": "={{$env.PLANE_API_KEY}}"
               }
             ]
+          },
+          "options": {
+            "timeout": 60000
           }
         },
         "type": "n8n-nodes-base.httpRequest",
@@ -45,7 +48,10 @@
           250,
           0
         ],
-        "name": "Fetch Work Items"
+        "name": "Fetch Work Items",
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 60000
       },
       {
         "parameters": {

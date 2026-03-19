@@ -12,8 +12,8 @@
               {
                 "field": "days",
                 "daysInterval": 1,
-                "triggerAtHour": 12,
-                "triggerAtMinute": 45
+                "triggerAtHour": 13,
+                "triggerAtMinute": 15
               }
             ]
           }

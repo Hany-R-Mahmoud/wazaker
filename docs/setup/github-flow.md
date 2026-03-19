@@ -48,9 +48,9 @@ bash ./scripts/pr-watch.sh
 
 This polls the current branch PR and saves review artifacts into `docs/pr-reviews/`.
 The workflow now uses `agent-reviews` to store only actionable bot comments, while ignoring CodeRabbit status noise such as "Review triggered" comments.
-It also enforces a review settle window and, by default, requires actual CodeRabbit activity before a PR can auto-merge. Silence is no longer treated as success, because late bot comments can otherwise appear only after the merge.
+It also enforces a review settle window and, by default, requires actual CodeRabbit or Qodo activity before a PR can auto-merge. Silence is no longer treated as success, because late bot comments can otherwise appear only after the merge.
 The default settle window is now `600` seconds and can be changed with `REVIEW_SETTLE_SECONDS`.
-Automatic merge also stays blocked while the CodeRabbit status is still pending or marked as review in progress, even if a summary comment has already appeared.
+Automatic merge also stays blocked while the CodeRabbit or Qodo status is still pending or marked as review in progress, even if a summary comment has already appeared.
 If you intentionally want to allow merges when no bot activity appears, set `REQUIRE_BOT_REVIEW_ACTIVITY=0`, but the project default should stay strict.
 
 If auto-review does not start after the PR is opened, trigger it manually:
@@ -68,10 +68,12 @@ bash ./scripts/pr-review-cycle.sh 1
 This loop now:
 - fetches actionable bot feedback through `agent-reviews`
 - ignores bot status noise that should not block merge
-- waits through a 10-minute review settle window, requires real bot activity, and refuses to treat CodeRabbit pending status as settled
+- writes a review gate artifact at `docs/pr-reviews/<branch>-review-gate.json`
+- waits through a 10-minute review settle window, requires real bot activity, and refuses to treat CodeRabbit or Qodo pending status as settled
 - replies to actionable bot review threads
 - resolves those threads after fixes land
 - blocks merge while actionable review threads remain unresolved
+- blocks merge until the review gate artifact explicitly reports `clearToMerge=true`
 
 ### 6. Resolve review comments on the same branch
 
@@ -97,6 +99,11 @@ To verify that the PR has no unresolved review threads before merge:
 bash ./scripts/pr-check-unresolved.sh 1
 ```
 
+This check now also fails if:
+- CodeRabbit or Qodo is still pending
+- no bot activity has appeared yet while `REQUIRE_BOT_REVIEW_ACTIVITY=1`
+- the review gate artifact is missing or not clear
+
 ### 7. Merge and sync main
 
 ```sh
@@ -108,6 +115,12 @@ For a single command that waits for review, resolves comments, and merges when c
 ```sh
 bash ./scripts/pr-autofinish.sh 1
 ```
+
+`pr-autofinish` is now expected to stop before merge unless all of these are true:
+- bot review is no longer pending
+- unresolved human threads are `0`
+- unresolved actionable bot threads are `0`
+- the saved review gate artifact says `clearToMerge=true`
 
 If `gh` is unavailable, merge in GitHub, then run:
 

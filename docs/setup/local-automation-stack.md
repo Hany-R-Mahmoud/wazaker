@@ -262,12 +262,14 @@ The repo now also includes checked-in workflow definitions for the next automati
 - `n8n execute` is not a reliable smoke-test path inside the already-running container because the task broker port is already claimed by the live instance
 - Plane expansion suggestions are written to repo reports first and are not auto-posted back into Plane yet
 - delivery runtime artifacts are durable locally but intentionally git-ignored
+- the paused Plane polling workflows are in temporary quarantine, not permanent retirement; they should be re-enabled only after retry/backoff, schedule hardening, one manual smoke run, and one real scheduled run each
 
 ## Next Recommended Automations
 
-1. import and publish the new extension workflows into the live `n8n` instance
-2. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
-3. add Plane state and label conventions for task decomposition approvals
+1. import and publish the hardened Plane polling workflows into the live `n8n` instance
+2. re-enable quarantined workflows one by one after a passing smoke run and a passing scheduled run
+3. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
+4. add Plane state and label conventions for task decomposition approvals
 
 ## Related Docs
 
@@ -282,3 +284,4 @@ The repo now also includes checked-in workflow definitions for the next automati
 - prefer small, single-purpose workflows over one giant agent workflow
 - require meaningful descriptions and outcome notes on Plane items
 - prefer `n8n` orchestration over ad-hoc recurring script invocation for repo operations
+- do not auto-merge while CodeRabbit or Qodo is still pending, while bot threads remain unresolved, or while the saved review gate is not clear
