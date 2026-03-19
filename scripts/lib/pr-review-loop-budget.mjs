@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 function nowIso() {
@@ -54,15 +54,17 @@ export function loadState(filePath, fallback = {}) {
 
 export function saveState(filePath, state) {
   mkdirSync(path.dirname(filePath), { recursive: true });
-  writeFileSync(filePath, `${JSON.stringify(state, null, 2)}\n`);
+  const tempPath = `${filePath}.${process.pid}.tmp`;
+  writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`);
+  renameSync(tempPath, filePath);
 }
 
 export function applyEvent(currentState, type, payload = {}) {
   const state = sanitizeState(currentState);
   const entry = {
+    ...payload,
     type,
     at: nowIso(),
-    ...payload,
   };
 
   state.history = [...state.history, entry];

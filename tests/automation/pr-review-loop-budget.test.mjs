@@ -47,3 +47,19 @@ test('review loop budget records manual stop reasons', () => {
   assert.equal(blockedState.stopReason, 'Reached CodeRabbit retrigger budget.');
   assert.equal(blockedState.lastEvent, 'blocked');
 });
+
+test('review loop budget keeps canonical event metadata when payload overlaps', () => {
+  const state = applyEvent(
+    createInitialState({ prNumber: 19, branchName: 'codex/test-branch' }),
+    'trigger',
+    {
+      type: 'spoofed',
+      at: '2000-01-01T00:00:00.000Z',
+      url: 'https://example.test/review/2',
+    },
+  );
+
+  assert.equal(state.history.length, 1);
+  assert.equal(state.history[0].type, 'trigger');
+  assert.notEqual(state.history[0].at, '2000-01-01T00:00:00.000Z');
+});
