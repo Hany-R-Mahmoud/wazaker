@@ -1,5 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 import { evaluatePrReviewGate } from '../../scripts/lib/pr-review-gate.mjs';
 
@@ -90,4 +94,31 @@ test('evaluatePrReviewGate - allows merge when bot activity is optional', () => 
   // Assert
   assert.equal(gate.botActivitySeen, false);
   assert.equal(gate.clearToMerge, true);
+});
+
+test('pr-review-gate CLI rejects malformed PR status payloads', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
+  const invalidPrStatusPath = path.join(tempDir, 'pr-status.json');
+
+  writeFileSync(
+    invalidPrStatusPath,
+    JSON.stringify({
+      mergeStateStatus: 'CLEAN',
+      comments: [],
+      latestReviews: [],
+      reviews: [],
+    }),
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/pr-review-gate.mjs', invalidPrStatusPath],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /reviewDecision must be a string/);
 });

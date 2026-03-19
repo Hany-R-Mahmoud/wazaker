@@ -15,6 +15,32 @@ function readJsonFile(path, fallback) {
   }
 }
 
+function validatePrStatus(prStatus) {
+  if (!prStatus || typeof prStatus !== 'object' || Array.isArray(prStatus)) {
+    return 'Invalid PR status JSON: expected an object.';
+  }
+  if (typeof prStatus.mergeStateStatus !== 'string') {
+    return 'Invalid PR status JSON: mergeStateStatus must be a string.';
+  }
+  if (typeof prStatus.reviewDecision !== 'string') {
+    return 'Invalid PR status JSON: reviewDecision must be a string.';
+  }
+  if ('statusCheckRollup' in prStatus && typeof prStatus.statusCheckRollup !== 'string' && !Array.isArray(prStatus.statusCheckRollup)) {
+    return 'Invalid PR status JSON: statusCheckRollup must be a string or array when present.';
+  }
+  if ('comments' in prStatus && !Array.isArray(prStatus.comments)) {
+    return 'Invalid PR status JSON: comments must be an array when present.';
+  }
+  if ('latestReviews' in prStatus && !Array.isArray(prStatus.latestReviews)) {
+    return 'Invalid PR status JSON: latestReviews must be an array when present.';
+  }
+  if ('reviews' in prStatus && !Array.isArray(prStatus.reviews)) {
+    return 'Invalid PR status JSON: reviews must be an array when present.';
+  }
+
+  return null;
+}
+
 function main() {
   const prJsonPath = process.argv[2];
   const commentsJsonPath = process.argv[3];
@@ -30,6 +56,10 @@ function main() {
     if (prStatus === undefined) {
       process.exitCode = 1;
       return;
+    }
+    const prStatusError = validatePrStatus(prStatus);
+    if (prStatusError) {
+      throw new Error(prStatusError);
     }
     const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath, []) : [];
     const gate = evaluatePrReviewGate(prStatus, actionableBotComments, { requireBotActivity });
