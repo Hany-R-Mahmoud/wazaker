@@ -16,6 +16,7 @@ test('plane workflow hardening config - workflow fixtures are checked - schedule
   // Act
   for (const config of workflowConfigs) {
     const workflows = JSON.parse(readFileSync(join(repoRoot, config.file), 'utf8'));
+    assert.ok(Array.isArray(workflows) && workflows.length > 0, `${config.file} must export a non-empty workflow array fixture`);
     const workflow = workflows[0];
     const scheduleNode = workflow.nodes.find((node) => node.type === 'n8n-nodes-base.scheduleTrigger');
 

@@ -37,7 +37,18 @@ function collectBotAuthors(prStatus) {
     ...asArray(prStatus?.comments).map((comment) => comment?.author?.login),
   ].filter(Boolean);
 
-  return authors.filter((author) => includesBotAlias(author));
+  const uniqueAuthors = [];
+  const seenAuthors = new Set();
+
+  for (const author of authors) {
+    if (!includesBotAlias(author) || seenAuthors.has(author)) {
+      continue;
+    }
+    seenAuthors.add(author);
+    uniqueAuthors.push(author);
+  }
+
+  return uniqueAuthors;
 }
 
 function collectPendingSignals(prStatus) {

@@ -117,8 +117,9 @@ while (( cycle <= max_cycles )); do
   esac
 
   before_head="$(git rev-parse HEAD)"
-  resolver_status=0
-  if ! bash ./scripts/pr-resolve-review.sh; then
+  if bash ./scripts/pr-resolve-review.sh; then
+    :
+  else
     resolver_status=$?
     if (( resolver_status == 75 )); then
       echo "Review loop paused because Codex usage limits blocked the resolver pass."

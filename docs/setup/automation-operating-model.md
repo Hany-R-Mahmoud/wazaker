@@ -133,14 +133,14 @@ These are local runtime artifacts and are intentionally git-ignored.
 
 ### `PlnGuardedDelivery01` — Plane Guarded Delivery Pipeline
 
-- trigger: every `1` hour
+- trigger: every `4` hours
 - inputs: Plane work items and repo status
 - helpers: `delivery_prepare_task`, `delivery_implement_task`, `delivery_publish_task`, `pr_autofinish`
 - output: `docs/automation/delivery-runs/`
 
 ## Checked-In Extension Workflow Map
 
-These workflow definitions are now present in `automation/n8n/` and are intended to be kept active in checked-in form. Their live runtime state still must be validated in `n8n` after import or re-import:
+These workflow definitions are stored in `automation/n8n/` as exported JSON and should remain under version control as the repo source of truth. Their live runtime state still must be validated and activated in `n8n` after import or re-import:
 
 - `CtxMgrRefresh01` — Context Manager Refresh
 - `HealthMonitor01` — Automation Health Monitor
@@ -156,7 +156,7 @@ These workflow definitions are now present in `automation/n8n/` and are intended
 - `UiConsistency01` — UI Consistency Audit
 - `ErrorRecovery01` — Error Recovery Agent
 
-Live validation checklist: [webhook-autonomy-hardening.md](/Users/hanyramadan/wazaker/docs/setup/webhook-autonomy-hardening.md)
+Live validation checklist: [webhook-autonomy-hardening.md](./webhook-autonomy-hardening.md)
 
 ## Safety Model
 

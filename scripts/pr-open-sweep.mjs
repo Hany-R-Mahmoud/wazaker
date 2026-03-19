@@ -26,13 +26,28 @@ function parseOriginRepo(remoteUrl) {
 
 async function githubRequest(pathname) {
   requireGitHubToken();
-  const response = await fetch(`https://api.github.com${pathname}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${githubToken}`,
-      'User-Agent': 'wazaker-pr-sweep',
-    },
-  });
+  const controller = new AbortController();
+  const timeoutMs = Number(process.env.GITHUB_REQUEST_TIMEOUT_MS || 10000);
+  const timeoutHandle = setTimeout(() => controller.abort(new Error(`GitHub API request timed out after ${timeoutMs}ms`)), timeoutMs);
+  let response;
+  try {
+    response = await fetch(`https://api.github.com${pathname}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${githubToken}`,
+        'User-Agent': 'wazaker-pr-sweep',
+      },
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      const reason = controller.signal.reason instanceof Error ? controller.signal.reason.message : 'GitHub API request timed out';
+      throw new Error(`${reason}: ${pathname}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
 
   const text = await response.text();
   let json = null;

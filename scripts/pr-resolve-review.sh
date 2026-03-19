@@ -62,7 +62,9 @@ fi
 
 codex_output_file="$(mktemp)"
 resolver_exit_code=0
-if ! codex exec --full-auto -C "$(pwd)" "$(cat "$prompt_file")" >"$codex_output_file" 2>&1; then
+if codex exec --full-auto -C "$(pwd)" "$(cat "$prompt_file")" >"$codex_output_file" 2>&1; then
+  :
+else
   resolver_exit_code=$?
 fi
 

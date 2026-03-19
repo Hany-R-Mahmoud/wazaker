@@ -24,11 +24,16 @@ function validatePrStatus(prStatus) {
   if (typeof prStatus.mergeStateStatus !== 'string') {
     return 'Invalid PR status JSON: mergeStateStatus must be a string.';
   }
-  if (typeof prStatus.reviewDecision !== 'string') {
-    return 'Invalid PR status JSON: reviewDecision must be a string.';
+  if (!('reviewDecision' in prStatus) || (prStatus.reviewDecision != null && typeof prStatus.reviewDecision !== 'string')) {
+    return 'Invalid PR status JSON: reviewDecision must be a string or null.';
   }
-  if ('statusCheckRollup' in prStatus && typeof prStatus.statusCheckRollup !== 'string' && !Array.isArray(prStatus.statusCheckRollup)) {
-    return 'Invalid PR status JSON: statusCheckRollup must be a string or array when present.';
+  if (
+    'statusCheckRollup' in prStatus &&
+    prStatus.statusCheckRollup != null &&
+    typeof prStatus.statusCheckRollup !== 'string' &&
+    !Array.isArray(prStatus.statusCheckRollup)
+  ) {
+    return 'Invalid PR status JSON: statusCheckRollup must be a string, array, or null when present.';
   }
   if ('comments' in prStatus && !Array.isArray(prStatus.comments)) {
     return 'Invalid PR status JSON: comments must be an array when present.';
@@ -64,7 +69,10 @@ function main() {
     if (prStatusError) {
       throw new Error(prStatusError);
     }
-    const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath, []) : [];
+    const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath) : [];
+    if (commentsJsonPath && actionableBotComments === undefined) {
+      throw new Error(`Comments file not found: ${commentsJsonPath}`);
+    }
     if (!Array.isArray(actionableBotComments)) {
       throw new Error('Invalid comments JSON: expected an array.');
     }
