@@ -113,6 +113,41 @@ test('evaluatePrReviewGate - deduplicates repeated bot authors', () => {
   assert.deepEqual(gate.botAuthors, ['coderabbitai[bot]']);
 });
 
+test('evaluatePrReviewGate - ignores stale pending bot comments after a newer review arrives', () => {
+  const prStatus = {
+    statusCheckRollup: '',
+    comments: [
+      {
+        author: { login: 'coderabbitai[bot]' },
+        body: 'Review in progress',
+        createdAt: '2026-03-19T19:39:05Z',
+      },
+      {
+        author: { login: 'qodo-code-review' },
+        body: 'pending analysis',
+        createdAt: '2026-03-19T19:15:53Z',
+      },
+    ],
+    latestReviews: [
+      {
+        author: { login: 'coderabbitai[bot]' },
+        submittedAt: '2026-03-19T19:59:29Z',
+      },
+      {
+        author: { login: 'qodo-code-review' },
+        submittedAt: '2026-03-19T19:23:55Z',
+      },
+    ],
+    reviews: [],
+    mergeStateStatus: 'CLEAN',
+  };
+
+  const gate = evaluatePrReviewGate(prStatus, [], { requireBotActivity: true });
+
+  assert.equal(gate.blockingBotReviewPending, false);
+  assert.equal(gate.clearToMerge, true);
+});
+
 test('evaluatePrReviewGate - allows merge when bot activity is optional', () => {
   // Arrange
   const prStatus = {
