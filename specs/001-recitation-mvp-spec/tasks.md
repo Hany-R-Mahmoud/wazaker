@@ -12,8 +12,8 @@
 **Purpose**: Introduce the project structure and dependencies required for the recitation feature work.
 
 - [ ] T001 Create the feature-first mobile structure in `src/app/`, `src/features/recitation/`, `src/shared/`, and `src/test/`
-- [ ] T002 Update dependencies and scripts for navigation, recording, validation, and tests in `/Users/hanyramadan/wazaker/package.json`
-- [ ] T003 [P] Add shared recitation theme and bilingual copy foundations in `src/shared/theme/` and `src/shared/i18n/`
+- [X] T002 Update dependencies and scripts for navigation, recording, validation, and tests in `/Users/hanyramadan/wazaker/package.json`
+- [X] T003 [P] Add shared recitation theme and bilingual copy foundations in `src/shared/theme/` and `src/shared/i18n/`
 
 ---
 
