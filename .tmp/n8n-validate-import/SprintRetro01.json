@@ -1,0 +1,91 @@
+{
+  "id": "SprintRetro01",
+  "name": "Sprint Retrospective",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "={{$env.PLANE_API_BASE_URL}}/api/v1/workspaces/{{$env.PLANE_WORKSPACE_SLUG}}/projects/{{$env.PLANE_PROJECT_ID}}/work-items?per_page=200&fields=id,name,priority,updated_at,completed_at",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{$env.PLANE_API_KEY}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        260,
+        0
+      ],
+      "name": "Fetch Work Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = require('node:http');\nconst https = require('node:https');\nconst fetch = globalThis.fetch || ((urlString, options = {}) => new Promise((resolve, reject) => {\n  const transport = String(urlString).startsWith('https://') ? https : http;\n  const req = transport.request(urlString, {\n    method: options.method || 'GET',\n    headers: options.headers || {},\n  }, (res) => {\n    let body = '';\n    res.on('data', (chunk) => {\n      body += chunk.toString();\n    });\n    res.on('end', () => {\n      resolve({\n        ok: (res.statusCode || 0) >= 200 && (res.statusCode || 0) < 300,\n        status: res.statusCode || 0,\n        text: async () => body,\n        json: async () => body ? JSON.parse(body) : {},\n      });\n    });\n  });\n  req.on('error', reject);\n  if (options.body) {\n    req.write(options.body);\n  }\n  req.end();\n}));\n\nconst runnerBase = $env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = $env.AUTOMATION_RUNNER_TOKEN;\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\nconst items = Array.isArray($input.first().json.results) ? $input.first().json.results : [];\nconst weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;\nconst completed = items.filter((item) => item.completed_at && new Date(item.completed_at).getTime() >= weekAgo);\nconst carryover = items.filter((item) => !item.completed_at);\nconst reportRelativePath = `sprint-retros/${new Date().toISOString().replace(/[:]/g, '-')}.md`;\nconst reportContent = [\n  '# Sprint Retrospective',\n  '',\n  `Generated: ${new Date().toISOString()}`,\n  `Completed this sprint: ${completed.length}`,\n  `Carryover: ${carryover.length}`,\n  '',\n  '## Completed',\n  '',\n  ...(completed.length > 0 ? completed.map((item) => `- ${item.name} [priority=${item.priority || 'none'}]`) : ['- None']),\n  '',\n  '## Carryover',\n  '',\n  ...(carryover.length > 0 ? carryover.slice(0, 20).map((item) => `- ${item.name} [priority=${item.priority || 'none'}]`) : ['- None']),\n].join('\\n');\nconst writeResponse = await fetch(`${runnerBase}/reports/write`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ relativePath: reportRelativePath, content: reportContent }),\n});\nif (!writeResponse.ok) throw new Error(`reports/write failed: ${writeResponse.status}`);\nreturn [{ json: { completedCount: completed.length, carryoverCount: carryover.length, reportRelativePath } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ],
+      "name": "Generate Retro"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Work Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Work Items": {
+      "main": [
+        [
+          {
+            "node": "Generate Retro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "23ad6e37-b215-4c69-bf1e-eaabcc0d26b3",
+  "pinData": {},
+  "tags": []
+}
