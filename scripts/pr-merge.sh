@@ -21,7 +21,7 @@ if [[ -z "$pr_number" ]]; then
 fi
 
 if ! bash ./scripts/with-repo-env.sh gh pr view "$pr_number" --json number >/dev/null 2>&1; then
-  echo "Could not query the current PR through gh. Merge must be done manually in GitHub."
+  echo "Could not query PR #$pr_number through gh. Merge must be done manually in GitHub."
   exit 1
 fi
 
@@ -31,7 +31,7 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 if ! bash ./scripts/pr-check-unresolved.sh "$pr_number" "$current_branch"; then
-  echo "PR still has unresolved review threads. Refusing to merge."
+  echo "PR #$pr_number still has unresolved review threads. Refusing to merge."
   exit 1
 fi
 

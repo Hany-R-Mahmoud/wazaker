@@ -14,4 +14,4 @@ if [[ -z "$pr_number" ]]; then
 fi
 
 bash ./scripts/pr-review-cycle.sh "$pr_number"
-bash ./scripts/pr-merge.sh
+bash ./scripts/pr-merge.sh "$pr_number"
