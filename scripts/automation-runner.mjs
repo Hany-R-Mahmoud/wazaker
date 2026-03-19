@@ -32,6 +32,7 @@ const actionMap = {
   pr_check_unresolved: ['bash', './scripts/pr-check-unresolved.sh'],
   pr_autofinish: ['bash', './scripts/pr-autofinish.sh'],
   pr_merge: ['bash', './scripts/pr-merge.sh'],
+  pr_sweep_open: ['node', './scripts/pr-open-sweep.mjs'],
   github_pr_comment: ['bash', './scripts/github-pr-comment.sh'],
   delivery_prepare_task: ['bash', './scripts/delivery-prepare-task.sh'],
   delivery_implement_task: ['bash', './scripts/delivery-implement-task.sh'],

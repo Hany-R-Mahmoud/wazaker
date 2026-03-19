@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_ref="${1:-}"
 branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
@@ -16,6 +18,7 @@ mkdir -p "$output_dir"
 pr_json_file="$output_dir/${safe_branch}-pr-status.json"
 comments_file="$output_dir/${safe_branch}-review-comments.json"
 raw_comments_file="$output_dir/${safe_branch}-review-comments.raw.json"
+gate_file="$output_dir/${safe_branch}-review-gate.json"
 
 if [[ -n "$pr_ref" && "$pr_ref" =~ ^[0-9]+$ ]]; then
   pr_view_ref="$pr_ref"
@@ -31,29 +34,18 @@ settle_window_start_epoch="$(date +%s)"
 
 count=1
 while (( count <= max_checks )); do
-  bash ./scripts/with-repo-env.sh gh pr view "$pr_view_ref" \
+  bash ./scripts/with-github-env.sh gh pr view "$pr_view_ref" \
     --json number,url,title,reviewDecision,latestReviews,reviews,comments,statusCheckRollup,mergeStateStatus \
     > "$pr_json_file"
 
   npx agent-reviews --pr "$(jq -r '.number' "$pr_json_file")" --unresolved --bots-only --json > "$raw_comments_file"
   python3 ./scripts/pr-filter-agent-reviews.py "$raw_comments_file" "$comments_file" >/dev/null
+  node ./scripts/pr-review-gate.mjs "$pr_json_file" "$comments_file" > "$gate_file"
 
   now_epoch="$(date +%s)"
   seconds_since_watch_start=$(( now_epoch - settle_window_start_epoch ))
-  coderabbit_check_pending=0
-
-  if jq -e '
-    (.statusCheckRollup | tostring | ascii_downcase) as $rollup
-    | ($rollup | contains("coderabbit"))
-      and (
-        ($rollup | contains("waiting for status to be reported"))
-        or ($rollup | contains("review in progress"))
-        or ($rollup | contains("in_progress"))
-        or ($rollup | contains("pending"))
-      )
-  ' "$pr_json_file" >/dev/null 2>&1; then
-    coderabbit_check_pending=1
-  fi
+  blocking_bot_review_pending="$(jq -r '.blockingBotReviewPending' "$gate_file")"
+  bot_activity_seen="$(jq -r '.botActivitySeen' "$gate_file")"
 
   if jq -e 'length > 0' "$comments_file" >/dev/null 2>&1; then
     echo "Actionable bot review comments detected."
@@ -61,23 +53,8 @@ while (( count <= max_checks )); do
     exit 0
   fi
 
-  if jq -e '
-    (
-      [
-        .latestReviews[]?.author.login // empty,
-        .reviews[]?.author.login // empty,
-        .comments[]?.author.login // empty
-      ] | map(ascii_downcase | contains("coderabbit"))
-    ) | any
-  ' "$pr_json_file" >/dev/null 2>&1; then
-    if jq -e '
-      [
-        .comments[]?
-        | select((.author.login // "" | ascii_downcase | contains("coderabbit")))
-        | (.body // "" | ascii_downcase)
-      ]
-      | if length == 0 then false else .[-1] | contains("review in progress") end
-    ' "$pr_json_file" >/dev/null 2>&1 || (( coderabbit_check_pending == 1 )); then
+  if [[ "$bot_activity_seen" == "true" ]]; then
+    if [[ "$blocking_bot_review_pending" == "true" ]]; then
       echo "Bot review still in progress; waiting."
     else
       if (( seconds_since_watch_start >= review_settle_seconds )); then

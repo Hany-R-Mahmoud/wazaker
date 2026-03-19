@@ -46,6 +46,9 @@
                 "value": "={{$env.PLANE_API_KEY}}"
               }
             ]
+          },
+          "options": {
+            "timeout": 60000
           }
         },
         "type": "n8n-nodes-base.httpRequest",
@@ -54,7 +57,10 @@
           260,
           0
         ],
-        "name": "Fetch Plane Work Items"
+        "name": "Fetch Plane Work Items",
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 60000
       },
       {
         "parameters": {

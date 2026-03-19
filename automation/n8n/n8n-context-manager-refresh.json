@@ -11,7 +11,7 @@
             "interval": [
               {
                 "field": "hours",
-                "hoursInterval": 6
+                "hoursInterval": 12
               }
             ]
           }
