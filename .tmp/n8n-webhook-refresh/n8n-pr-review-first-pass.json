@@ -1,0 +1,54 @@
+{
+  "id": "PrReviewFirstPass01",
+  "name": "PR Review First Pass",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "github-pr-first-pass",
+        "httpMethod": "POST",
+        "responseMode": "lastNode"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "PRWebhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = require('node:http');\nconst https = require('node:https');\nconst fetch = globalThis.fetch || ((urlString, options = {}) => new Promise((resolve, reject) => {\n  const transport = String(urlString).startsWith('https://') ? https : http;\n  const req = transport.request(urlString, {\n    method: options.method || 'GET',\n    headers: options.headers || {},\n  }, (res) => {\n    let body = '';\n    res.on('data', (chunk) => {\n      body += chunk.toString();\n    });\n    res.on('end', () => {\n      resolve({\n        ok: (res.statusCode || 0) >= 200 && (res.statusCode || 0) < 300,\n        status: res.statusCode || 0,\n        text: async () => body,\n        json: async () => body ? JSON.parse(body) : {},\n      });\n    });\n  });\n  req.on('error', reject);\n  if (options.body) {\n    req.write(options.body);\n  }\n  req.end();\n}));\n\nconst runnerBase = $env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = $env.AUTOMATION_RUNNER_TOKEN;\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\nconst payload = $json.body ?? $json;\nconst pr = payload.pull_request || {};\nconst prNumber = pr.number || payload.number;\nconst title = pr.title || 'Untitled PR';\nconst body = pr.body || '';\nconst changedFiles = pr.changed_files || 0;\nconst additions = pr.additions || 0;\nconst deletions = pr.deletions || 0;\nconst risk = changedFiles > 20 || additions + deletions > 800 ? 'high' : changedFiles > 8 || additions + deletions > 250 ? 'medium' : 'low';\nconst prompt = [\n  'You are producing a concise first-pass PR review comment.',\n  'Use exactly these sections: First Pass Summary, Risks, Suggested Checks.',\n  'Keep it under 220 words.',\n  '',\n  `Title: ${title}`,\n  `Changed files: ${changedFiles}`,\n  `Additions: ${additions}`,\n  `Deletions: ${deletions}`,\n  '',\n  'Body:',\n  body || 'No PR body provided.',\n].join('\\n');\n\nlet reviewComment = `## First Pass Summary\\n\\n- Risk level: ${risk}\\n- Files changed: ${changedFiles}\\n- Diff size: +${additions} / -${deletions}\\n\\n## Risks\\n\\n- Verify the PR description matches the actual blast radius.\\n- Confirm tests or manual validation cover the changed area.\\n\\n## Suggested Checks\\n\\n- Re-read touched workflows and scripts for integration drift.\\n- Confirm durable reports and context updates still land correctly.`;\ntry {\n  const ollamaResponse = await fetch('http://host.docker.internal:11434/api/generate', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ model: 'qwen3:8b', prompt, stream: false }),\n  });\n  if (ollamaResponse.ok) {\n    const ollamaJson = await ollamaResponse.json();\n    reviewComment = (ollamaJson.response || '').trim() || reviewComment;\n  }\n} catch {}\n\nconst reportRelativePath = `pr-first-pass/${new Date().toISOString().replace(/[:]/g, '-')}-pr-${prNumber || 'unknown'}.md`;\nconst commentRelativePath = `pr-first-pass/${new Date().toISOString().replace(/[:]/g, '-')}-pr-${prNumber || 'unknown'}-comment.md`;\nfor (const item of [\n  { relativePath: reportRelativePath, content: ['# PR Review First Pass', '', reviewComment].join('\\n') },\n  { relativePath: commentRelativePath, content: reviewComment },\n]) {\n  const writeResponse = await fetch(`${runnerBase}/reports/write`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify(item),\n  });\n  if (!writeResponse.ok) throw new Error(`reports/write failed: ${writeResponse.status}`);\n}\n\nlet commentResult = null;\nif (prNumber) {\n  const commentResponse = await fetch(`${runnerBase}/jobs`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify({ action: 'github_pr_comment', mode: 'sync', args: [String(prNumber), `docs/automation/${commentRelativePath}`] }),\n  });\n  const rawComment = await commentResponse.text();\n  commentResult = rawComment ? JSON.parse(rawComment) : null;\n}\n\nreturn [{ json: { prNumber, risk, reportRelativePath, commentRelativePath, commentResult } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ],
+      "name": "Draft And Post Review"
+    }
+  ],
+  "connections": {
+    "PRWebhook": {
+      "main": [
+        [
+          {
+            "node": "Draft And Post Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dbbf6ca4-3679-477c-8fe9-c774a57b0bc4",
+  "pinData": {},
+  "tags": []
+}

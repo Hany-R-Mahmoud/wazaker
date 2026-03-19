@@ -113,15 +113,15 @@ async function startJob(action, args = [], dedupeKey = '') {
 
 const server = createServer(async (req, res) => {
   try {
-    if (token && req.headers.authorization !== `Bearer ${token}`) {
-      sendJson(res, 401, { error: 'Unauthorized' });
-      return;
-    }
-
     const requestUrl = new URL(req.url || '/', `http://${req.headers.host}`);
 
     if (req.method === 'GET' && requestUrl.pathname === '/health') {
       sendJson(res, 200, { ok: true, port });
+      return;
+    }
+
+    if (token && req.headers.authorization !== `Bearer ${token}`) {
+      sendJson(res, 401, { error: 'Unauthorized' });
       return;
     }
 
