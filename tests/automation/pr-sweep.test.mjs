@@ -41,7 +41,25 @@ test('pr sweep accepts same-repo non-draft branches', () => {
     'Hany-R-Mahmoud',
   );
 
-  assert.equal(result.eligible, true);
-  assert.equal(result.branch, 'codex/ready');
-  assert.equal(result.number, 3);
+  assert.deepEqual(result, {
+    eligible: true,
+    reason: 'eligible',
+    branch: 'codex/ready',
+    number: 3,
+    title: 'Ready PR',
+    url: 'https://example.test/pr/3',
+  });
+});
+
+test('pr sweep skips PRs targeting main as head branch', () => {
+  const result = evaluateOpenPullRequest(
+    {
+      number: 4,
+      draft: false,
+      head: { ref: 'main', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
+    },
+    'Hany-R-Mahmoud',
+  );
+
+  assert.deepEqual(result, { eligible: false, reason: 'invalid-head-branch' });
 });

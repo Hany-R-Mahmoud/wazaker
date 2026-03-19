@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-
-source ./scripts/lib/github-env.sh
+# Keep token setup in one place for `gh` calls via `with-github-env.sh`.
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 <commit-message> <pr-title> [pr-body-file]"

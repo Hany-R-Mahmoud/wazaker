@@ -9,9 +9,11 @@ function readJsonFile(path, fallback) {
     const fileContents = readFileSync(path, 'utf8');
     return JSON.parse(fileContents);
   } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      return fallback;
+    }
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Warning: readJsonFile failed for ${path}: ${message}\n`);
-    return fallback;
+    throw new Error(`Could not read JSON file ${path}: ${message}`);
   }
 }
 
@@ -62,6 +64,9 @@ function main() {
       throw new Error(prStatusError);
     }
     const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath, []) : [];
+    if (!Array.isArray(actionableBotComments)) {
+      throw new Error('Invalid comments JSON: expected an array.');
+    }
     const gate = evaluatePrReviewGate(prStatus, actionableBotComments, { requireBotActivity });
 
     process.stdout.write(`${JSON.stringify(gate, null, 2)}\n`);

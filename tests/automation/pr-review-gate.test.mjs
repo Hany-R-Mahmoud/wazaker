@@ -122,3 +122,33 @@ test('pr-review-gate CLI rejects malformed PR status payloads', () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /reviewDecision must be a string/);
 });
+
+test('pr-review-gate CLI fails closed on malformed comments JSON', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
+  const prStatusPath = path.join(tempDir, 'pr-status.json');
+  const commentsPath = path.join(tempDir, 'comments.json');
+
+  writeFileSync(
+    prStatusPath,
+    JSON.stringify({
+      mergeStateStatus: 'CLEAN',
+      reviewDecision: 'APPROVED',
+      comments: [],
+      latestReviews: [],
+      reviews: [],
+    }),
+  );
+  writeFileSync(commentsPath, '{not valid json');
+
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/pr-review-gate.mjs', prStatusPath, commentsPath],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Could not read JSON file/);
+});

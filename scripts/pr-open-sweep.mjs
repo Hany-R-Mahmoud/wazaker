@@ -48,13 +48,33 @@ async function githubRequest(pathname) {
   return json;
 }
 
+async function githubRequestAll(pathname, { perPage = 100 } = {}) {
+  const separator = pathname.includes('?') ? '&' : '?';
+  const requestPath = `${pathname}${separator}per_page=${perPage}`;
+  const json = await githubRequest(requestPath);
+
+  if (Array.isArray(json) && json.length === perPage) {
+    process.stderr.write(
+      `Warning: GitHub returned ${perPage} items for ${requestPath}; additional open PRs may not be included in this sweep.\n`,
+    );
+  }
+
+  return json;
+}
+
 function sanitizeBranchName(branchName) {
   return String(branchName).replace(/[^a-zA-Z0-9._/-]+/g, '-');
 }
 
 async function cleanupSweepBranch(worktreeDir, localBranch) {
   await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
-  await runCommand('git', ['branch', '-D', localBranch]);
+  const branchExists = await runCommand('git', ['rev-parse', '--verify', localBranch]);
+  if (branchExists.code === 0) {
+    const deleteResult = await runCommand('git', ['branch', '-D', localBranch]);
+    if (deleteResult.code !== 0) {
+      throw new Error(`Could not delete local branch ${localBranch}: ${deleteResult.stderr || deleteResult.stdout}`);
+    }
+  }
   rmSync(worktreeDir, { recursive: true, force: true });
 }
 
@@ -66,7 +86,13 @@ async function sweepPullRequest(pr) {
   mkdirSync(join(repoRoot, '.tmp', 'pr-sweep'), { recursive: true });
   rmSync(worktreeDir, { recursive: true, force: true });
 
-  await runCommand('git', ['branch', '-D', localBranch]);
+  const branchExists = await runCommand('git', ['rev-parse', '--verify', localBranch]);
+  if (branchExists.code === 0) {
+    const deleteResult = await runCommand('git', ['branch', '-D', localBranch]);
+    if (deleteResult.code !== 0) {
+      throw new Error(`Could not delete local branch ${localBranch}: ${deleteResult.stderr || deleteResult.stdout}`);
+    }
+  }
   const fetchResult = await runCommand('git', ['fetch', 'origin', `${pr.branch}:${localBranch}`]);
   if (fetchResult.code !== 0) {
     throw new Error(`Could not fetch branch ${pr.branch}: ${fetchResult.stderr || fetchResult.stdout}`);
@@ -113,14 +139,22 @@ if (!repoStatus.clean) {
 
 const remoteUrl = (await runCommand('git', ['config', '--get', 'remote.origin.url'])).stdout.trim();
 const repo = parseOriginRepo(remoteUrl);
-const pulls = await githubRequest(`/repos/${repo.owner}/${repo.name}/pulls?state=open&per_page=100`);
-const candidates = pulls
-  .map((pr) => ({ pr, evaluation: evaluateOpenPullRequest(pr, repo.owner) }))
-  .map(({ pr, evaluation }) => ({ ...evaluation, pr }))
-  .filter((item) => item.eligible);
-const skipped = pulls
-  .map((pr) => ({ number: pr.number, title: pr.title, url: pr.html_url, ...evaluateOpenPullRequest(pr, repo.owner) }))
-  .filter((item) => !item.eligible);
+const pulls = await githubRequestAll(`/repos/${repo.owner}/${repo.name}/pulls?state=open`);
+const evaluatedPulls = pulls.map((pr) => ({
+  pr,
+  evaluation: evaluateOpenPullRequest(pr, repo.owner),
+}));
+const candidates = evaluatedPulls
+  .filter(({ evaluation }) => evaluation.eligible)
+  .map(({ pr, evaluation }) => ({ ...evaluation, pr }));
+const skipped = evaluatedPulls
+  .filter(({ evaluation }) => !evaluation.eligible)
+  .map(({ pr, evaluation }) => ({
+    number: pr.number,
+    title: pr.title,
+    url: pr.html_url,
+    ...evaluation,
+  }));
 
 const results = [];
 for (const candidate of candidates) {
