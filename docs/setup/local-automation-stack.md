@@ -51,6 +51,8 @@ docker run -d \
   -p 5678:5678 \
   -v ~/.n8n:/home/node/.n8n \
   --add-host=host.docker.internal:host-gateway \
+  -e 'NODE_FUNCTION_ALLOW_BUILTIN=*' \
+  -e N8N_BLOCK_ENV_ACCESS_IN_NODE=false \
   -e GENERIC_TIMEZONE=Africa/Cairo \
   -e PLANE_API_BASE_URL=https://api.plane.so \
   -e PLANE_WORKSPACE_SLUG=wazaker \
@@ -58,8 +60,15 @@ docker run -d \
   -e PLANE_API_KEY=... \
   -e AUTOMATION_RUNNER_BASE_URL=http://host.docker.internal:3210 \
   -e AUTOMATION_RUNNER_TOKEN=... \
+  -e GITHUB_WEBHOOK_SECRET=... \
   n8nio/n8n
 ```
+
+Required runtime notes:
+
+- `NODE_FUNCTION_ALLOW_BUILTIN=*` is required because several checked-in Code nodes use `require('node:http')`, `require('node:https')`, and `require('node:crypto')` for durable local HTTP orchestration.
+- `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` is required because the workflows read repo automation settings from `$env`.
+- `GITHUB_WEBHOOK_SECRET` must match the GitHub webhook configuration for the router workflow to validate signatures.
 
 ### automation-runner
 
