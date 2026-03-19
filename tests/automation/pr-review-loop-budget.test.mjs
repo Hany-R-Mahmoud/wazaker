@@ -92,3 +92,24 @@ test('review loop budget show command ignores malformed extra payload args', () 
     rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+test('review loop budget event command reports invalid JSON payloads', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'review-budget-event-'));
+  const statePath = path.join(tempDir, 'state.json');
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      ['scripts/lib/pr-review-loop-budget.mjs', statePath, 'event', 'trigger', '{not-json'],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+      },
+    );
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Invalid JSON payload:/);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
