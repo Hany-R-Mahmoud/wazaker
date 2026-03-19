@@ -24,6 +24,7 @@ test('validateReportPath keeps writes under docs/automation', () => {
   const safePath = validateReportPath('health/example.md');
   assert.match(safePath, /docs\/automation\/health\/example\.md$/);
   assert.throws(() => validateReportPath('../../escape.md'));
+  assert.throws(() => validateReportPath('../automation-evil/report.md'));
 });
 
 test('writeContext persists and reads shared context', () => {

@@ -4,7 +4,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { repoRoot, writeContext, writeReport } from './lib/automation-platform.mjs';
 
-const runsDir = join(repoRoot, 'benchmarks', 'asr', 'runs');
+const benchmarkRoot = process.env.AUTOMATION_BENCHMARK_ROOT || repoRoot;
+const runsDir = join(benchmarkRoot, 'benchmarks', 'asr', 'runs');
 const providerDirs = existsSync(runsDir)
   ? readdirSync(runsDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort()
   : [];

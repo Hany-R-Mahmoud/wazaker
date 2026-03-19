@@ -6,7 +6,7 @@ import {
   readFileSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -23,8 +23,14 @@ mkdirSync(contextDir, { recursive: true });
 mkdirSync(reportsDir, { recursive: true });
 
 export function validatePathInside(baseDir, relativePath) {
-  const resolvedPath = resolve(baseDir, relativePath);
-  if (!resolvedPath.startsWith(baseDir)) {
+  const normalizedBaseDir = resolve(baseDir);
+  const resolvedPath = resolve(normalizedBaseDir, relativePath);
+  const relativePathFromBase = relative(normalizedBaseDir, resolvedPath);
+  if (
+    relativePathFromBase === '..' ||
+    relativePathFromBase.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) ||
+    isAbsolute(relativePathFromBase)
+  ) {
     throw new Error('Invalid path outside allowed base directory');
   }
   return resolvedPath;
@@ -134,6 +140,14 @@ export function runCommand(command, args, options = {}) {
 
     child.on('close', (code) => {
       resolveRun({ code: code ?? 1, stdout, stderr });
+    });
+
+    child.on('error', (error) => {
+      resolveRun({
+        code: 1,
+        stdout,
+        stderr: stderr ? `${stderr}\n${error.message}` : error.message,
+      });
     });
   });
 }

@@ -2,8 +2,8 @@
 
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import {
   getRepoStatus,
   getServiceHealth,
@@ -221,6 +221,7 @@ const server = createServer(async (req, res) => {
         return;
       }
       const destination = validateReportPath(relativePath);
+      mkdirSync(dirname(destination), { recursive: true });
       writeFileSync(destination, content, 'utf8');
       sendJson(res, 200, {
         ok: true,
