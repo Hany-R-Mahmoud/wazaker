@@ -10,8 +10,8 @@ fi
 pr_ref="${1:-}"
 branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
-max_checks="${MAX_CHECKS:-20}"
-review_settle_seconds="${REVIEW_SETTLE_SECONDS:-240}"
+max_checks="${MAX_CHECKS:-0}"
+review_settle_seconds="${REVIEW_SETTLE_SECONDS:-600}"
 require_bot_activity="${REQUIRE_BOT_REVIEW_ACTIVITY:-1}"
 output_dir="docs/pr-reviews"
 safe_branch="${branch_name//\//-}"
@@ -28,6 +28,10 @@ else
   pr_view_ref="${pr_ref:-$branch_name}"
 fi
 
+if (( max_checks <= 0 )); then
+  max_checks=$(( (review_settle_seconds + poll_seconds - 1) / poll_seconds + 4 ))
+fi
+
 settle_window_start_epoch="$(date +%s)"
 
 count=1
@@ -41,6 +45,20 @@ while (( count <= max_checks )); do
 
   now_epoch="$(date +%s)"
   seconds_since_watch_start=$(( now_epoch - settle_window_start_epoch ))
+  coderabbit_check_pending=0
+
+  if jq -e '
+    (.statusCheckRollup | tostring | ascii_downcase) as $rollup
+    | ($rollup | contains("coderabbit"))
+      and (
+        ($rollup | contains("waiting for status to be reported"))
+        or ($rollup | contains("review in progress"))
+        or ($rollup | contains("in_progress"))
+        or ($rollup | contains("pending"))
+      )
+  ' "$pr_json_file" >/dev/null 2>&1; then
+    coderabbit_check_pending=1
+  fi
 
   if jq -e 'length > 0' "$comments_file" >/dev/null 2>&1; then
     echo "Actionable bot review comments detected."
@@ -64,7 +82,7 @@ while (( count <= max_checks )); do
         | (.body // "" | ascii_downcase)
       ]
       | if length == 0 then false else .[-1] | contains("review in progress") end
-    ' "$pr_json_file" >/dev/null 2>&1; then
+    ' "$pr_json_file" >/dev/null 2>&1 || (( coderabbit_check_pending == 1 )); then
       echo "Bot review still in progress; waiting."
     else
       if (( seconds_since_watch_start >= review_settle_seconds )); then
