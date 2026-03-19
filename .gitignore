@@ -12,6 +12,9 @@ coverage/
 !.codex/prompts/
 !.codex/prompts/**
 docs/pr-reviews/
+docs/automation/
+.automation/
+tmp/
 __pycache__/
 *.pyc
 benchmarks/asr/samples/*.wav

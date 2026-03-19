@@ -1,0 +1,104 @@
+[
+  {
+    "id": "PlnBklgAudit02",
+    "name": "Plane Backlog Quality Audit V2",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "days",
+                "daysInterval": 1,
+                "triggerAtHour": 9,
+                "triggerAtMinute": 15
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          0
+        ],
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "url": "={{$env.PLANE_API_BASE_URL}}/api/v1/workspaces/{{$env.PLANE_WORKSPACE_SLUG}}/projects/{{$env.PLANE_PROJECT_ID}}/work-items",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "per_page",
+                "value": "50"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-API-Key",
+                "value": "={{$env.PLANE_API_KEY}}"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          260,
+          0
+        ],
+        "name": "Fetch Plane Work Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const runnerBase = process.env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = process.env.AUTOMATION_RUNNER_TOKEN;\nif (!runnerBase) throw new Error('AUTOMATION_RUNNER_BASE_URL is not configured');\n\nconst response = $input.first().json;\nconst workItems = Array.isArray(response.results) ? response.results : [];\n\nconst qualityFindings = workItems\n  .map((item) => {\n    const description = (item.description_stripped ?? '').replace(/\\s+/g, ' ').trim();\n    const hasAcceptance = /Acceptance Criteria/i.test(description);\n    const hasRepoMetadata = /Repo Metadata/i.test(description);\n    const shallowDescription = description.length < 180;\n    const missingOutcomeNote = item.completed_at && !/Outcome|Completed|Decision|Follow-up/i.test(description);\n\n    const reasons = [];\n    if (shallowDescription) reasons.push('description is too shallow');\n    if (!hasAcceptance) reasons.push('missing acceptance criteria section');\n    if (!hasRepoMetadata) reasons.push('missing repo metadata section');\n    if (missingOutcomeNote) reasons.push('completed item lacks explicit outcome note');\n\n    if (reasons.length === 0) return null;\n\n    return {\n      id: item.id,\n      title: item.name,\n      priority: item.priority ?? 'none',\n      updatedAt: item.updated_at,\n      reasons,\n    };\n  })\n  .filter(Boolean);\n\nconst summaryLines = qualityFindings.length === 0\n  ? ['No backlog quality issues found.']\n  : qualityFindings.map((finding, index) => `${index + 1}. ${finding.title} -> ${finding.reasons.join('; ')}`);\n\nconst dateStamp = new Date().toISOString().slice(0, 10);\nconst reportRelativePath = `backlog-audits/${dateStamp}.md`;\nconst reportContent = [\n  '# Plane Backlog Quality Audit',\n  '',\n  `Generated: ${new Date().toISOString()}`,\n  `Findings: ${qualityFindings.length}`,\n  '',\n  '## Summary',\n  '',\n  ...summaryLines,\n].join('\\n');\n\nconst writeResponse = await fetch(`${runnerBase}/reports/write`, {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json',\n    ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n  },\n  body: JSON.stringify({\n    relativePath: reportRelativePath,\n    content: reportContent,\n  }),\n});\n\nif (!writeResponse.ok) {\n  const body = await writeResponse.text();\n  throw new Error(`Runner report write failed: ${writeResponse.status} ${body}`);\n}\n\nreturn [{\n  json: {\n    generatedAt: new Date().toISOString(),\n    findingCount: qualityFindings.length,\n    findings: qualityFindings,\n    summary: summaryLines.join('\\n'),\n    reportRelativePath,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          520,
+          0
+        ],
+        "name": "Audit And Write Report"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Fetch Plane Work Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Plane Work Items": {
+        "main": [
+          [
+            {
+              "node": "Audit And Write Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "versionId": "f33abfc5-37a2-4f2c-92b5-b8ee46b1fc0d",
+    "pinData": {},
+    "tags": []
+  }
+]

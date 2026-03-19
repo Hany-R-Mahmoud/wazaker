@@ -42,14 +42,14 @@ Build a focused mobile product for Quran recitation revision with AI support, st
 
 - owns user flow clarity, feedback presentation, and bilingual UX quality
 
-## On-Demand Roles
+## Permanent Gate Roles
 
 - reviewer
 - tester
 - security
 - docs
 
-## Missing Specialist Roles To Add
+## Specialist Roles
 
 ### Speech Evaluation Agent
 
@@ -60,3 +60,29 @@ Build a focused mobile product for Quran recitation revision with AI support, st
 
 - defines what user-facing recitation feedback should and should not claim
 - keeps the product aligned with learner expectations and trust
+
+## Operating System Roles
+
+### n8n Control Plane
+
+- owns recurring orchestration
+- owns scheduling and workflow routing
+- owns durable automation reporting
+
+### Ollama Helper Layer
+
+- owns low-risk local model tasks
+- supports summaries, task expansion drafts, and classification
+- does not replace reviewer, tester, or product judgment
+
+## Phase 4 Rule
+
+After phases 1 through 3, feature work should return to spec-driven delivery rather than more general setup work.
+
+Use:
+
+- `speckit-clarify`
+- `speckit-specify`
+- `speckit-plan`
+- `speckit-tasks`
+- `speckit-analyze`

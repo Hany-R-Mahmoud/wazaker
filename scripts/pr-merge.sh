@@ -3,6 +3,7 @@
 set -euo pipefail
 
 current_branch="$(git branch --show-current)"
+delivery_lock_file=".automation/delivery-lock.json"
 
 if [[ "$current_branch" == "main" ]]; then
   echo "Already on main. Expected a feature branch."
@@ -27,5 +28,29 @@ fi
 bash ./scripts/with-repo-env.sh gh pr merge --squash --delete-branch
 git checkout main
 git pull --ff-only origin main
+
+if [[ -f "$delivery_lock_file" ]]; then
+  locked_branch="$(jq -r '.branch // empty' "$delivery_lock_file")"
+  run_dir="$(jq -r '.runDir // empty' "$delivery_lock_file")"
+  if [[ -n "$locked_branch" && "$locked_branch" == "$current_branch" && -n "$run_dir" ]]; then
+    metadata_file="$run_dir/metadata.json"
+    completion_report="$run_dir/completion-report.md"
+    if [[ -f "$metadata_file" ]]; then
+      jq \
+        --arg status "merged" \
+        --arg mergedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        '.status = $status | .mergedAt = $mergedAt' \
+        "$metadata_file" > "${metadata_file}.tmp"
+      mv "${metadata_file}.tmp" "$metadata_file"
+      {
+        printf '# Delivery Completion Report\n\n'
+        printf -- '- Merged At: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        printf -- '- Merged Branch: `%s`\n' "$current_branch"
+        printf -- '- Result: merged and main synced\n'
+      } > "$completion_report"
+    fi
+    rm -f "$delivery_lock_file"
+  fi
+fi
 
 echo "Merged PR, deleted branch, and synced main."
