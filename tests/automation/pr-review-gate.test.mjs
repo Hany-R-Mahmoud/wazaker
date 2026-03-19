@@ -28,6 +28,28 @@ test('evaluatePrReviewGate - CodeRabbit pending state - blocks merge', () => {
   assert.equal(gate.clearToMerge, false);
 });
 
+test('evaluatePrReviewGate - structured pending rollup - blocks merge', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: [{ context: 'CodeRabbit', state: 'pending', description: 'Review in progress' }],
+    comments: [],
+    latestReviews: [{ author: { login: 'coderabbitai[bot]' } }],
+    reviews: [],
+  };
+
+  // Act
+  const gate = evaluatePrReviewGate(
+    prStatus,
+    [],
+    { requireBotActivity: true },
+  );
+
+  // Assert
+  assert.equal(gate.blockingBotReviewPending, true);
+  assert.ok(gate.pendingSignals.some((signal) => signal.startsWith('coderabbit:')));
+  assert.equal(gate.clearToMerge, false);
+});
+
 test('evaluatePrReviewGate - actionable bot comments remain - blocks merge', () => {
   // Arrange
   const prStatus = {

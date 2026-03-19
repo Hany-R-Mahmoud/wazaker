@@ -12,7 +12,17 @@ function asArray(value) {
 }
 
 function normalizeText(value) {
-  return String(value ?? '').toLowerCase();
+  if (typeof value === 'string') {
+    return value.toLowerCase();
+  }
+  if (value === null || value === undefined) {
+    return '';
+  }
+  try {
+    return JSON.stringify(value).toLowerCase();
+  } catch {
+    return String(value).toLowerCase();
+  }
 }
 
 function includesBotAlias(value) {
