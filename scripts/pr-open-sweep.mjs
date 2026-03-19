@@ -150,6 +150,15 @@ async function sweepPullRequest(pr) {
 }
 
 export async function main() {
+  if (!githubToken) {
+    process.stdout.write('AUTOMATION_GITHUB_TOKEN is not configured. Unattended PR sweep is paused.\n');
+    process.exitCode = 0;
+    return {
+      paused: true,
+      reason: 'AUTOMATION_GITHUB_TOKEN is not configured',
+    };
+  }
+
   const repoStatus = await getRepoStatus();
   if (repoStatus.branch !== 'main') {
     throw new Error(`PR sweep only runs from main. Current branch: ${repoStatus.branch}`);

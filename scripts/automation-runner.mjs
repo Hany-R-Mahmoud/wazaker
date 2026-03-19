@@ -20,6 +20,11 @@ import {
 const port = Number(process.env.AUTOMATION_RUNNER_PORT || '3210');
 const token = process.env.AUTOMATION_RUNNER_TOKEN || '';
 
+if (!token) {
+  process.stderr.write('AUTOMATION_RUNNER_TOKEN must be configured. automation-runner will not start.\n');
+  process.exit(1);
+}
+
 const actionMap = {
   pr_start: ['bash', './scripts/pr-start.sh'],
   pr_publish: ['bash', './scripts/pr-publish.sh'],
@@ -121,7 +126,7 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (token && req.headers.authorization !== `Bearer ${token}`) {
+    if (req.headers.authorization !== `Bearer ${token}`) {
       sendJson(res, 401, { error: 'Unauthorized' });
       return;
     }

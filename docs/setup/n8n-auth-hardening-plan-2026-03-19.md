@@ -84,6 +84,8 @@ If `n8n` keeps asking for sign-in again:
 
 ## Workflow Auth Matrix
 
+Note: risk ratings assume all required tokens and secrets are properly configured and enforced. Workflows marked low risk because they depend on the runner token still require `AUTOMATION_RUNNER_TOKEN` to be set and validated at startup.
+
 | Workflow / Path | Primary Auth Model | Interactive Blocker Risk | Recommended Mode |
 | --- | --- | --- | --- |
 | Daily Plane Summary | `PLANE_API_KEY` + runner token | Low | Always-on |
@@ -114,7 +116,8 @@ If `n8n` keeps asking for sign-in again:
 
 ## Remaining Manual Validation
 
-1. verify `AUTOMATION_GITHUB_TOKEN` can list and comment on PRs without your shell session
-2. verify webhook delivery reaches `GhWebhookRouter01` using `GITHUB_WEBHOOK_SECRET`
-3. verify `n8n` login survives container restart with the same `~/.n8n` mount
-4. only then move GitHub automation from semi-manual to always-on
+1. verify `AUTOMATION_RUNNER_TOKEN` is configured and enforced; the runner should accept valid bearer tokens and reject requests with missing or invalid `Authorization` headers
+2. verify `AUTOMATION_GITHUB_TOKEN` can list and comment on PRs without your shell session
+3. verify webhook delivery reaches `GhWebhookRouter01` using `GITHUB_WEBHOOK_SECRET`
+4. verify `n8n` login survives container restart with the same `~/.n8n` mount
+5. only then move GitHub automation from semi-manual to always-on
