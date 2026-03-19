@@ -10,8 +10,8 @@ if [[ "$current_branch" == "main" ]]; then
   exit 1
 fi
 
-if ! bash ./scripts/with-repo-env.sh gh auth status >/dev/null 2>&1; then
-  echo "gh is not authenticated cleanly. Merge must be done manually in GitHub."
+if ! bash ./scripts/with-repo-env.sh gh pr view --json number >/dev/null 2>&1; then
+  echo "Could not query the current PR through gh. Merge must be done manually in GitHub."
   exit 1
 fi
 

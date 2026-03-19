@@ -2,11 +2,6 @@
 
 set -euo pipefail
 
-if ! bash ./scripts/with-repo-env.sh gh auth status >/dev/null 2>&1; then
-  echo "gh is not authenticated cleanly. Cannot poll PR review state."
-  exit 1
-fi
-
 pr_ref="${1:-}"
 branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
