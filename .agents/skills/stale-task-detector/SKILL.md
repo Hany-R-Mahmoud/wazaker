@@ -1,3 +1,12 @@
+---
+name: stale-task-detector
+description: Detect Plane work items that have stopped moving and recommend archive, split, reprioritize, or unblock actions.
+compatibility: Requires Plane task snapshots or mirrored backlog data plus durable report output.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Stale Task Detector
 
 ## Purpose

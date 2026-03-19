@@ -69,11 +69,14 @@ This loop now:
 - fetches actionable bot feedback through `agent-reviews`
 - ignores bot status noise that should not block merge
 - writes a review gate artifact at `docs/pr-reviews/<branch>-review-gate.json`
+- writes a durable review-loop budget artifact at `docs/pr-reviews/<branch>-review-loop-state.json`
 - waits through a 10-minute review settle window, requires real bot activity, and refuses to treat CodeRabbit or Qodo pending status as settled
 - replies to actionable bot review threads
 - resolves those threads after fixes land
 - blocks merge while actionable review threads remain unresolved
 - blocks merge until the review gate artifact explicitly reports `clearToMerge=true`
+- limits manual `@coderabbitai review` retriggers per PR with `MAX_CODERABBIT_TRIGGER_COMMENTS`, default `4`
+- limits repeated CodeRabbit settle-window timeouts with `MAX_BOT_REVIEW_TIMEOUTS`, default `2`
 
 ### 6. Resolve review comments on the same branch
 
@@ -122,6 +125,7 @@ bash ./scripts/pr-autofinish.sh 1
 - unresolved actionable bot threads are `0`
 - the saved review gate artifact says `clearToMerge=true`
 
+If the review loop budget is exhausted, `pr-autofinish` now stops deliberately instead of repeatedly retriggering CodeRabbit forever. Inspect `docs/pr-reviews/<branch>-review-loop-state.json` for the exact stop reason before deciding whether to trigger another review manually.
 ### 8. Sweep Remaining Open PRs
 
 For a repo-wide pass over open PRs with no human-in-the-middle:

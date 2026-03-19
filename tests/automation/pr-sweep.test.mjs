@@ -3,44 +3,59 @@ import assert from 'node:assert/strict';
 
 import { evaluateOpenPullRequest } from '../../scripts/lib/pr-sweep.mjs';
 
-test('pr sweep skips draft pull requests', () => {
+test('evaluateOpenPullRequest - when PR is draft - returns ineligible', () => {
+  // Arrange
+  const draftPullRequest = {
+    number: 1,
+    draft: true,
+    head: { ref: 'codex/test', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
+  };
+
+  // Act
   const result = evaluateOpenPullRequest(
-    {
-      number: 1,
-      draft: true,
-      head: { ref: 'codex/test', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
-    },
+    draftPullRequest,
     'Hany-R-Mahmoud',
   );
 
+  // Assert
   assert.deepEqual(result, { eligible: false, reason: 'draft' });
 });
 
-test('pr sweep skips forked or unknown owners', () => {
+test('evaluateOpenPullRequest - when head owner differs - returns ineligible', () => {
+  // Arrange
+  const forkedPullRequest = {
+    number: 2,
+    draft: false,
+    head: { ref: 'codex/test', repo: { owner: { login: 'someone-else' } } },
+  };
+
+  // Act
   const result = evaluateOpenPullRequest(
-    {
-      number: 2,
-      draft: false,
-      head: { ref: 'codex/test', repo: { owner: { login: 'someone-else' } } },
-    },
+    forkedPullRequest,
     'Hany-R-Mahmoud',
   );
 
+  // Assert
   assert.deepEqual(result, { eligible: false, reason: 'fork-or-unknown-owner' });
 });
 
-test('pr sweep accepts same-repo non-draft branches', () => {
+test('evaluateOpenPullRequest - when PR is same repo and ready - returns eligible metadata', () => {
+  // Arrange
+  const readyPullRequest = {
+    number: 3,
+    title: 'Ready PR',
+    html_url: 'https://example.test/pr/3',
+    draft: false,
+    head: { ref: 'codex/ready', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
+  };
+
+  // Act
   const result = evaluateOpenPullRequest(
-    {
-      number: 3,
-      title: 'Ready PR',
-      html_url: 'https://example.test/pr/3',
-      draft: false,
-      head: { ref: 'codex/ready', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
-    },
+    readyPullRequest,
     'Hany-R-Mahmoud',
   );
 
+  // Assert
   assert.deepEqual(result, {
     eligible: true,
     reason: 'eligible',
@@ -51,15 +66,20 @@ test('pr sweep accepts same-repo non-draft branches', () => {
   });
 });
 
-test('pr sweep skips PRs targeting main as head branch', () => {
+test('evaluateOpenPullRequest - when head branch is main - returns ineligible', () => {
+  // Arrange
+  const invalidHeadPullRequest = {
+    number: 4,
+    draft: false,
+    head: { ref: 'main', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
+  };
+
+  // Act
   const result = evaluateOpenPullRequest(
-    {
-      number: 4,
-      draft: false,
-      head: { ref: 'main', repo: { owner: { login: 'Hany-R-Mahmoud' } } },
-    },
+    invalidHeadPullRequest,
     'Hany-R-Mahmoud',
   );
 
+  // Assert
   assert.deepEqual(result, { eligible: false, reason: 'invalid-head-branch' });
 });

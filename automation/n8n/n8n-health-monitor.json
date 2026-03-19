@@ -2,7 +2,7 @@
   {
     "id": "HealthMonitor01",
     "name": "Automation Health Monitor",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

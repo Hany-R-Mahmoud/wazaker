@@ -892,6 +892,28 @@
       ]
     },
     {
+      "id": "TASK-029",
+      "type": "task",
+      "title": "Bound the CodeRabbit re-review loop with durable review budgets",
+      "summary": "Stop the PR automation from endlessly retriggering CodeRabbit when review comments keep reappearing after each push. Track a durable per-PR review budget, stop automatic retries after a small fixed limit, and leave a clear artifact that explains whether the loop stopped because of repeated settle-window timeouts, repeated manual retriggers, or a no-op resolver pass that still left actionable bot comments behind.",
+      "priority": "urgent",
+      "state": "Done",
+      "agentOwner": "review-and-pr-operations",
+      "parentId": "EPIC-DELIVERY-OS",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:review-and-pr-operations",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "The PR review loop stores a durable per-PR state file that records how many manual CodeRabbit retriggers and review timeouts have already happened.",
+        "Automatic review retries stop after a bounded budget instead of continuing forever, and the stop reason is written to a durable artifact for the branch.",
+        "The GitHub flow documentation explains the new retry-budget controls and the manual next step once automation pauses.",
+        "The implementation is verified by automated tests and script syntax checks."
+      ]
+    },
+    {
       "id": "SPIKE-001",
       "type": "spike",
       "title": "Benchmark first ASR option on short passages",

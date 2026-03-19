@@ -2,7 +2,7 @@
   {
     "id": "CommitSummaryPlane01",
     "name": "Commit Summarizer Plane Sync",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

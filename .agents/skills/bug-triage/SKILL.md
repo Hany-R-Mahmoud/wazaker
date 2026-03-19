@@ -1,3 +1,12 @@
+---
+name: bug-triage
+description: Classify new GitHub issues, estimate severity, suggest owners, and route the work into Plane with durable reporting.
+compatibility: Requires the wazaker automation runner, GitHub issue payloads, and optional Plane credentials for write-back.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Bug Triage
 
 ## Purpose

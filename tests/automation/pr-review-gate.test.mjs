@@ -28,6 +28,28 @@ test('evaluatePrReviewGate - CodeRabbit pending state - blocks merge', () => {
   assert.equal(gate.clearToMerge, false);
 });
 
+test('evaluatePrReviewGate - structured pending rollup - blocks merge', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: [{ context: 'CodeRabbit', state: 'pending', description: 'Review in progress' }],
+    comments: [],
+    latestReviews: [{ author: { login: 'coderabbitai[bot]' } }],
+    reviews: [],
+  };
+
+  // Act
+  const gate = evaluatePrReviewGate(
+    prStatus,
+    [],
+    { requireBotActivity: true },
+  );
+
+  // Assert
+  assert.equal(gate.blockingBotReviewPending, true);
+  assert.ok(gate.pendingSignals.some((signal) => signal.startsWith('coderabbit:')));
+  assert.equal(gate.clearToMerge, false);
+});
+
 test('evaluatePrReviewGate - actionable bot comments remain - blocks merge', () => {
   // Arrange
   const prStatus = {
@@ -70,6 +92,58 @@ test('evaluatePrReviewGate - bot review completed with no blockers - allows merg
 
   // Assert
   assert.equal(gate.botActivitySeen, true);
+  assert.equal(gate.blockingBotReviewPending, false);
+  assert.equal(gate.clearToMerge, true);
+});
+
+test('evaluatePrReviewGate - deduplicates repeated bot authors', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: '',
+    comments: [{ author: { login: 'coderabbitai[bot]' }, body: 'done' }],
+    latestReviews: [{ author: { login: 'coderabbitai[bot]' } }],
+    reviews: [{ author: { login: 'coderabbitai[bot]' } }],
+    mergeStateStatus: 'CLEAN',
+  };
+
+  // Act
+  const gate = evaluatePrReviewGate(prStatus, [], { requireBotActivity: true });
+
+  // Assert
+  assert.deepEqual(gate.botAuthors, ['coderabbitai[bot]']);
+});
+
+test('evaluatePrReviewGate - ignores stale pending bot comments after a newer review arrives', () => {
+  const prStatus = {
+    statusCheckRollup: '',
+    comments: [
+      {
+        author: { login: 'coderabbitai[bot]' },
+        body: 'Review in progress',
+        createdAt: '2026-03-19T19:39:05Z',
+      },
+      {
+        author: { login: 'qodo-code-review' },
+        body: 'pending analysis',
+        createdAt: '2026-03-19T19:15:53Z',
+      },
+    ],
+    latestReviews: [
+      {
+        author: { login: 'coderabbitai[bot]' },
+        submittedAt: '2026-03-19T19:59:29Z',
+      },
+      {
+        author: { login: 'qodo-code-review' },
+        submittedAt: '2026-03-19T19:23:55Z',
+      },
+    ],
+    reviews: [],
+    mergeStateStatus: 'CLEAN',
+  };
+
+  const gate = evaluatePrReviewGate(prStatus, [], { requireBotActivity: true });
+
   assert.equal(gate.blockingBotReviewPending, false);
   assert.equal(gate.clearToMerge, true);
 });
@@ -120,7 +194,35 @@ test('pr-review-gate CLI rejects malformed PR status payloads', () => {
   );
 
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /reviewDecision must be a string/);
+  assert.match(result.stderr, /reviewDecision must be a string or null/);
+});
+
+test('pr-review-gate CLI accepts nullable GitHub fields', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
+  const prStatusPath = path.join(tempDir, 'pr-status.json');
+
+  writeFileSync(
+    prStatusPath,
+    JSON.stringify({
+      mergeStateStatus: 'CLEAN',
+      reviewDecision: null,
+      statusCheckRollup: null,
+      comments: [],
+      latestReviews: [],
+      reviews: [],
+    }),
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/pr-review-gate.mjs', prStatusPath],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    },
+  );
+
+  assert.equal(result.status, 0);
 });
 
 test('pr-review-gate CLI reports a missing PR status file', () => {
@@ -168,4 +270,33 @@ test('pr-review-gate CLI fails closed on malformed comments JSON', () => {
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Could not read JSON file/);
+});
+
+test('pr-review-gate CLI fails closed when a supplied comments file is missing', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
+  const prStatusPath = path.join(tempDir, 'pr-status.json');
+  const missingCommentsPath = path.join(tempDir, 'missing-comments.json');
+
+  writeFileSync(
+    prStatusPath,
+    JSON.stringify({
+      mergeStateStatus: 'CLEAN',
+      reviewDecision: 'APPROVED',
+      comments: [],
+      latestReviews: [],
+      reviews: [],
+    }),
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/pr-review-gate.mjs', prStatusPath, missingCommentsPath],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, new RegExp(`Comments file not found: ${missingCommentsPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
 });

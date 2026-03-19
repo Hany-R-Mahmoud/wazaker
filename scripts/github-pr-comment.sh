@@ -20,10 +20,11 @@ if [[ ! -f "$body_file" ]]; then
 fi
 
 body_realpath="$(realpath "$body_file")"
-allowed_root="$(realpath "$repo_root/docs/pr-reviews")"
+allowed_reviews_root="$(realpath "$repo_root/docs/pr-reviews")"
+allowed_automation_root="$(realpath "$repo_root/docs/automation")"
 
-if [[ "${body_realpath}" != "${allowed_root}"/* ]]; then
-  echo "Body file must be under docs/pr-reviews/: $body_file" >&2
+if [[ "${body_realpath}" != "${allowed_reviews_root}"/* && "${body_realpath}" != "${allowed_automation_root}"/* ]]; then
+  echo "Body file must be under docs/pr-reviews/ or docs/automation/: $body_file" >&2
   exit 1
 fi
 

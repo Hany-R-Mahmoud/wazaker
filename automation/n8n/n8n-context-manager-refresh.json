@@ -2,7 +2,7 @@
   {
     "id": "CtxMgrRefresh01",
     "name": "Context Manager Refresh",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

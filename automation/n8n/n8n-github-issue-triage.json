@@ -2,7 +2,7 @@
   {
     "id": "GhIssueTriage01",
     "name": "GitHub Issue Triage",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

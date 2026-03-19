@@ -1,3 +1,12 @@
+---
+name: sprint-retro
+description: Summarize sprint outcomes, misses, blockers, and carryover into a founder-readable retrospective artifact.
+compatibility: Requires sprint snapshots, completed work context, and durable markdown output.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Sprint Retro
 
 ## Purpose

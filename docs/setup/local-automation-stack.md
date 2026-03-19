@@ -209,7 +209,7 @@ Checked-in workflow definitions live in:
 ### Plane Guarded Delivery Pipeline
 
 - workflow id: `PlnGuardedDelivery01`
-- schedule: every `1` hour
+- schedule: every `4` hours
 - status: active
 
 ### Flow
@@ -263,16 +263,15 @@ The repo now also includes checked-in workflow definitions for the next automati
 - `n8n execute` is not a reliable smoke-test path inside the already-running container because the task broker port is already claimed by the live instance
 - Plane expansion suggestions are written to repo reports first and are not auto-posted back into Plane yet
 - delivery runtime artifacts are durable locally but intentionally git-ignored
-- the paused Plane polling workflows are in temporary quarantine, not permanent retirement; they should be re-enabled only after retry/backoff, schedule hardening, one manual smoke run, and one real scheduled run each
+- the previously quarantined Plane polling workflows were hardened, smoke-run, and republished as active; see `docs/setup/plane-workflow-reactivation-2026-03-19.md` for the live reactivation record and the remaining first-scheduled-run validation gap
 - repo-wide open PR sweeping requires a valid automation GitHub token because the repo-local `gh` login is intentionally isolated from the human shell session
 
 ## Next Recommended Automations
 
-1. import and publish the hardened Plane polling workflows into the live `n8n` instance
-2. re-enable quarantined workflows one by one after a passing smoke run and a passing scheduled run
-3. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
-4. add Plane state and label conventions for task decomposition approvals
-5. provide `AUTOMATION_GITHUB_TOKEN` to the runner and `n8n` so repo-wide PR sweep can authenticate without a human session
+1. observe the first naturally scheduled executions for the reactivated Plane polling workflows and record the results next to the smoke-run note
+2. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
+3. add Plane state and label conventions for task decomposition approvals
+4. provide `AUTOMATION_GITHUB_TOKEN` to the runner and `n8n` so repo-wide PR sweep can authenticate without a human session
 
 ## Related Docs
 
