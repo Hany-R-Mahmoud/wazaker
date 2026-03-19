@@ -1,4 +1,4 @@
-export const planeWorkflowHardeningConfig = [
+export const PLANE_WORKFLOW_HARDENING_CONFIG = [
   {
     file: 'automation/n8n/n8n-daily-plane-summary-managed-v2.json',
     fetchNodeName: 'Fetch Plane Work Items',
@@ -53,7 +53,7 @@ export const planeWorkflowHardeningConfig = [
   },
 ];
 
-export const planeRetryPolicy = {
+export const PLANE_RETRY_POLICY = {
   retryOnFail: true,
   maxTries: 5,
   waitBetweenTries: 60000,

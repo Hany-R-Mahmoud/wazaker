@@ -3,52 +3,68 @@ import assert from 'node:assert/strict';
 
 import { evaluatePrReviewGate } from '../../scripts/lib/pr-review-gate.mjs';
 
-test('review gate blocks merge while CodeRabbit is pending', () => {
+test('evaluatePrReviewGate - CodeRabbit pending state - blocks merge', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: 'CodeRabbit review in progress pending',
+    comments: [{ author: { login: 'coderabbitai[bot]' }, body: 'Review in progress' }],
+    latestReviews: [],
+    reviews: [],
+  };
+
+  // Act
   const gate = evaluatePrReviewGate(
-    {
-      statusCheckRollup: 'CodeRabbit review in progress pending',
-      comments: [{ author: { login: 'coderabbitai[bot]' }, body: 'Review in progress' }],
-      latestReviews: [],
-      reviews: [],
-    },
+    prStatus,
     [],
     { requireBotActivity: true },
   );
 
+  // Assert
   assert.equal(gate.blockingBotReviewPending, true);
   assert.equal(gate.clearToMerge, false);
 });
 
-test('review gate blocks merge when actionable bot comments remain', () => {
+test('evaluatePrReviewGate - actionable bot comments remain - blocks merge', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: 'CodeRabbit completed',
+    comments: [{ author: { login: 'coderabbitai[bot]' }, body: 'All done' }],
+    latestReviews: [],
+    reviews: [],
+  };
+  const actionableBotComments = [{ id: 'comment-1' }];
+
+  // Act
   const gate = evaluatePrReviewGate(
-    {
-      statusCheckRollup: 'CodeRabbit completed',
-      comments: [{ author: { login: 'coderabbitai[bot]' }, body: 'All done' }],
-      latestReviews: [],
-      reviews: [],
-    },
-    [{ id: 'comment-1' }],
+    prStatus,
+    actionableBotComments,
     { requireBotActivity: true },
   );
 
+  // Assert
   assert.equal(gate.botActivitySeen, true);
   assert.equal(gate.actionableBotThreadCount, 1);
   assert.equal(gate.clearToMerge, false);
 });
 
-test('review gate allows merge only after bot activity with no pending state or actionable comments', () => {
+test('evaluatePrReviewGate - bot review completed with no blockers - allows merge', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: 'CodeRabbit completed successfully',
+    comments: [],
+    latestReviews: [{ author: { login: 'qodo-merge[bot]' } }],
+    reviews: [],
+    mergeStateStatus: 'CLEAN',
+  };
+
+  // Act
   const gate = evaluatePrReviewGate(
-    {
-      statusCheckRollup: 'CodeRabbit completed successfully',
-      comments: [],
-      latestReviews: [{ author: { login: 'qodo-merge[bot]' } }],
-      reviews: [],
-      mergeStateStatus: 'CLEAN',
-    },
+    prStatus,
     [],
     { requireBotActivity: true },
   );
 
+  // Assert
   assert.equal(gate.botActivitySeen, true);
   assert.equal(gate.blockingBotReviewPending, false);
   assert.equal(gate.clearToMerge, true);
