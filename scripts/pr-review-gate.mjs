@@ -56,6 +56,7 @@ function main() {
     const requireBotActivity = process.env.REQUIRE_BOT_REVIEW_ACTIVITY !== '0';
     const prStatus = readJsonFile(prJsonPath);
     if (prStatus === undefined) {
+      process.stderr.write(`Failed to evaluate PR review gate: PR status file not found: ${prJsonPath}\n`);
       process.exitCode = 1;
       return;
     }

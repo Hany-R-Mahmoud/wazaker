@@ -123,6 +123,23 @@ test('pr-review-gate CLI rejects malformed PR status payloads', () => {
   assert.match(result.stderr, /reviewDecision must be a string/);
 });
 
+test('pr-review-gate CLI reports a missing PR status file', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
+  const missingPrStatusPath = path.join(tempDir, 'missing-pr-status.json');
+
+  const result = spawnSync(
+    process.execPath,
+    ['scripts/pr-review-gate.mjs', missingPrStatusPath],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, new RegExp(`PR status file not found: ${missingPrStatusPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+});
+
 test('pr-review-gate CLI fails closed on malformed comments JSON', () => {
   const tempDir = mkdtempSync(path.join(tmpdir(), 'pr-review-gate-'));
   const prStatusPath = path.join(tempDir, 'pr-status.json');

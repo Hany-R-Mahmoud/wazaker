@@ -50,16 +50,20 @@ async function githubRequest(pathname) {
 
 async function githubRequestAll(pathname, { perPage = 100 } = {}) {
   const separator = pathname.includes('?') ? '&' : '?';
-  const requestPath = `${pathname}${separator}per_page=${perPage}`;
-  const json = await githubRequest(requestPath);
+  const items = [];
 
-  if (Array.isArray(json) && json.length === perPage) {
-    process.stderr.write(
-      `Warning: GitHub returned ${perPage} items for ${requestPath}; additional open PRs may not be included in this sweep.\n`,
-    );
+  for (let page = 1; ; page += 1) {
+    const requestPath = `${pathname}${separator}per_page=${perPage}&page=${page}`;
+    const json = await githubRequest(requestPath);
+    if (!Array.isArray(json)) {
+      return json;
+    }
+
+    items.push(...json);
+    if (json.length < perPage) {
+      return items;
+    }
   }
-
-  return json;
 }
 
 function sanitizeBranchName(branchName) {
@@ -158,7 +162,22 @@ const skipped = evaluatedPulls
 
 const results = [];
 for (const candidate of candidates) {
-  results.push(await sweepPullRequest(candidate));
+  try {
+    results.push(await sweepPullRequest(candidate));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Failed to sweep PR #${candidate.number}: ${message}\n`);
+    results.push({
+      number: candidate.number,
+      branch: candidate.branch,
+      title: candidate.title,
+      url: candidate.url,
+      status: 'blocked',
+      exitCode: null,
+      stdout: '',
+      stderr: message,
+    });
+  }
 }
 
 const timestamp = new Date().toISOString().replace(/[:]/g, '-');
