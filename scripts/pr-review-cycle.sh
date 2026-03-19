@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_number="${1:-}"
 max_cycles="${MAX_REVIEW_CYCLES:-3}"
 poll_seconds="${POLL_SECONDS:-15}"
@@ -9,7 +11,7 @@ review_settle_seconds="${REVIEW_SETTLE_SECONDS:-240}"
 max_checks="${MAX_CHECKS:-0}"
 
 if [[ -z "$pr_number" ]]; then
-  pr_number="$(bash ./scripts/with-repo-env.sh gh pr view --json number -q .number)"
+  pr_number="$(bash ./scripts/with-github-env.sh gh pr view --json number -q .number)"
 fi
 
 if [[ -z "$pr_number" ]]; then

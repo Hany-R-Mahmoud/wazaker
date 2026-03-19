@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_number="${1:-}"
 current_branch="$(git branch --show-current)"
 delivery_lock_file=".automation/delivery-lock.json"
@@ -14,7 +16,7 @@ if [[ "$current_branch" == "main" ]]; then
 fi
 
 if [[ -z "$pr_number" ]]; then
-  pr_number="$(bash ./scripts/with-repo-env.sh gh pr view --json number -q .number 2>/dev/null || true)"
+  pr_number="$(bash ./scripts/with-github-env.sh gh pr view --json number -q .number 2>/dev/null || true)"
 fi
 
 if [[ -z "$pr_number" ]]; then
@@ -22,7 +24,7 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
-if ! bash ./scripts/with-repo-env.sh gh pr view "$pr_number" --json number >/dev/null 2>&1; then
+if ! bash ./scripts/with-github-env.sh gh pr view "$pr_number" --json number >/dev/null 2>&1; then
   echo "Could not query PR #$pr_number through gh. Merge must be done manually in GitHub."
   exit 1
 fi
@@ -48,7 +50,7 @@ if [[ "$(jq -r '.clearToMerge' "$gate_file")" != "true" ]]; then
   exit 1
 fi
 
-bash ./scripts/with-repo-env.sh gh pr merge "$pr_number" --squash --delete-branch
+bash ./scripts/with-github-env.sh gh pr merge "$pr_number" --squash --delete-branch
 git checkout main
 git pull --ff-only origin main
 

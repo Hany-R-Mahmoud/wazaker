@@ -41,8 +41,8 @@ pr_title="${external_id}: ${title}"
 publish_output="$(cd "$repo_root" && bash ./scripts/pr-publish.sh "$commit_message" "$pr_title" 2>&1)"
 
 pr_json='null'
-if (cd "$repo_root" && bash ./scripts/with-repo-env.sh gh pr view --json number,url,title,reviewDecision,mergeStateStatus >/dev/null 2>&1); then
-  pr_json="$(cd "$repo_root" && bash ./scripts/with-repo-env.sh gh pr view --json number,url,title,reviewDecision,mergeStateStatus)"
+if (cd "$repo_root" && bash ./scripts/with-github-env.sh gh pr view --json number,url,title,reviewDecision,mergeStateStatus >/dev/null 2>&1); then
+  pr_json="$(cd "$repo_root" && bash ./scripts/with-github-env.sh gh pr view --json number,url,title,reviewDecision,mergeStateStatus)"
 fi
 
 {

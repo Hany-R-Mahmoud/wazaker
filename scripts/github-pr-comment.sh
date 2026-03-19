@@ -7,6 +7,8 @@ body_file="${2:-}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 
+source "$script_dir/lib/github-env.sh"
+
 if [[ -z "$pr_number" || -z "$body_file" ]]; then
   echo "Usage: $0 <pr-number> <body-file>" >&2
   exit 1
@@ -25,4 +27,4 @@ if [[ "${body_realpath}" != "${allowed_root}"/* ]]; then
   exit 1
 fi
 
-bash "$script_dir/with-repo-env.sh" gh pr comment "$pr_number" --body-file "$body_realpath"
+bash "$script_dir/with-github-env.sh" gh pr comment "$pr_number" --body-file "$body_realpath"

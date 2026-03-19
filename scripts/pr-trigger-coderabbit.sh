@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_number="${1:-}"
 
 if [[ -z "$pr_number" ]]; then
@@ -9,4 +11,4 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
-bash ./scripts/with-repo-env.sh gh pr comment "$pr_number" --body "@coderabbitai review"
+bash ./scripts/with-github-env.sh gh pr comment "$pr_number" --body "@coderabbitai review"

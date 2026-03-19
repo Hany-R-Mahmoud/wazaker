@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_ref="${1:-}"
 branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
@@ -32,7 +34,7 @@ settle_window_start_epoch="$(date +%s)"
 
 count=1
 while (( count <= max_checks )); do
-  bash ./scripts/with-repo-env.sh gh pr view "$pr_view_ref" \
+  bash ./scripts/with-github-env.sh gh pr view "$pr_view_ref" \
     --json number,url,title,reviewDecision,latestReviews,reviews,comments,statusCheckRollup,mergeStateStatus \
     > "$pr_json_file"
 

@@ -244,6 +244,7 @@ The repo now also includes checked-in workflow definitions for the next automati
 - `Speech QA Regression`
 - `UI Consistency Audit`
 - `Error Recovery Agent`
+- `GitHub Open PR Sweep`
 
 ## Validation Completed
 
@@ -263,6 +264,7 @@ The repo now also includes checked-in workflow definitions for the next automati
 - Plane expansion suggestions are written to repo reports first and are not auto-posted back into Plane yet
 - delivery runtime artifacts are durable locally but intentionally git-ignored
 - the paused Plane polling workflows are in temporary quarantine, not permanent retirement; they should be re-enabled only after retry/backoff, schedule hardening, one manual smoke run, and one real scheduled run each
+- repo-wide open PR sweeping requires a valid automation GitHub token because the repo-local `gh` login is intentionally isolated from the human shell session
 
 ## Next Recommended Automations
 
@@ -270,6 +272,7 @@ The repo now also includes checked-in workflow definitions for the next automati
 2. re-enable quarantined workflows one by one after a passing smoke run and a passing scheduled run
 3. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
 4. add Plane state and label conventions for task decomposition approvals
+5. provide `AUTOMATION_GITHUB_TOKEN` to the runner and `n8n` so repo-wide PR sweep can authenticate without a human session
 
 ## Related Docs
 
@@ -285,3 +288,4 @@ The repo now also includes checked-in workflow definitions for the next automati
 - require meaningful descriptions and outcome notes on Plane items
 - prefer `n8n` orchestration over ad-hoc recurring script invocation for repo operations
 - do not auto-merge while CodeRabbit or Qodo is still pending, while bot threads remain unresolved, or while the saved review gate is not clear
+- repo-wide PR sweep may merge only same-repo branches; fork PRs stay report-only until a separate fork-safe path exists

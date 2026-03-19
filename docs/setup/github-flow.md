@@ -122,6 +122,23 @@ bash ./scripts/pr-autofinish.sh 1
 - unresolved actionable bot threads are `0`
 - the saved review gate artifact says `clearToMerge=true`
 
+### 8. Sweep Remaining Open PRs
+
+For a repo-wide pass over open PRs with no human-in-the-middle:
+
+```sh
+node ./scripts/pr-open-sweep.mjs
+```
+
+This sweep now:
+- runs only from clean `main`
+- lists open PRs across the repository
+- skips drafts and fork-owned branches
+- creates a temporary local worktree per eligible PR
+- runs the existing `pr-autofinish` flow inside that worktree
+- merges only when the existing review gates are satisfied
+- writes a durable sweep report under `docs/automation/github-pr-sweeps/`
+
 If `gh` is unavailable, merge in GitHub, then run:
 
 ```sh

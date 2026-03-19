@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 <commit-message> <pr-title> [pr-body-file]"
   exit 1
@@ -32,11 +34,11 @@ if [[ -z "$pr_body_file" ]]; then
   pr_body_file="$(bash ./scripts/pr-summary.sh)"
 fi
 
-if bash ./scripts/with-repo-env.sh gh auth status >/dev/null 2>&1; then
+if bash ./scripts/with-github-env.sh gh auth status >/dev/null 2>&1; then
   if [[ -n "$pr_body_file" ]]; then
-    bash ./scripts/with-repo-env.sh gh pr create --fill --title "$pr_title" --body-file "$pr_body_file"
+    bash ./scripts/with-github-env.sh gh pr create --fill --title "$pr_title" --body-file "$pr_body_file"
   else
-    bash ./scripts/with-repo-env.sh gh pr create --fill --title "$pr_title"
+    bash ./scripts/with-github-env.sh gh pr create --fill --title "$pr_title"
   fi
 else
   echo "gh is not authenticated cleanly. Push succeeded, but PR creation was skipped."

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source ./scripts/lib/github-env.sh
+
 pr_number="${1:-}"
 branch_name="${2:-$(git branch --show-current)}"
 safe_branch="${branch_name//\//-}"
@@ -12,7 +14,7 @@ comments_file="$output_dir/${safe_branch}-review-comments.json"
 gate_file="$output_dir/${safe_branch}-review-gate.json"
 
 if [[ -z "$pr_number" ]]; then
-  pr_number="$(bash ./scripts/with-repo-env.sh gh pr view --json number -q .number)"
+  pr_number="$(bash ./scripts/with-github-env.sh gh pr view --json number -q .number)"
 fi
 
 if [[ -z "$pr_number" ]]; then
@@ -24,7 +26,7 @@ bash ./scripts/pr-watch.sh "$pr_number" >/dev/null
 bash ./scripts/pr-thread-sync.sh "$pr_number" "$branch_name" >/dev/null || true
 node ./scripts/pr-review-gate.mjs "$pr_json_file" "$comments_file" > "$gate_file"
 
-repo_json="$(bash ./scripts/with-repo-env.sh gh repo view --json owner,name)"
+repo_json="$(bash ./scripts/with-github-env.sh gh repo view --json owner,name)"
 owner="$(printf '%s' "$repo_json" | jq -r '.owner.login')"
 repo="$(printf '%s' "$repo_json" | jq -r '.name')"
 
@@ -48,7 +50,7 @@ query($owner: String!, $repo: String!, $number: Int!) {
   }
 }'
 
-bash ./scripts/with-repo-env.sh gh api graphql \
+bash ./scripts/with-github-env.sh gh api graphql \
   -f query="$query" \
   -F owner="$owner" \
   -F repo="$repo" \
