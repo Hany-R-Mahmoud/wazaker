@@ -28,7 +28,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const runnerBase = process.env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = process.env.AUTOMATION_RUNNER_TOKEN;\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\nconst response = await fetch(`${runnerBase}/jobs`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ action: 'speech_qa_report', mode: 'sync', args: [] }),\n});\nconst raw = await response.text();\nif (!response.ok) throw new Error(`speech_qa_report failed: ${response.status} ${raw}`);\nconst result = raw ? JSON.parse(raw) : {};\nconst output = result.stdout ? JSON.parse(result.stdout) : {};\nreturn [{ json: { result, output } }];"
+          "jsCode": "const runnerBase = $env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = $env.AUTOMATION_RUNNER_TOKEN;\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\nconst response = await fetch(`${runnerBase}/jobs`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ action: 'speech_qa_report', mode: 'sync', args: [] }),\n});\nconst raw = await response.text();\nif (!response.ok) throw new Error(`speech_qa_report failed: ${response.status} ${raw}`);\nconst result = raw ? JSON.parse(raw) : {};\nconst output = result.stdout ? JSON.parse(result.stdout) : {};\nreturn [{ json: { result, output } }];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
