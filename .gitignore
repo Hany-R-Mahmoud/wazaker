@@ -15,6 +15,7 @@ docs/pr-reviews/
 docs/automation/
 .automation/
 tmp/
+.tmp/
 __pycache__/
 *.pyc
 benchmarks/asr/samples/*.wav
