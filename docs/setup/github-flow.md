@@ -126,7 +126,6 @@ bash ./scripts/pr-autofinish.sh 1
 - the saved review gate artifact says `clearToMerge=true`
 
 If the review loop budget is exhausted, `pr-autofinish` now stops deliberately instead of repeatedly retriggering CodeRabbit forever. Inspect `docs/pr-reviews/<branch>-review-loop-state.json` for the exact stop reason before deciding whether to trigger another review manually.
-
 ### 8. Sweep Remaining Open PRs
 
 For a repo-wide pass over open PRs with no human-in-the-middle:
