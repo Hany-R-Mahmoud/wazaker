@@ -53,9 +53,15 @@ while (( cycle <= max_cycles )); do
     exit 78
   fi
 
-  trigger_output="$(bash ./scripts/pr-trigger-coderabbit.sh "$pr_number" 2>&1 || true)"
+  trigger_status=0
+  if ! trigger_output="$(bash ./scripts/pr-trigger-coderabbit.sh "$pr_number" 2>&1)"; then
+    trigger_status=$?
+  fi
   if [[ -n "$trigger_output" ]]; then
     echo "$trigger_output"
+  fi
+  if (( trigger_status != 0 )); then
+    exit "$trigger_status"
   fi
   trigger_comment_url="$(printf '%s\n' "$trigger_output" | tail -n 1)"
   node ./scripts/lib/pr-review-loop-budget.mjs "$state_file" event trigger "$(jq -nc \
@@ -86,6 +92,11 @@ while (( cycle <= max_cycles )); do
       if (( timeout_count >= max_bot_review_timeouts )); then
         node ./scripts/lib/pr-review-loop-budget.mjs "$state_file" event blocked "$(jq -nc \
           --arg reason "CodeRabbit timed out or stayed in review-in-progress state too many times (${timeout_count}/${max_bot_review_timeouts}). Pause automation and inspect manually." \
+          --argjson cycle "$cycle" \
+          '{reason: $reason, cycle: $cycle}')" >/dev/null
+      else
+        node ./scripts/lib/pr-review-loop-budget.mjs "$state_file" event blocked "$(jq -nc \
+          --arg reason "Timed out waiting for CodeRabbit review on cycle ${cycle}. Stopping this run early to avoid a loop; review budget remaining before manual escalation: $(( max_bot_review_timeouts - timeout_count ))." \
           --argjson cycle "$cycle" \
           '{reason: $reason, cycle: $cycle}')" >/dev/null
       fi
