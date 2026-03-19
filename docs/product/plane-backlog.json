@@ -207,6 +207,486 @@
       ]
     },
     {
+      "id": "US-101",
+      "type": "story",
+      "title": "US1 Revise a selected passage end to end",
+      "summary": "Deliver the first complete learner flow: select a target, record, analyze with the mock service, and view structured feedback tied to that target.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:story",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001"
+      ],
+      "acceptance": [
+        "The selected target, recording flow, mock analysis, and result feedback work as one coherent slice.",
+        "The flow is suitable for an MVP walkthrough without depending on production ASR.",
+        "The implementation stays bounded to the Phase 1 + Phase 2 foundations and US1 scope."
+      ]
+    },
+    {
+      "id": "US-102",
+      "type": "story",
+      "title": "US2 Retry within the same revision session",
+      "summary": "Let the learner retry immediately from the result view while preserving earlier attempts in the same session.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:story",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001"
+      ],
+      "acceptance": [
+        "A learner can start a retry from the result screen.",
+        "Previous attempts remain available in session history.",
+        "The retry flow preserves the same selected target."
+      ]
+    },
+    {
+      "id": "US-103",
+      "type": "story",
+      "title": "US3 Understand uncertain results safely",
+      "summary": "Surface low-confidence feedback carefully so the app does not overstate correctness or trustworthiness.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "interface-and-design",
+      "parentId": "EPIC-PRODUCT",
+      "labels": [
+        "type:story",
+        "lane:ux",
+        "phase:mvp",
+        "owner:interface-and-design",
+        "spec:001"
+      ],
+      "acceptance": [
+        "Low-confidence regions are labeled clearly.",
+        "The UI avoids definitive language when confidence is weak.",
+        "The learner is guided to retry or verify manually when needed."
+      ]
+    },
+    {
+      "id": "TASK-011",
+      "type": "task",
+      "title": "Create feature-first recitation app structure",
+      "summary": "Implement T001 by creating the `src/app/`, `src/features/recitation/`, `src/shared/`, and `src/test/` structure that the MVP flow will build on.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "phase:setup"
+      ],
+      "acceptance": [
+        "The feature-first directory structure exists.",
+        "App entrypoints are ready to route into feature modules.",
+        "The layout supports later tests and shared modules cleanly."
+      ]
+    },
+    {
+      "id": "TASK-012",
+      "type": "task",
+      "title": "Add recitation MVP dependencies and scripts",
+      "summary": "Implement T002 by updating package dependencies and scripts for navigation, recording, validation, and focused testing.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "phase:setup"
+      ],
+      "acceptance": [
+        "Dependencies needed for the MVP shell are installed and declared.",
+        "Scripts exist for type-checking and focused test execution.",
+        "The repo can support the recitation feature flow without ad hoc setup."
+      ]
+    },
+    {
+      "id": "TASK-013",
+      "type": "task",
+      "title": "Add bilingual theme and copy foundations",
+      "summary": "Implement T003 by creating shared theme and i18n primitives for the Arabic-first recitation experience.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "interface-and-design",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:ux",
+        "phase:mvp",
+        "owner:interface-and-design",
+        "spec:001",
+        "phase:setup"
+      ],
+      "acceptance": [
+        "Shared theme tokens exist for the recitation flow.",
+        "Bilingual copy structure exists for the first screens.",
+        "Arabic-first layout choices are reusable across the MVP."
+      ]
+    },
+    {
+      "id": "TASK-014",
+      "type": "task",
+      "title": "Create recitation domain types",
+      "summary": "Implement T004 by creating the domain types for targets, attempts, analysis results, and learner-safe feedback.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:architecture",
+        "phase:mvp",
+        "owner:systems-architect",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Recitation domain types are defined centrally.",
+        "Target and result structures align with the spec data model.",
+        "The types support the mock analysis boundary and UI state."
+      ]
+    },
+    {
+      "id": "TASK-015",
+      "type": "task",
+      "title": "Implement runtime schemas for recitation inputs and results",
+      "summary": "Implement T005 by adding runtime validation schemas for target selection and comparison results.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:architecture",
+        "phase:mvp",
+        "owner:systems-architect",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Runtime schemas validate target selection payloads.",
+        "Comparison results are validated before UI consumption.",
+        "Schema failures can surface safe errors."
+      ]
+    },
+    {
+      "id": "TASK-016",
+      "type": "task",
+      "title": "Create mockable analysis service interface",
+      "summary": "Implement T006 by defining the analysis service interface that the MVP will use before real ASR integration.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:architecture",
+        "phase:mvp",
+        "owner:systems-architect",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "A mockable analysis service contract exists.",
+        "The interface aligns with the documented contract artifact.",
+        "The mobile flow can depend on the interface instead of a real backend."
+      ]
+    },
+    {
+      "id": "TASK-017",
+      "type": "task",
+      "title": "Add fixture-backed mock analysis responses",
+      "summary": "Implement T007 by creating deterministic analysis fixtures for MVP flow and tests.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:test",
+        "phase:mvp",
+        "owner:tester",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Fixture-backed analysis responses exist for happy and uncertain cases.",
+        "The fixtures support UI testing without paid AI services.",
+        "The mock service can consume them directly."
+      ]
+    },
+    {
+      "id": "TASK-018",
+      "type": "task",
+      "title": "Implement local session persistence and history repository",
+      "summary": "Implement T008 by adding local storage and repository logic for recitation session history.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:fullstack-engineering",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Session history persists locally.",
+        "Saved attempts can be loaded back into the app shell.",
+        "The repository is mockable and safe for tests."
+      ]
+    },
+    {
+      "id": "TASK-019",
+      "type": "task",
+      "title": "Create app navigation and shared recitation flow state",
+      "summary": "Implement T009 by setting up the navigation shell and shared state that connect selection, recording, and results.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Navigation exists for the recitation flow shell.",
+        "Shared state can move target and attempt data across screens.",
+        "The app no longer depends on a single demo screen."
+      ]
+    },
+    {
+      "id": "TASK-020",
+      "type": "task",
+      "title": "Add safe async error and loading helpers",
+      "summary": "Implement T010 by creating shared helpers for loading, empty, and user-safe error states.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-MOBILE",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "Async helpers exist for loading and error states.",
+        "User-safe messaging is reusable across the flow.",
+        "The helpers support future real backend integration."
+      ]
+    },
+    {
+      "id": "TASK-021",
+      "type": "task",
+      "title": "Add analysis contract fixture tests",
+      "summary": "Implement T011 by adding focused contract tests around the analysis fixture boundary for US1.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:test",
+        "phase:mvp",
+        "owner:tester",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "Analysis fixture tests exist.",
+        "The tests verify stable result shape and safe parsing.",
+        "The tests protect the first end-to-end learner flow."
+      ]
+    },
+    {
+      "id": "TASK-022",
+      "type": "task",
+      "title": "Add attempt lifecycle flow-state tests",
+      "summary": "Implement T012 by testing the recitation flow state transitions for US1.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:test",
+        "phase:mvp",
+        "owner:tester",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "State transition tests exist for the attempt lifecycle.",
+        "The tests cover start, submit, success, and safe failure transitions.",
+        "Flow-state regressions are easier to catch."
+      ]
+    },
+    {
+      "id": "TASK-023",
+      "type": "task",
+      "title": "Build target selection screen",
+      "summary": "Implement T013 by creating the first real target selection screen for page, surah, and ayah range.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "A learner can choose a target passage.",
+        "The target screen supports the MVP selection modes.",
+        "The selected target flows into later steps."
+      ]
+    },
+    {
+      "id": "TASK-024",
+      "type": "task",
+      "title": "Implement target selection state and validation",
+      "summary": "Implement T014 by adding selection state management and validation rules for target input.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "Invalid target selections are blocked safely.",
+        "Valid selections persist into the recording flow.",
+        "Selection state is testable and reusable."
+      ]
+    },
+    {
+      "id": "TASK-025",
+      "type": "task",
+      "title": "Build recording screen shell",
+      "summary": "Implement T015 by creating the recording screen shell with permission prompts and record controls.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "The recording shell requests permission safely.",
+        "The user can start and stop a recording attempt.",
+        "Cancellation and denial paths are handled."
+      ]
+    },
+    {
+      "id": "TASK-026",
+      "type": "task",
+      "title": "Implement recording orchestration and attempt creation",
+      "summary": "Implement T016 by wiring record lifecycle behavior into a reusable recitation recorder hook.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:mobile",
+        "phase:mvp",
+        "owner:mobile-engineering",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "Attempt creation is tied to the selected target.",
+        "Recording state transitions are managed centrally.",
+        "The hook is suitable for retry and future backend wiring."
+      ]
+    },
+    {
+      "id": "TASK-027",
+      "type": "task",
+      "title": "Implement analysis submission and result mapping",
+      "summary": "Implement T017 by submitting the recorded attempt through the mock analysis boundary and mapping the result for UI use.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:integration",
+        "phase:mvp",
+        "owner:fullstack-engineering",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "Mock analysis responses are submitted and mapped successfully.",
+        "Result data remains tied to the chosen target passage.",
+        "UI-facing structures are stable and safe."
+      ]
+    },
+    {
+      "id": "TASK-028",
+      "type": "task",
+      "title": "Build result screen with structured feedback states",
+      "summary": "Implement T018 by building the first result screen for omission, insertion, substitution, and uncertainty feedback.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "interface-and-design",
+      "parentId": "US-101",
+      "labels": [
+        "type:task",
+        "lane:ux",
+        "phase:mvp",
+        "owner:interface-and-design",
+        "spec:001",
+        "story:us1"
+      ],
+      "acceptance": [
+        "The result screen renders the expected feedback states.",
+        "Uncertain feedback is visually distinct.",
+        "The screen is usable for the first MVP walkthrough."
+      ]
+    },
+    {
       "id": "TASK-001",
       "type": "task",
       "title": "Create first Spec Kit feature spec for recitation MVP",

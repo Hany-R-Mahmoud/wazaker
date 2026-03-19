@@ -1,0 +1,52 @@
+[
+  {
+    "id": "ErrorRecovery01",
+    "name": "Error Recovery Agent",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "name": "Error Trigger"
+      },
+      {
+        "parameters": {
+          "jsCode": "const runnerBase = process.env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = process.env.AUTOMATION_RUNNER_TOKEN;\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\nconst redact = (value) => {\n  if (Array.isArray(value)) {\n    return value.map(redact);\n  }\n  if (value && typeof value === 'object') {\n    return Object.fromEntries(\n      Object.entries(value).map(([key, entryValue]) => [\n        key,\n        /token|authorization|api[-_]?key|password|cookie|secret|access_token/i.test(key)\n          ? '[REDACTED]'\n          : redact(entryValue),\n      ]),\n    );\n  }\n  return value;\n};\nconst sanitizedErrorPayload = redact($json);\nlet healthResult = null;\ntry {\n  const healthResponse = await fetch(`${runnerBase}/jobs`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify({ action: 'service_health_report', mode: 'sync', args: [] }),\n  });\n  const rawHealth = await healthResponse.text();\n  healthResult = rawHealth ? JSON.parse(rawHealth) : null;\n} catch (error) {\n  healthResult = {\n    error: error instanceof Error ? error.message : String(error),\n  };\n}\nconst reportRelativePath = `error-recovery/${new Date().toISOString().replace(/[:]/g, '-')}.md`;\nconst reportContent = [\n  '# Error Recovery Agent',\n  '',\n  `Generated: ${new Date().toISOString()}`,\n  '',\n  '## Error Payload',\n  '',\n  '```json',\n  JSON.stringify(sanitizedErrorPayload, null, 2),\n  '```',\n  '',\n  '## Health Result',\n  '',\n  healthResult ? '```json\\n' + JSON.stringify(healthResult, null, 2) + '\\n```' : 'Health check unavailable.',\n].join('\\n');\nconst writeResponse = await fetch(`${runnerBase}/reports/write`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ relativePath: reportRelativePath, content: reportContent }),\n});\nif (!writeResponse.ok) throw new Error(`reports/write failed: ${writeResponse.status}`);\nreturn [{ json: { reportRelativePath, healthResult } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          260,
+          0
+        ],
+        "name": "Capture Failure And Health"
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Capture Failure And Health",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "versionId": "2892d1f4-7602-4f64-b41c-f648ba468be9",
+    "pinData": {},
+    "tags": []
+  }
+]

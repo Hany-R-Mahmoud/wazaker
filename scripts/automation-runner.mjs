@@ -2,20 +2,20 @@
 
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '..');
-const automationDir = join(repoRoot, '.automation');
-const jobsDir = join(automationDir, 'jobs');
-const reportsDir = join(repoRoot, 'docs', 'automation');
-
-mkdirSync(automationDir, { recursive: true });
-mkdirSync(jobsDir, { recursive: true });
-mkdirSync(reportsDir, { recursive: true });
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import {
+  getRepoStatus,
+  getServiceHealth,
+  jobsDir,
+  listContext,
+  readContext,
+  readJsonRequest,
+  repoRoot,
+  runCommand,
+  validateReportPath,
+  writeContext,
+} from './lib/automation-platform.mjs';
 
 const port = Number(process.env.AUTOMATION_RUNNER_PORT || '3210');
 const token = process.env.AUTOMATION_RUNNER_TOKEN || '';
@@ -32,36 +32,21 @@ const actionMap = {
   pr_check_unresolved: ['bash', './scripts/pr-check-unresolved.sh'],
   pr_autofinish: ['bash', './scripts/pr-autofinish.sh'],
   pr_merge: ['bash', './scripts/pr-merge.sh'],
+  github_pr_comment: ['bash', './scripts/github-pr-comment.sh'],
   delivery_prepare_task: ['bash', './scripts/delivery-prepare-task.sh'],
   delivery_implement_task: ['bash', './scripts/delivery-implement-task.sh'],
   delivery_publish_task: ['bash', './scripts/delivery-publish-task.sh'],
   plane_sync_backlog: ['bash', './scripts/plane-sync-backlog.sh'],
   plane_dedupe_backlog: ['bash', './scripts/plane-dedupe-backlog.sh'],
   main_sync: ['bash', './scripts/main-sync.sh'],
+  service_health_report: ['node', './scripts/service-health-report.mjs'],
+  restart_service: ['node', './scripts/restart-service.mjs'],
+  codebase_map_refresh: ['node', './scripts/codebase-map.mjs'],
+  speech_qa_report: ['node', './scripts/speech-qa-report.mjs'],
+  ui_consistency_report: ['node', './scripts/ui-consistency-report.mjs'],
 };
 
 const activeJobs = new Map();
-
-function readJson(req) {
-  return new Promise((resolveJson, reject) => {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk;
-    });
-    req.on('end', () => {
-      if (!body) {
-        resolveJson({});
-        return;
-      }
-      try {
-        resolveJson(JSON.parse(body));
-      } catch (error) {
-        reject(error);
-      }
-    });
-    req.on('error', reject);
-  });
-}
 
 function sendJson(res, statusCode, payload) {
   const body = JSON.stringify(payload, null, 2);
@@ -74,66 +59,6 @@ function sendJson(res, statusCode, payload) {
 
 function appendJobState(jobId, state) {
   writeFileSync(join(jobsDir, `${jobId}.json`), JSON.stringify(state, null, 2));
-}
-
-function runCommand(command, args) {
-  return new Promise((resolveRun) => {
-    const child = spawn(command, args, {
-      cwd: repoRoot,
-      env: process.env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-
-    child.on('close', (code) => {
-      resolveRun({ code: code ?? 1, stdout, stderr });
-    });
-  });
-}
-
-async function getRepoStatus() {
-  const branch = (await runCommand('git', ['branch', '--show-current'])).stdout.trim();
-  const status = (await runCommand('git', ['status', '--porcelain'])).stdout.trim();
-  const aheadRaw = await runCommand('git', ['rev-list', '--left-right', '--count', `origin/main...HEAD`]);
-  const [behindCount, aheadCount] = aheadRaw.stdout.trim().split(/\s+/).map((value) => Number(value || '0'));
-  const latestCommit = (await runCommand('git', ['log', '-1', '--pretty=%s'])).stdout.trim();
-
-  let pr = null;
-  const prView = await runCommand('bash', ['./scripts/with-repo-env.sh', 'gh', 'pr', 'view', '--json', 'number,url,title,reviewDecision,mergeStateStatus']);
-  if (prView.code === 0 && prView.stdout.trim()) {
-    try {
-      pr = JSON.parse(prView.stdout);
-    } catch {
-      pr = null;
-    }
-  }
-
-  return {
-    branch,
-    clean: status.length === 0,
-    aheadCount,
-    behindCount,
-    latestCommit,
-    pr,
-  };
-}
-
-function validatePath(relativePath) {
-  const resolvedPath = resolve(reportsDir, relativePath);
-  if (!resolvedPath.startsWith(reportsDir)) {
-    throw new Error('Invalid report path');
-  }
-  return resolvedPath;
 }
 
 async function startJob(action, args = [], dedupeKey = '') {
@@ -164,7 +89,9 @@ async function startJob(action, args = [], dedupeKey = '') {
     stderr: '',
   };
   appendJobState(jobId, initialState);
-  if (dedupeKey) activeJobs.set(dedupeKey, initialState);
+  if (dedupeKey) {
+    activeJobs.set(dedupeKey, initialState);
+  }
 
   runCommand(command, fullArgs).then((result) => {
     const finalState = {
@@ -176,7 +103,9 @@ async function startJob(action, args = [], dedupeKey = '') {
       stderr: result.stderr,
     };
     appendJobState(jobId, finalState);
-    if (dedupeKey) activeJobs.delete(dedupeKey);
+    if (dedupeKey) {
+      activeJobs.delete(dedupeKey);
+    }
   });
 
   return initialState;
@@ -201,8 +130,44 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === 'GET' && requestUrl.pathname === '/services/health') {
+      sendJson(res, 200, await getServiceHealth());
+      return;
+    }
+
+    if (req.method === 'GET' && requestUrl.pathname === '/context') {
+      sendJson(res, 200, { items: listContext() });
+      return;
+    }
+
+    if ((req.method === 'GET' || req.method === 'PUT') && requestUrl.pathname.startsWith('/context/')) {
+      const key = requestUrl.pathname.split('/').pop();
+      if (!key) {
+        sendJson(res, 400, { error: 'Missing context key' });
+        return;
+      }
+
+      if (req.method === 'GET') {
+        const item = readContext(key);
+        if (!item) {
+          sendJson(res, 404, { error: 'Context key not found' });
+          return;
+        }
+        sendJson(res, 200, item);
+        return;
+      }
+
+      const body = await readJsonRequest(req);
+      if (!Object.prototype.hasOwnProperty.call(body, 'value')) {
+        sendJson(res, 400, { error: 'Missing value' });
+        return;
+      }
+      sendJson(res, 200, writeContext(key, body.value));
+      return;
+    }
+
     if (req.method === 'POST' && requestUrl.pathname === '/jobs') {
-      const body = await readJson(req);
+      const body = await readJsonRequest(req);
       const action = String(body.action || '');
       const args = Array.isArray(body.args) ? body.args : [];
       const dedupeKey = typeof body.dedupeKey === 'string' ? body.dedupeKey : '';
@@ -248,14 +213,14 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && requestUrl.pathname === '/reports/write') {
-      const body = await readJson(req);
+      const body = await readJsonRequest(req);
       const relativePath = String(body.relativePath || '').trim();
       const content = String(body.content || '');
       if (!relativePath) {
         sendJson(res, 400, { error: 'Missing relativePath' });
         return;
       }
-      const destination = validatePath(relativePath);
+      const destination = validateReportPath(relativePath);
       mkdirSync(dirname(destination), { recursive: true });
       writeFileSync(destination, content, 'utf8');
       sendJson(res, 200, {
