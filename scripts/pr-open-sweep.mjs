@@ -7,11 +7,11 @@ import { pathToFileURL } from 'node:url';
 import { getRepoStatus, repoRoot, runCommand, writeReport } from './lib/automation-platform.mjs';
 import { evaluateOpenPullRequest } from './lib/pr-sweep.mjs';
 
-const githubToken = process.env.AUTOMATION_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
+const githubToken = process.env.AUTOMATION_GITHUB_TOKEN || '';
 
 function requireGitHubToken() {
   if (!githubToken) {
-    throw new Error('AUTOMATION_GITHUB_TOKEN, GITHUB_TOKEN, or GH_TOKEN must be configured for PR sweeping.');
+    throw new Error('AUTOMATION_GITHUB_TOKEN must be configured for PR sweeping.');
   }
 }
 
@@ -129,8 +129,8 @@ async function sweepPullRequest(pr) {
       cwd: worktreeDir,
       env: {
         ...process.env,
-        GH_TOKEN: githubToken || process.env.GH_TOKEN || '',
-        GITHUB_TOKEN: githubToken || process.env.GITHUB_TOKEN || '',
+        GH_TOKEN: githubToken,
+        GITHUB_TOKEN: githubToken,
       },
     });
 

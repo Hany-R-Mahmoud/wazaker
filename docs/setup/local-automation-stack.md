@@ -317,10 +317,10 @@ If the UI repeatedly asks for sign-in:
 
 ## Related Docs
 
-- [Automation Operating Model](/Users/hanyramadan/wazaker/docs/setup/automation-operating-model.md)
-- [Guarded Delivery Pipeline](/Users/hanyramadan/wazaker/docs/setup/guarded-delivery-pipeline.md)
-- [Spec-Kit Readiness](/Users/hanyramadan/wazaker/docs/setup/spec-kit-readiness.md)
-- [n8n Auth Hardening Plan](/Users/hanyramadan/wazaker/docs/setup/n8n-auth-hardening-plan-2026-03-19.md)
+- [Automation Operating Model](./automation-operating-model.md)
+- [Guarded Delivery Pipeline](./guarded-delivery-pipeline.md)
+- [Spec-Kit Readiness](./spec-kit-readiness.md)
+- [n8n Auth Hardening Plan](./n8n-auth-hardening-plan-2026-03-19.md)
 
 ## Operating Rules
 
