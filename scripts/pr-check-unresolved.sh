@@ -18,7 +18,7 @@ if [[ -z "$pr_number" ]]; then
   exit 1
 fi
 
-bash ./scripts/pr-watch.sh "$pr_number" >/dev/null || true
+bash ./scripts/pr-watch.sh "$pr_number" >/dev/null
 bash ./scripts/pr-thread-sync.sh "$pr_number" "$branch_name" >/dev/null || true
 
 repo_json="$(bash ./scripts/with-repo-env.sh gh repo view --json owner,name)"

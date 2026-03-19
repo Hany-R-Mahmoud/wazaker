@@ -12,6 +12,7 @@ branch_name="$(git branch --show-current)"
 poll_seconds="${POLL_SECONDS:-30}"
 max_checks="${MAX_CHECKS:-20}"
 review_settle_seconds="${REVIEW_SETTLE_SECONDS:-240}"
+require_bot_activity="${REQUIRE_BOT_REVIEW_ACTIVITY:-1}"
 output_dir="docs/pr-reviews"
 safe_branch="${branch_name//\//-}"
 
@@ -74,7 +75,12 @@ while (( count <= max_checks )); do
       echo "Bot review seen, but settle window is still open (${seconds_since_watch_start}s/${review_settle_seconds}s). Waiting."
     fi
   elif (( seconds_since_watch_start >= review_settle_seconds )); then
-    echo "No bot review activity after settle window; treating PR as clear of actionable bot comments."
+    if [[ "$require_bot_activity" == "1" ]]; then
+      echo "No bot review activity appeared before the settle window closed. Refusing automatic merge."
+      echo "$pr_json_file"
+      exit 3
+    fi
+    echo "No bot review activity after settle window; treating PR as clear of actionable bot comments because REQUIRE_BOT_REVIEW_ACTIVITY=0."
     echo "$pr_json_file"
     exit 0
   else
