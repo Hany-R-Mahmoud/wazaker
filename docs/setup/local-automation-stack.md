@@ -266,18 +266,61 @@ The repo now also includes checked-in workflow definitions for the next automati
 - the previously quarantined Plane polling workflows were hardened, smoke-run, and republished as active; see `docs/setup/plane-workflow-reactivation-2026-03-19.md` for the live reactivation record and the remaining first-scheduled-run validation gap
 - repo-wide open PR sweeping requires a valid automation GitHub token because the repo-local `gh` login is intentionally isolated from the human shell session
 
+## Recommended Always-On Baseline
+
+Keep these workflows active when you want low-friction unattended operation:
+
+- daily Plane summary
+- backlog quality audit
+- task expansion assistant
+- project automation maintenance
+- context manager refresh
+- automation health monitor
+- speech QA regression
+- UI consistency audit
+- sprint retrospective
+- release notes generator
+
+These paths are already aligned with env-based auth and runner tokens. They should not require repeated human sign-in once the container env is stable.
+
+## Pause Until GitHub Auth Is Hardened
+
+Pause or treat these as semi-manual until `AUTOMATION_GITHUB_TOKEN`, `GITHUB_WEBHOOK_SECRET`, and webhook routing are verified end to end:
+
+- GitHub PR automation supervisor
+- GitHub PR and commit summary
+- GitHub webhook router
+- PR review first pass
+- GitHub issue triage
+- GitHub open PR sweep
+- Plane guarded delivery pipeline
+
+This keeps the stack useful without forcing GitHub-related sign-in friction into every session.
+
+## n8n UI Login Rule
+
+The `n8n` UI should be treated as an admin console, not as a dependency for normal scheduled execution.
+
+If the UI repeatedly asks for sign-in:
+
+- verify `~/.n8n:/home/node/.n8n` is still mounted on the container
+- avoid recreating the container without the same persistent volume
+- use one stable browser profile for the local `n8n` session
+- fix session persistence first instead of working around it by signing in repeatedly
+
 ## Next Recommended Automations
 
 1. observe the first naturally scheduled executions for the reactivated Plane polling workflows and record the results next to the smoke-run note
-2. add GitHub credentials in `n8n` if you want webhook-triggered review comments without depending on repo-local `gh`
-3. add Plane state and label conventions for task decomposition approvals
-4. provide `AUTOMATION_GITHUB_TOKEN` to the runner and `n8n` so repo-wide PR sweep can authenticate without a human session
+2. provide `AUTOMATION_GITHUB_TOKEN` to the runner and `n8n` so GitHub automation can run headlessly without depending on repo-local `gh`
+3. validate webhook routing with `GITHUB_WEBHOOK_SECRET` and `N8N_WEBHOOK_BASE_URL`
+4. add Plane state and label conventions for task decomposition approvals
 
 ## Related Docs
 
-- [Automation Operating Model](/Users/hanyramadan/wazaker/docs/setup/automation-operating-model.md)
-- [Guarded Delivery Pipeline](/Users/hanyramadan/wazaker/docs/setup/guarded-delivery-pipeline.md)
-- [Spec-Kit Readiness](/Users/hanyramadan/wazaker/docs/setup/spec-kit-readiness.md)
+- [Automation Operating Model](./automation-operating-model.md)
+- [Guarded Delivery Pipeline](./guarded-delivery-pipeline.md)
+- [Spec-Kit Readiness](./spec-kit-readiness.md)
+- [n8n Auth Hardening Plan](./n8n-auth-hardening-plan-2026-03-19.md)
 
 ## Operating Rules
 
