@@ -168,6 +168,18 @@ Durable automation reports land in:
 
 The repo scripts remain the source of truth for PR behavior; `n8n` now provides the scheduling, gating, and durable report trail around them.
 
+## Unattended Auth Rule
+
+For always-on GitHub automation, do not rely on your interactive `gh` browser session.
+
+Use a dedicated automation token path instead:
+
+- `AUTOMATION_GITHUB_TOKEN` for repo-wide PR sweep and other headless GitHub actions
+- `GITHUB_WEBHOOK_SECRET` for webhook verification
+- `AUTOMATION_RUNNER_TOKEN` for `n8n -> automation-runner`
+
+Human `gh` login remains useful for local fallback and debugging, but it should not be the primary auth path for unattended workflows.
+
 ## Notes
 
 - `wazaker` uses a repo-local `.envrc` that clears `GH_TOKEN` and `GITHUB_TOKEN` through `direnv`, so GitHub CLI behavior in this repo is isolated from your global shell setup.
@@ -178,3 +190,4 @@ The repo scripts remain the source of truth for PR behavior; `n8n` now provides 
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
 - `bash ./scripts/pr-thread-sync.sh` now uses `agent-reviews` for actionable bot review threads; unresolved human threads still block merge.
 - `bash ./scripts/pr-autofinish.sh` is the preferred no-interruption path once a PR is open.
+- `node ./scripts/pr-open-sweep.mjs` is intended to run with `AUTOMATION_GITHUB_TOKEN`; if that token is missing, treat sweep automation as paused rather than falling back to a human shell session.
