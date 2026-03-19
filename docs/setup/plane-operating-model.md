@@ -40,6 +40,8 @@ Do not create product truth only in Plane for:
 
 Those must exist in the repo first, then be mirrored into Plane.
 
+Implementation-ready feature work should also have the upstream spec-kit artifacts in the repo before it is pushed into delivery.
+
 ## Assignment Model
 
 Do not fake separate human accounts for agents in Plane.
@@ -91,7 +93,30 @@ Use this model instead:
 - `phase:spike`
 - `phase:v2`
 
+## Phase 4 Entry Rule
+
+Before a feature enters delivery automation:
+
+1. the feature must have repo-side spec artifacts
+2. the Plane item must be non-shallow and implementation-ready
+3. the guarded delivery pipeline must be able to point back to the canonical repo artifact
+
 ## Working Agreement
+
+### Ticket And Story Quality Rule
+
+Plane tickets and user stories must not stay shallow.
+
+Every active Plane item must include:
+
+- a concrete summary of the problem or outcome
+- implementation-relevant acceptance criteria or done criteria
+- links to the canonical repo artifact when the task depends on product, architecture, research, or setup decisions
+- outcome notes when the task is completed, including what changed, what was decided, and any follow-up needed
+
+Use this rule permanently for all new and updated work items.
+
+If the canonical details do not exist yet in the repo, create or update the repo artifact first, then mirror the execution view into Plane.
 
 ### Orchestrator Agent
 

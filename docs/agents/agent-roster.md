@@ -8,7 +8,7 @@
 4. Interface And Design Agent
 5. Mobile Engineering Agent
 6. Fullstack Engineering Agent
-7. Reviewer / Tester / Security as gates
+7. Reviewer / Tester / Security / Docs as gates
 
 ## Role Routing Rules
 
@@ -20,9 +20,22 @@
 - design clarity and bilingual flow go to interface and design
 - correctness checks go to reviewer and tester
 
-## Immediate Need
-
-Create two new operating skills or lightweight charters:
+## Permanent Specialist Roles
 
 - speech-evaluation
 - quran-domain-product
+
+## Control Plane Roles
+
+- `n8n` owns orchestration and recurring delivery operations
+- `Ollama` owns low-risk summary, classification, and expansion drafts
+- Codex skills own implementation, review judgment, testing, and documentation
+
+## Phase 4 Entry
+
+Phase 4 starts only after the operating-system docs and guarded delivery pipeline are complete.
+
+See:
+
+- [operating-model.md](/Users/hanyramadan/wazaker/docs/agents/operating-model.md)
+- [spec-kit-readiness.md](/Users/hanyramadan/wazaker/docs/setup/spec-kit-readiness.md)

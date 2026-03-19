@@ -112,6 +112,25 @@ If `gh` is unavailable, merge in GitHub, then run:
 bash ./scripts/main-sync.sh
 ```
 
+## n8n Ownership
+
+The recurring version of this flow is now owned by `n8n` through the local `automation-runner`.
+
+Active automation mapping:
+
+- `GitHub PR Automation Supervisor` checks the current branch every `30` minutes
+- it runs `pr_publish` when a clean feature branch is ahead of `main` without an open PR
+- it runs `pr_autofinish` when an open PR exists for the current branch
+- `Plane Guarded Delivery Pipeline` can hand a prepared implementation task into this PR flow after branch preparation and publication
+- `GitHub PR And Commit Summary` refreshes repo summary artifacts every `2` hours
+
+Durable automation reports land in:
+
+- `docs/automation/github-pr-automation/`
+- `docs/automation/github-pr-summaries/`
+
+The repo scripts remain the source of truth for PR behavior; `n8n` now provides the scheduling, gating, and durable report trail around them.
+
 ## Notes
 
 - `wazaker` uses a repo-local `.envrc` that clears `GH_TOKEN` and `GITHUB_TOKEN` through `direnv`, so GitHub CLI behavior in this repo is isolated from your global shell setup.

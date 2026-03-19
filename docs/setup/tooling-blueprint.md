@@ -39,6 +39,8 @@
 - Plane work-item sync via official API
 - setup checklists
 - integration placeholders through `.env.example`
+- local `n8n + Ollama + automation-runner` project-operations workflows documented in `docs/setup/local-automation-stack.md`
+- checked-in workflow definitions under `automation/n8n/`
 
 ## Expected Manual Approval Points
 

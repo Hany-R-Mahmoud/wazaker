@@ -8,6 +8,9 @@
 - research docs seed
 - agent roster and team charter
 - local git initialization
+- automation operating model
+- guarded delivery pipeline artifacts
+- local `n8n + Ollama + automation-runner` workflows
 
 ## Requires User Auth Or Click Approval
 
@@ -25,3 +28,11 @@ After external auth is available:
 2. create Plane workspace artifacts
 3. register design links
 4. derive backlog from product docs
+
+## Phase 4 Entry
+
+Once phases 1 through 3 are complete:
+
+1. use `spec-kit` for feature clarification and planning
+2. move implementation-ready tasks into the guarded delivery pipeline
+3. let the PR automation flow handle review and merge

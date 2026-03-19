@@ -1,0 +1,102 @@
+[
+  {
+    "id": "PlnGuardedDelivery01",
+    "name": "Plane Guarded Delivery Pipeline",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 1
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          0
+        ],
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "url": "={{$env.PLANE_API_BASE_URL}}/api/v1/workspaces/{{$env.PLANE_WORKSPACE_SLUG}}/projects/{{$env.PLANE_PROJECT_ID}}/work-items",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "per_page",
+                "value": "50"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-API-Key",
+                "value": "={{$env.PLANE_API_KEY}}"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          260,
+          0
+        ],
+        "name": "Fetch Plane Work Items"
+      },
+      {
+        "parameters": {
+          "jsCode": "const runnerBase = process.env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = process.env.AUTOMATION_RUNNER_TOKEN;\nif (!runnerBase) throw new Error('AUTOMATION_RUNNER_BASE_URL is not configured');\n\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\n\nconst now = new Date().toISOString();\nconst dateStamp = now.replace(/[:]/g, '-');\nconst queueReportPath = `delivery-runs/queue-scan-${dateStamp}.md`;\n\nconst writeReport = async (relativePath, content) => {\n  const response = await fetch(`${runnerBase}/reports/write`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify({ relativePath, content }),\n  });\n  if (!response.ok) {\n    const body = await response.text();\n    throw new Error(`Runner report write failed: ${response.status} ${body}`);\n  }\n};\n\nconst repoStatusResponse = await fetch(`${runnerBase}/repo/status`, { headers });\nif (!repoStatusResponse.ok) {\n  const body = await repoStatusResponse.text();\n  throw new Error(`Runner repo status failed: ${repoStatusResponse.status} ${body}`);\n}\nconst repoStatus = await repoStatusResponse.json();\n\nconst response = $input.first().json;\nconst workItems = Array.isArray(response.results) ? response.results : [];\n\nconst extractExternalId = (text) => {\n  const match = text.match(/External ID:\\s*(TASK-\\d+)/i);\n  return match ? match[1] : null;\n};\n\nconst extractAcceptance = (text) => {\n  const match = text.match(/Acceptance Criteria([\\s\\S]*?)(Repo Metadata|Labels|$)/i);\n  if (!match) return [];\n  return match[1]\n    .split(/\\n+/)\n    .map((line) => line.replace(/^[-*\\d.\\s]+/, '').trim())\n    .filter(Boolean);\n};\n\nconst extractLabels = (text) => {\n  const match = text.match(/Labels([\\s\\S]*?)$/i);\n  if (!match) return [];\n  return match[1]\n    .split(/\\n+/)\n    .map((line) => line.trim())\n    .filter(Boolean)\n    .map((line) => line.replace(/^[-*\\d.\\s]+/, '').trim());\n};\n\nconst extractSummary = (text) => {\n  return text.split(/Acceptance Criteria/i)[0].replace(/\\s+/g, ' ').trim();\n};\n\nconst priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 };\nconst candidates = workItems\n  .map((item) => {\n    const description = (item.description_stripped ?? '').trim();\n    const externalId = extractExternalId(description);\n    const acceptance = extractAcceptance(description);\n    const labels = extractLabels(description);\n    const summary = extractSummary(description);\n    return {\n      id: item.id,\n      externalId,\n      title: item.name,\n      priority: item.priority ?? 'none',\n      completedAt: item.completed_at ?? null,\n      description,\n      acceptance,\n      labels,\n      summary,\n    };\n  })\n  .filter((item) => item.externalId)\n  .filter((item) => !item.completedAt)\n  .filter((item) => item.acceptance.length > 0)\n  .filter((item) => item.description.includes('Repo Metadata'))\n  .filter((item) => !item.labels.includes('lane:ops'))\n  .sort((left, right) => {\n    const leftPriority = priorityOrder[left.priority] ?? 99;\n    const rightPriority = priorityOrder[right.priority] ?? 99;\n    if (leftPriority !== rightPriority) return leftPriority - rightPriority;\n    return String(left.title).localeCompare(String(right.title));\n  });\n\nif (repoStatus.branch !== 'main') {\n  const content = [\n    '# Plane Guarded Delivery Pipeline',\n    '',\n    `Generated: ${now}`,\n    '',\n    `Skipped because repo branch is \\`${repoStatus.branch}\\` instead of \\`main\\`.`,\n  ].join('\\n');\n  await writeReport(queueReportPath, content);\n  return [{ json: { generatedAt: now, skipped: true, reason: 'not-on-main', reportRelativePath: queueReportPath, repoStatus } }];\n}\n\nif (!repoStatus.clean) {\n  const content = [\n    '# Plane Guarded Delivery Pipeline',\n    '',\n    `Generated: ${now}`,\n    '',\n    'Skipped because the working tree is not clean.',\n  ].join('\\n');\n  await writeReport(queueReportPath, content);\n  return [{ json: { generatedAt: now, skipped: true, reason: 'dirty-worktree', reportRelativePath: queueReportPath, repoStatus } }];\n}\n\nif (candidates.length === 0) {\n  const content = [\n    '# Plane Guarded Delivery Pipeline',\n    '',\n    `Generated: ${now}`,\n    '',\n    'No eligible implementation-ready Plane tasks were found.',\n  ].join('\\n');\n  await writeReport(queueReportPath, content);\n  return [{ json: { generatedAt: now, skipped: true, reason: 'no-candidates', reportRelativePath: queueReportPath, repoStatus, candidates: [] } }];\n}\n\nconst task = candidates[0];\nconst callJob = async (action, args, mode = 'sync', dedupeKey = '') => {\n  const response = await fetch(`${runnerBase}/jobs`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify({ action, args, mode, dedupeKey }),\n  });\n  const raw = await response.text();\n  if (!response.ok && response.status !== 202) {\n    throw new Error(`${action} failed: ${response.status} ${raw}`);\n  }\n  return raw ? JSON.parse(raw) : null;\n};\n\nconst prepared = await callJob('delivery_prepare_task', [task.externalId, task.title, task.priority, task.summary, JSON.stringify(task.acceptance)]);\nconst preparedMeta = prepared?.stdout ? JSON.parse(prepared.stdout) : prepared;\nconst runDir = preparedMeta?.runDir;\n\nconst implemented = await callJob('delivery_implement_task', [runDir]);\nconst implementedMeta = implemented?.stdout ? JSON.parse(implemented.stdout) : implemented;\n\nconst published = await callJob('delivery_publish_task', [runDir]);\nconst publishedMeta = published?.stdout ? JSON.parse(published.stdout) : published;\n\nlet reviewJob = null;\nif (publishedMeta?.pr?.number) {\n  reviewJob = await callJob('pr_autofinish', [String(publishedMeta.pr.number)], 'async', `delivery-pr-autofinish-${publishedMeta.pr.number}`);\n}\n\nconst reportPath = `${runDir}/pipeline-summary.md`;\nconst reportContent = [\n  '# Plane Guarded Delivery Pipeline',\n  '',\n  `Generated: ${now}`,\n  `Task: ${task.externalId} - ${task.title}`,\n  `Run Directory: ${runDir}`,\n  '',\n  '## Repo Status At Intake',\n  '',\n  '```json',\n  JSON.stringify(repoStatus, null, 2),\n  '```',\n  '',\n  '## Prepared',\n  '',\n  '```json',\n  JSON.stringify(preparedMeta, null, 2),\n  '```',\n  '',\n  '## Implemented',\n  '',\n  '```json',\n  JSON.stringify(implementedMeta, null, 2),\n  '```',\n  '',\n  '## Published',\n  '',\n  '```json',\n  JSON.stringify(publishedMeta, null, 2),\n  '```',\n  '',\n  '## Review Job',\n  '',\n  '```json',\n  JSON.stringify(reviewJob, null, 2),\n  '```',\n].join('\\n');\n\nawait writeReport(reportPath, reportContent);\n\nreturn [{\n  json: {\n    generatedAt: now,\n    task,\n    repoStatus,\n    runDir,\n    prepared: preparedMeta,\n    implemented: implementedMeta,\n    published: publishedMeta,\n    reviewJob,\n    reportRelativePath: reportPath,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          520,
+          0
+        ],
+        "name": "Run Guarded Delivery"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Fetch Plane Work Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Plane Work Items": {
+        "main": [
+          [
+            {
+              "node": "Run Guarded Delivery",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "versionId": "d3c15f22-8568-4dbe-864b-38f67ae6cc14",
+    "pinData": {},
+    "tags": []
+  }
+]

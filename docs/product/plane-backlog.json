@@ -27,6 +27,26 @@
       ]
     },
     {
+      "id": "EPIC-DELIVERY-OS",
+      "type": "epic",
+      "title": "Delivery Operating System",
+      "summary": "Finalize the automation control plane, team model, and guarded delivery pipeline so Wazaker can return to product execution on top of a stable operating system.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "",
+      "labels": [
+        "phase:foundation",
+        "lane:ops",
+        "owner:orchestrator"
+      ],
+      "acceptance": [
+        "The automation operating model is documented, with clear ownership boundaries and durable report paths.",
+        "The permanent agent and skill team structure is documented and aligned with Plane ownership labels.",
+        "A guarded Plane-task-to-PR delivery pipeline exists and is wired into n8n for future implementation work."
+      ]
+    },
+    {
       "id": "EPIC-PRODUCT",
       "type": "epic",
       "title": "Product Definition",
@@ -304,6 +324,91 @@
         "A written trial note captures what succeeded, what failed, and the recommended direction.",
         "The PR workflow uses agent-reviews for actionable bot comment detection and thread resolution.",
         "Bot status noise no longer blocks merge or triggers no-op review cycles."
+      ]
+    },
+    {
+      "id": "TASK-007",
+      "type": "task",
+      "title": "Stand up local automation stack with n8n and Ollama",
+      "summary": "Install and validate the free local automation stack for repo operations, starting with Ollama, Docker, and n8n on the project Mac so Plane and GitHub workflows can be automated without paid APIs.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-FOUNDATION",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:orchestrator",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "The local machine has the required tooling installed for Ollama, Docker Desktop, and n8n.",
+        "An n8n instance runs locally with persistent storage and can reach the local Ollama service.",
+        "A first workflow target is defined for project operations, not product runtime behavior.",
+        "The setup path is documented in ordered steps that match the Apple Silicon 16GB development machine."
+      ]
+    },
+    {
+      "id": "TASK-008",
+      "type": "task",
+      "title": "Finalize the automation operating model and workflow map",
+      "summary": "Document the live n8n control plane, move legacy repo scripts under the automation runner, define durable report locations, and record the manual versus automated boundary clearly enough that the operating system can be trusted.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-DELIVERY-OS",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:orchestrator",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "The live automation map is documented with workflow IDs, triggers, inputs, outputs, and failure notes.",
+        "Durable runtime outputs are routed outside transient n8n execution history.",
+        "Legacy repo scripts that should run on a schedule are exposed through the automation runner and assigned to managed workflows."
+      ]
+    },
+    {
+      "id": "TASK-009",
+      "type": "task",
+      "title": "Finalize the permanent agent and skill operating model",
+      "summary": "Turn the provisional team charter into the final operating model for Codex, Ollama, n8n, and repo skills so future delivery work routes cleanly through the right role with less ambiguity.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-DELIVERY-OS",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:orchestrator",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "The permanent team structure names the active roles, on-demand gates, and Ollama-assisted helper agents.",
+        "Plane owner labels and repo-side agent docs describe the same routing model.",
+        "The spec-kit entry point for phase 4 is documented so feature work can resume on top of the operating system."
+      ]
+    },
+    {
+      "id": "TASK-010",
+      "type": "task",
+      "title": "Build the guarded Plane task to PR delivery pipeline",
+      "summary": "Create a guarded delivery pipeline that can take a Plane task, prepare a safe branch, invoke Codex implementation, open a PR, hand review handling to the existing PR automation flow, and release the pipeline lock only after merge.",
+      "priority": "urgent",
+      "state": "Done",
+      "agentOwner": "review-and-pr-operations",
+      "parentId": "EPIC-DELIVERY-OS",
+      "labels": [
+        "type:task",
+        "lane:ops",
+        "owner:review-and-pr-operations",
+        "phase:foundation"
+      ],
+      "acceptance": [
+        "A guarded repo-side delivery script set exists for task preparation, implementation, and PR publication.",
+        "The automation runner exposes the delivery actions to n8n and enforces one active delivery run at a time.",
+        "A managed n8n workflow can inspect Plane tasks, refuse unsafe states, and hand safe delivery work to the repo pipeline."
       ]
     },
     {
