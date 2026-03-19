@@ -69,3 +69,25 @@ test('evaluatePrReviewGate - bot review completed with no blockers - allows merg
   assert.equal(gate.blockingBotReviewPending, false);
   assert.equal(gate.clearToMerge, true);
 });
+
+test('evaluatePrReviewGate - allows merge when bot activity is optional', () => {
+  // Arrange
+  const prStatus = {
+    statusCheckRollup: '',
+    comments: [],
+    latestReviews: [],
+    reviews: [],
+    mergeStateStatus: 'CLEAN',
+  };
+
+  // Act
+  const gate = evaluatePrReviewGate(
+    prStatus,
+    [],
+    { requireBotActivity: false },
+  );
+
+  // Assert
+  assert.equal(gate.botActivitySeen, false);
+  assert.equal(gate.clearToMerge, true);
+});

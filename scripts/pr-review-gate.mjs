@@ -4,9 +4,15 @@ import { readFileSync } from 'node:fs';
 
 import { evaluatePrReviewGate } from './lib/pr-review-gate.mjs';
 
-function readJsonFile(path) {
-  const fileContents = readFileSync(path, 'utf8');
-  return JSON.parse(fileContents);
+function readJsonFile(path, fallback) {
+  try {
+    const fileContents = readFileSync(path, 'utf8');
+    return JSON.parse(fileContents);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Warning: readJsonFile failed for ${path}: ${message}\n`);
+    return fallback;
+  }
 }
 
 function main() {
@@ -21,7 +27,11 @@ function main() {
   try {
     const requireBotActivity = process.env.REQUIRE_BOT_REVIEW_ACTIVITY !== '0';
     const prStatus = readJsonFile(prJsonPath);
-    const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath) : [];
+    if (prStatus === undefined) {
+      process.exitCode = 1;
+      return;
+    }
+    const actionableBotComments = commentsJsonPath ? readJsonFile(commentsJsonPath, []) : [];
     const gate = evaluatePrReviewGate(prStatus, actionableBotComments, { requireBotActivity });
 
     process.stdout.write(`${JSON.stringify(gate, null, 2)}\n`);

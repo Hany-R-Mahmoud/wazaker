@@ -14,6 +14,10 @@ function main() {
   for (const config of PLANE_WORKFLOW_HARDENING_CONFIG) {
     const filePath = join(repoRoot, config.file);
     const workflows = JSON.parse(readFileSync(filePath, 'utf8'));
+    if (!Array.isArray(workflows) || workflows.length === 0 || !workflows[0]) {
+      process.stderr.write(`Skipping workflow hardening for ${config.file}: expected a non-empty workflow array.\n`);
+      continue;
+    }
     const workflow = workflows[0];
 
     for (const node of workflow.nodes) {
