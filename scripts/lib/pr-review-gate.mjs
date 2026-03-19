@@ -55,6 +55,9 @@ function collectPendingSignals(prStatus) {
   const signals = new Set();
   const rollup = normalizeText(prStatus?.statusCheckRollup);
 
+  // `statusCheckRollup` can arrive as an opaque blob instead of structured checks.
+  // We intentionally fail closed here: any pending signal near a known bot alias
+  // blocks merge until the explicit actionable-thread pass says the PR is clear.
   for (const alias of BOT_ALIASES) {
     if (!rollup.includes(alias)) {
       continue;

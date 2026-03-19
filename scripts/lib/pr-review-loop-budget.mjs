@@ -109,17 +109,28 @@ function main() {
     process.exit(1);
   }
 
-  const rawPayload = command === 'event' ? payloadRaw : eventType;
-  const payload = rawPayload ? JSON.parse(rawPayload) : {};
-  const fallback = {
-    prNumber: payload.prNumber ?? null,
-    branchName: payload.branchName ?? '',
-    maxTriggerComments: payload.maxTriggerComments ?? 4,
-    maxWatchTimeouts: payload.maxWatchTimeouts ?? 2,
+  const parseJsonOrExit = (rawValue) => {
+    if (!rawValue) {
+      return {};
+    }
+    try {
+      return JSON.parse(rawValue);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Invalid JSON payload: ${message}`);
+      process.exit(1);
+    }
   };
-  const state = loadState(filePath, fallback);
 
   if (command === 'ensure') {
+    const payload = parseJsonOrExit(eventType);
+    const fallback = {
+      prNumber: payload.prNumber ?? null,
+      branchName: payload.branchName ?? '',
+      maxTriggerComments: payload.maxTriggerComments ?? 4,
+      maxWatchTimeouts: payload.maxWatchTimeouts ?? 2,
+    };
+    const state = loadState(filePath, fallback);
     const nextState = sanitizeState({ ...state, ...fallback }, fallback);
     saveState(filePath, nextState);
     process.stdout.write(`${JSON.stringify(nextState)}\n`);
@@ -131,6 +142,14 @@ function main() {
       console.error('Missing event type.');
       process.exit(1);
     }
+    const payload = parseJsonOrExit(payloadRaw);
+    const fallback = {
+      prNumber: payload.prNumber ?? null,
+      branchName: payload.branchName ?? '',
+      maxTriggerComments: payload.maxTriggerComments ?? 4,
+      maxWatchTimeouts: payload.maxWatchTimeouts ?? 2,
+    };
+    const state = loadState(filePath, fallback);
     const nextState = applyEvent(state, eventType, payload);
     saveState(filePath, nextState);
     process.stdout.write(`${JSON.stringify(nextState)}\n`);
@@ -138,6 +157,7 @@ function main() {
   }
 
   if (command === 'show') {
+    const state = loadState(filePath, {});
     process.stdout.write(`${JSON.stringify(state)}\n`);
     return;
   }
