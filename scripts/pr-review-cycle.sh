@@ -31,7 +31,15 @@ while (( cycle <= max_cycles )); do
   POLL_SECONDS="$poll_seconds" MAX_CHECKS="$max_checks" REVIEW_SETTLE_SECONDS="$review_settle_seconds" bash ./scripts/pr-watch.sh "$pr_number"
 
   before_head="$(git rev-parse HEAD)"
-  bash ./scripts/pr-resolve-review.sh
+  resolver_status=0
+  if ! bash ./scripts/pr-resolve-review.sh; then
+    resolver_status=$?
+    if (( resolver_status == 75 )); then
+      echo "Review loop paused because Codex usage limits blocked the resolver pass."
+      exit 75
+    fi
+    exit "$resolver_status"
+  fi
   after_head="$(git rev-parse HEAD)"
 
   bash ./scripts/pr-thread-sync.sh "$pr_number" "$(git branch --show-current)" || true

@@ -1,3 +1,12 @@
+---
+name: system-monitor
+description: Monitor the local automation stack, classify health, attempt safe restarts, and preserve durable health reports.
+compatibility: Requires service-health checks and approved restart hooks for local automation services.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # System Monitor
 
 ## Purpose

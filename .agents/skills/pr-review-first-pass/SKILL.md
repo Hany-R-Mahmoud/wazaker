@@ -1,3 +1,12 @@
+---
+name: pr-review-first-pass
+description: Produce an advisory first-pass pull request review packet and hand off merge authority to the existing guarded review flow.
+compatibility: Requires GitHub pull request payloads, durable report output, and optional comment-posting permissions.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # PR Review First Pass
 
 ## Purpose

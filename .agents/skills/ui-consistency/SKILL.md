@@ -1,3 +1,12 @@
+---
+name: ui-consistency
+description: Audit UI changes against the current mobile design language, accessibility expectations, and durable audit reporting.
+compatibility: Requires access to current UI files or app shell snapshots and repo-side report output.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # UI Consistency
 
 ## Purpose

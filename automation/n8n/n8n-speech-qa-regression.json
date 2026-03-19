@@ -2,7 +2,7 @@
   {
     "id": "SpeechQa01",
     "name": "Speech QA Regression",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

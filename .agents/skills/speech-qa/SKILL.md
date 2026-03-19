@@ -1,3 +1,12 @@
+---
+name: speech-qa
+description: Track ASR and recitation-quality regressions using local benchmark outputs, durable reports, and shared context updates.
+compatibility: Requires benchmark artifacts under benchmarks/asr and repo-side reporting paths.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Speech QA
 
 ## Purpose

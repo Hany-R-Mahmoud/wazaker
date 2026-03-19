@@ -2,7 +2,7 @@
   {
     "id": "ErrorRecovery01",
     "name": "Error Recovery Agent",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

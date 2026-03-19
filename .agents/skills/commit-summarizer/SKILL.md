@@ -1,3 +1,12 @@
+---
+name: commit-summarizer
+description: Summarize recent code changes in plain language and sync the result into the operational trail and Plane when mapping is known.
+compatibility: Requires repo diff access, durable report output, and optional Plane credentials for write-back.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Commit Summarizer
 
 ## Purpose

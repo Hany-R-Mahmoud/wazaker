@@ -28,6 +28,7 @@ if bash ./scripts/pr-extract-review-prompts.sh "$branch_name" "$prompts_file" >/
   has_extracted_prompts=true
 fi
 
+resolver_status_file="$output_dir/${safe_branch}-resolver-status.md"
 prompt_file="$(mktemp)"
 cat > "$prompt_file" <<EOF
 You are resolving pull request review feedback for the current repository.
@@ -59,9 +60,60 @@ Note:
 EOF
 fi
 
-codex exec --full-auto -C "$(pwd)" "$(cat "$prompt_file")"
+codex_output_file="$(mktemp)"
+resolver_exit_code=0
+if ! codex exec --full-auto -C "$(pwd)" "$(cat "$prompt_file")" >"$codex_output_file" 2>&1; then
+  resolver_exit_code=$?
+fi
 
-rm -f "$prompt_file"
+if (( resolver_exit_code != 0 )); then
+  timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  codex_output="$(cat "$codex_output_file")"
+  if grep -Eqi 'usage limit|usage limits|dashboard/usage' "$codex_output_file"; then
+    cat > "$resolver_status_file" <<EOF
+# PR Resolver Status
+
+Generated: $timestamp
+Branch: $branch_name
+Status: blocked
+Reason: Codex usage limit interrupted the automated review-resolver pass.
+
+## Next Step
+
+- Wait for Codex quota recovery or rerun the resolver from a human-supervised session.
+- Do not merge until the unresolved review loop is re-run cleanly.
+
+## Codex Output
+
+\`\`\`
+$codex_output
+\`\`\`
+EOF
+    echo "Codex usage limits blocked the automated resolver pass. See $resolver_status_file"
+    rm -f "$prompt_file" "$codex_output_file"
+    exit 75
+  fi
+
+  cat > "$resolver_status_file" <<EOF
+# PR Resolver Status
+
+Generated: $timestamp
+Branch: $branch_name
+Status: failed
+Reason: Codex exited non-zero while attempting to resolve review feedback.
+
+## Codex Output
+
+\`\`\`
+$codex_output
+\`\`\`
+EOF
+  cat "$codex_output_file" >&2
+  rm -f "$prompt_file" "$codex_output_file"
+  exit "$resolver_exit_code"
+fi
+
+rm -f "$prompt_file" "$codex_output_file"
 
 if [[ -n "$(git status --porcelain)" ]]; then
   git add -A

@@ -1,3 +1,12 @@
+---
+name: context-manager
+description: Maintain structured shared automation memory so workflows can coordinate through durable facts instead of transient state.
+compatibility: Requires write access to .automation/context and repo-side durable reports.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Context Manager
 
 ## Purpose

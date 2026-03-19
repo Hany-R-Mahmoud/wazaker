@@ -2,7 +2,7 @@
   {
     "id": "PrReviewFirstPass01",
     "name": "PR Review First Pass",
-    "active": false,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {

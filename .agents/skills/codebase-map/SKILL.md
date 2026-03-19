@@ -1,3 +1,12 @@
+---
+name: codebase-map
+description: Maintain a compact machine-readable and human-readable structural summary of the repository for automation workflows.
+compatibility: Requires repository read access and the wazaker automation context store.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # Codebase Map
 
 ## Purpose

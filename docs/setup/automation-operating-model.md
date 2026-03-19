@@ -140,7 +140,7 @@ These are local runtime artifacts and are intentionally git-ignored.
 
 ## Checked-In Extension Workflow Map
 
-These workflow definitions are now present in `automation/n8n/` and ready to import into the live `n8n` instance:
+These workflow definitions are now present in `automation/n8n/` and are intended to be kept active in checked-in form. Their live runtime state still must be validated in `n8n` after import or re-import:
 
 - `CtxMgrRefresh01` — Context Manager Refresh
 - `HealthMonitor01` — Automation Health Monitor
@@ -155,6 +155,8 @@ These workflow definitions are now present in `automation/n8n/` and ready to imp
 - `SpeechQa01` — Speech QA Regression
 - `UiConsistency01` — UI Consistency Audit
 - `ErrorRecovery01` — Error Recovery Agent
+
+Live validation checklist: [webhook-autonomy-hardening.md](/Users/hanyramadan/wazaker/docs/setup/webhook-autonomy-hardening.md)
 
 ## Safety Model
 

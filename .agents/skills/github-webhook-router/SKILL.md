@@ -1,3 +1,12 @@
+---
+name: github-webhook-router
+description: Verify GitHub webhook deliveries, persist durable snapshots, and fan out events into the correct automation workflows.
+compatibility: Requires GitHub webhook payloads, a configured webhook secret, and downstream wazaker automation workflows.
+metadata:
+  author: wazaker
+  source: local
+---
+
 # GitHub Webhook Router
 
 ## Purpose
