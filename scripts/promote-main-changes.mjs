@@ -153,9 +153,10 @@ export async function main() {
       prBodyFile,
     ]);
     createdPrUrl = extractPrUrl(prCreateResult.stdout);
+    prCreated = Boolean(createdPrUrl);
 
     const pr = await fetchPullRequestMetadata(createdPrUrl);
-    prCreated = Boolean(pr?.number || pr?.url || createdPrUrl);
+    prCreated = prCreated || Boolean(pr?.number || pr?.url);
     await ensureSuccess('git', ['checkout', 'main']);
 
     return {
