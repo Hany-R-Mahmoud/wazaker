@@ -301,7 +301,7 @@
       "title": "Add recitation MVP dependencies and scripts",
       "summary": "Implement T002 by updating package dependencies and scripts for navigation, recording, validation, and focused testing.",
       "priority": "urgent",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "mobile-engineering",
       "parentId": "EPIC-MOBILE",
       "labels": [
@@ -324,7 +324,7 @@
       "title": "Add bilingual theme and copy foundations",
       "summary": "Implement T003 by creating shared theme and i18n primitives for the Arabic-first recitation experience.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "interface-and-design",
       "parentId": "EPIC-MOBILE",
       "labels": [
@@ -347,7 +347,7 @@
       "title": "Create recitation domain types",
       "summary": "Implement T004 by creating the domain types for targets, attempts, analysis results, and learner-safe feedback.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "systems-architect",
       "parentId": "EPIC-MOBILE",
       "labels": [
@@ -370,7 +370,7 @@
       "title": "Implement runtime schemas for recitation inputs and results",
       "summary": "Implement T005 by adding runtime validation schemas for target selection and comparison results.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "systems-architect",
       "parentId": "EPIC-MOBILE",
       "labels": [
@@ -393,7 +393,7 @@
       "title": "Create mockable analysis service interface",
       "summary": "Implement T006 by defining the analysis service interface that the MVP will use before real ASR integration.",
       "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "systems-architect",
       "parentId": "EPIC-MOBILE",
       "labels": [
