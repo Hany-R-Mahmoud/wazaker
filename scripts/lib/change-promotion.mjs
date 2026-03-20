@@ -19,7 +19,11 @@ const GENERIC_BASE_NAMES = new Set([
 ]);
 
 function stripExtension(value) {
-  return String(value).replace(/\.[^.]+$/, '');
+  const normalizedValue = String(value);
+  if (normalizedValue.startsWith('.') && !normalizedValue.slice(1).includes('.')) {
+    return normalizedValue;
+  }
+  return normalizedValue.replace(/\.[^.]+$/, '');
 }
 
 function tokenize(value) {

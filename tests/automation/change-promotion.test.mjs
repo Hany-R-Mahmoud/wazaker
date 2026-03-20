@@ -23,6 +23,8 @@ test('describeChangedPath includes parent context for numeric or generic basenam
     describeChangedPath('src/app/index.ts'),
     'app-index',
   );
+  assert.equal(describeChangedPath('.gitignore'), '.gitignore');
+  assert.equal(describeChangedPath('.prettierrc'), '.prettierrc');
 });
 
 test('buildChangeSlug compacts repeated tokens across related file names', () => {

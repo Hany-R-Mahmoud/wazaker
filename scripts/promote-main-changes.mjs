@@ -41,8 +41,16 @@ async function buildUniqueBranchName(baseBranchName) {
     return baseBranchName;
   }
 
-  const suffix = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 12);
-  return `${baseBranchName}-${suffix}`;
+  let attempt = 0;
+  while (true) {
+    const timestamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 17);
+    const suffix = attempt === 0 ? timestamp : `${timestamp}-${attempt}`;
+    const candidateBranchName = `${baseBranchName}-${suffix}`;
+    if (!(await branchExists(candidateBranchName))) {
+      return candidateBranchName;
+    }
+    attempt += 1;
+  }
 }
 
 function extractPrUrl(output) {
@@ -104,6 +112,7 @@ export async function main() {
   let prBodyFile = '';
   let createdPrUrl = null;
   let branchCreated = false;
+  let remoteBranchPushed = false;
 
   try {
     await ensureSuccess('git', ['checkout', '-b', branchName]);
@@ -113,12 +122,14 @@ export async function main() {
     await ensureSuccess('git', ['commit', '-m', branchSpecificSummary.commitMessage]);
 
     prBodyFile = (await ensureSuccess('bash', ['./scripts/pr-summary.sh'])).stdout.trim();
-    await ensureSuccess('git', ['push', '-u', 'origin', branchName]);
 
     const authStatus = await runCommand('bash', ['./scripts/with-github-env.sh', 'gh', 'auth', 'status']);
     if (authStatus.code !== 0) {
       throw new Error('gh is not authenticated cleanly for automated PR creation.');
     }
+
+    await ensureSuccess('git', ['push', '-u', 'origin', branchName]);
+    remoteBranchPushed = true;
 
     const prCreateResult = await ensureSuccess('bash', [
       './scripts/with-github-env.sh',
@@ -146,6 +157,9 @@ export async function main() {
       repoStatusAfter: await getRepoStatus(),
     };
   } catch (error) {
+    if (remoteBranchPushed) {
+      await runCommand('git', ['push', 'origin', '--delete', branchName]);
+    }
     if (branchCreated) {
       await runCommand('git', ['checkout', 'main']);
     }
