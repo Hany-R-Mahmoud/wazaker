@@ -41,8 +41,9 @@ async function buildUniqueBranchName(baseBranchName) {
     return baseBranchName;
   }
 
+  const maxAttempts = 100;
   let attempt = 0;
-  while (true) {
+  while (attempt < maxAttempts) {
     const timestamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 17);
     const suffix = attempt === 0 ? timestamp : `${timestamp}-${attempt}`;
     const candidateBranchName = `${baseBranchName}-${suffix}`;
@@ -51,6 +52,8 @@ async function buildUniqueBranchName(baseBranchName) {
     }
     attempt += 1;
   }
+
+  throw new Error(`Failed to generate unique branch name for ${baseBranchName} after ${maxAttempts} attempts`);
 }
 
 function extractPrUrl(output) {
@@ -69,7 +72,13 @@ async function fetchPullRequestMetadata(fallbackUrl = null) {
   ]);
 
   if (viewResult.code === 0 && viewResult.stdout.trim()) {
-    return JSON.parse(viewResult.stdout);
+    try {
+      return JSON.parse(viewResult.stdout);
+    } catch (error) {
+      const parseMessage = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`Warning: could not parse gh pr view output: ${parseMessage}\n`);
+      process.stderr.write(`${viewResult.stdout}\n`);
+    }
   }
 
   return {
@@ -113,6 +122,7 @@ export async function main() {
   let createdPrUrl = null;
   let branchCreated = false;
   let remoteBranchPushed = false;
+  let prCreated = false;
 
   try {
     await ensureSuccess('git', ['checkout', '-b', branchName]);
@@ -145,6 +155,7 @@ export async function main() {
     createdPrUrl = extractPrUrl(prCreateResult.stdout);
 
     const pr = await fetchPullRequestMetadata(createdPrUrl);
+    prCreated = Boolean(pr?.number || pr?.url || createdPrUrl);
     await ensureSuccess('git', ['checkout', 'main']);
 
     return {
@@ -157,7 +168,7 @@ export async function main() {
       repoStatusAfter: await getRepoStatus(),
     };
   } catch (error) {
-    if (remoteBranchPushed) {
+    if (remoteBranchPushed && !prCreated) {
       await runCommand('git', ['push', 'origin', '--delete', branchName]);
     }
     if (branchCreated) {
