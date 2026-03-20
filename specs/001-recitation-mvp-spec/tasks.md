@@ -12,8 +12,8 @@
 **Purpose**: Introduce the project structure and dependencies required for the recitation feature work.
 
 - [ ] T001 Create the feature-first mobile structure in `src/app/`, `src/features/recitation/`, `src/shared/`, and `src/test/`
-- [ ] T002 Update dependencies and scripts for navigation, recording, validation, and tests in `/Users/hanyramadan/wazaker/package.json`
-- [ ] T003 [P] Add shared recitation theme and bilingual copy foundations in `src/shared/theme/` and `src/shared/i18n/`
+- [X] T002 Update dependencies and scripts for navigation, recording, validation, and tests in `/Users/hanyramadan/wazaker/package.json`
+- [X] T003 [P] Add shared recitation theme and bilingual copy foundations in `src/shared/theme/` and `src/shared/i18n/`
 
 ---
 
@@ -21,9 +21,9 @@
 
 **Purpose**: Define shared types, adapters, storage, and navigation contracts that every user story depends on.
 
-- [ ] T004 Create recitation domain types from the data model in `src/features/recitation/types/`
-- [ ] T005 [P] Implement runtime schemas for target selection and comparison results in `src/features/recitation/types/schemas.ts`
-- [ ] T006 [P] Create a mockable analysis service interface aligned with `specs/001-recitation-mvp-spec/contracts/analysis-service.openapi.yaml` in `src/features/recitation/services/analysis-service.ts`
+- [X] T004 Create recitation domain types from the data model in `src/features/recitation/types/`
+- [X] T005 [P] Implement runtime schemas for target selection and comparison results in `src/features/recitation/types/schemas.ts`
+- [X] T006 [P] Create a mockable analysis service interface aligned with `specs/001-recitation-mvp-spec/contracts/analysis-service.openapi.yaml` in `src/features/recitation/services/analysis-service.ts`
 - [ ] T007 [P] Add fixture-backed mock analysis responses in `src/test/fixtures/recitation-analysis.ts`
 - [ ] T008 Implement local session persistence and history repository in `src/features/recitation/storage/session-history.ts`
 - [ ] T009 Create app navigation and shared recitation flow state in `src/app/navigation/` and `src/features/recitation/hooks/`
