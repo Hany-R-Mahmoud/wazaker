@@ -1,5 +1,5 @@
-import { RecordingScreen } from '../../features/recitation/screens/recording-screen';
+import { RecitationHomeView } from '../../features/recitation/views/recitation-home-view';
 
 export function AppController() {
-  return <RecordingScreen />;
+  return <RecitationHomeView />;
 }
