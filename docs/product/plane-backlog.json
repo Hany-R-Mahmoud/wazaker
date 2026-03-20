@@ -52,7 +52,7 @@
       "title": "Product Definition",
       "summary": "Lock the MVP promise, constraints, and user-facing trust model.",
       "priority": "high",
-      "state": "In Progress",
+      "state": "Done",
       "agentOwner": "product-discovery",
       "parentId": "",
       "labels": [
@@ -64,6 +64,12 @@
         "MVP promise and explicit non-goals are documented.",
         "The first approved user flow is defined.",
         "Bilingual content rules are agreed."
+      ],
+      "notes": [
+        "Phase 1 is limited to the recitation revision flow; non-recitation modules move to Phase 2 after Phase 1 is complete.",
+        "The canonical MVP learner flow is: select target, record recitation, analyze, show feedback, retry the same target.",
+        "Arabic is primary and English support must preserve the same trust rules.",
+        "Low-confidence feedback must never sound definitive and must direct the learner to retry or verify manually."
       ]
     },
     {
@@ -110,7 +116,7 @@
       "id": "US-001",
       "type": "story",
       "title": "Select target passage before recitation",
-      "summary": "As a Quran learner, I want to choose a surah, ayah range, or page before reciting so that the app knows what text to compare against.",
+      "summary": "As a Quran learner, I want to choose a constrained target passage before reciting so that the app knows what text to compare against.",
       "priority": "high",
       "state": "Backlog",
       "agentOwner": "product-discovery",
@@ -122,6 +128,7 @@
       ],
       "acceptance": [
         "The user can choose a constrained target passage.",
+        "MVP starts with surah plus ayah-range selection.",
         "The selected target is visible before recording starts.",
         "The app stores the target metadata with the session."
       ]
@@ -183,7 +190,8 @@
       "acceptance": [
         "Feedback distinguishes likely omission, insertion, and substitution.",
         "Low-confidence results are labeled clearly.",
-        "The feedback is readable in Arabic and understandable without technical terms."
+        "The feedback is readable in Arabic and understandable without technical terms.",
+        "Low-confidence results never sound definitive and instead recommend retry or manual verification."
       ]
     },
     {
@@ -552,7 +560,7 @@
       "id": "TASK-023",
       "type": "task",
       "title": "Build target selection screen",
-      "summary": "Implement T013 by creating the first real target selection screen for page, surah, and ayah range.",
+      "summary": "Implement T013 by creating the first real target selection screen for surah and ayah range, with page-level selection deferred unless it stays validation-safe in the same slice.",
       "priority": "urgent",
       "state": "Backlog",
       "agentOwner": "mobile-engineering",

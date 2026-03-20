@@ -24,6 +24,8 @@
 - teacher marketplace
 - account system unless required by the chosen backend
 
+These modules are deferred to Phase 2 after the recitation revision Phase 1 MVP is complete.
+
 ## MVP Success Criteria
 
 - a learner can select a short passage and complete one full recitation check
@@ -34,3 +36,10 @@
 ## Highest-Risk Assumption
 
 An Arabic/Quran-aware recognition and alignment pipeline can be accurate enough on constrained passages to produce useful feedback.
+
+## Approved Delivery Rules
+
+- The canonical Phase 1 learner flow is: select target, record recitation, analyze, show feedback, retry the same target.
+- MVP target selection starts with surah plus ayah range. Page-level selection remains optional for a later slice if validation stays simple.
+- Low-confidence analysis must never be presented as definite correction; the app should guide the learner to retry or verify manually.
+- The first runnable MVP shell may ship with a mock analysis service while real ASR remains gated behind the feasibility spike.

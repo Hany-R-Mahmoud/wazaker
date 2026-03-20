@@ -2,14 +2,23 @@
 
 **Feature Branch**: `001-recitation-mvp-spec`  
 **Created**: 2026-03-17  
-**Status**: Draft  
+**Status**: Approved  
 **Input**: User description: "Create the Phase 1 recitation revision feature for wazaker. The user selects a Quran passage or page, records recitation from memory, the app compares the recitation against expected Quran text, returns clear trustworthy feedback with confidence awareness, and allows immediate retry. V1 is mobile-first, Arabic-first with English support, and excludes prayer times, qibla, azkar, commerce, and social features."
+
+## Approval Notes
+
+- Phase 1 is limited to recitation revision. Non-recitation modules move to Phase 2 after Phase 1 is complete.
+- The canonical MVP learner flow is: select target, record recitation, analyze, show feedback, retry the same target.
+- MVP target selection starts with surah plus ayah range. Page-level selection is deferred unless it remains validation-safe in the same slice.
+- Low-confidence results must never sound definitive and must direct the learner to retry or verify manually.
+- The product is Arabic-first with English support.
+- The first runnable MVP shell may use a mock analysis service; real ASR remains gated behind `SPIKE-001`.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Revise a Selected Passage (Priority: P1)
 
-A Quran learner selects a specific page, surah, or ayah range, recites from memory, and receives a structured result showing whether the recitation matches the selected target and where likely mistakes occurred.
+A Quran learner selects a constrained target passage, starting with surah and ayah range in MVP, recites from memory, and receives a structured result showing whether the recitation matches the selected target and where likely mistakes occurred.
 
 **Why this priority**: This is the core value of the product. Without selected-target revision and comparison, the MVP does not solve the main problem.
 
@@ -57,12 +66,13 @@ A Quran learner receives feedback that clearly distinguishes high-confidence res
 - What happens when the learner chooses a target that is too long for a single effective attempt?
 - How does the system behave when the recording quality is too noisy for trustworthy comparison?
 - How does the system respond when the learner repeats verses, hesitates, or restarts within the same attempt?
+- When page-level selection is introduced later, how will the UI keep the effective recording scope constrained?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST allow the learner to choose a constrained Quran target before recording, including page, surah, or ayah-range selection.
+- **FR-001**: The system MUST allow the learner to choose a constrained Quran target before recording, with MVP support starting at surah and ayah-range selection.
 - **FR-002**: The system MUST show the selected target clearly before the learner starts recording.
 - **FR-003**: The system MUST allow the learner to start, stop, cancel, and retry a recitation attempt from the mobile device.
 - **FR-004**: The system MUST request microphone access with clear learner-facing messaging before recording.
@@ -76,6 +86,7 @@ A Quran learner receives feedback that clearly distinguishes high-confidence res
 - **FR-012**: The system MUST handle incomplete, canceled, and failed attempts without corrupting session history.
 - **FR-013**: The system MUST exclude non-MVP modules from this feature scope, including prayer times, qibla, azkar, commerce, and social features.
 - **FR-014**: The system MUST keep the first version focused on memorization revision feedback rather than advanced tajweed grading.
+- **FR-015**: The first runnable MVP shell MUST be valid with a mock analysis service while `SPIKE-001` determines whether a real ASR path is good enough to trust.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -93,3 +104,4 @@ A Quran learner receives feedback that clearly distinguishes high-confidence res
 - **SC-003**: 100% of low-confidence analyses shown in testing are explicitly labeled as uncertain in the result view.
 - **SC-004**: At least 80% of repeat attempts in testing begin from the result screen rather than restarting the flow from target selection.
 - **SC-005**: The MVP backlog and implementation plan remain scoped to recitation revision only, with zero non-core modules added to the Phase 1 release candidate.
+- **SC-006**: A written proceed-or-stop recommendation from `SPIKE-001` exists before the product makes real ASR-backed correctness claims.

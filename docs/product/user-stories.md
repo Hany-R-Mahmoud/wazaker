@@ -4,11 +4,12 @@
 
 ### Story 1
 
-As a Quran learner, I want to choose a surah, ayah range, or page before reciting so that the app knows what text to compare against.
+As a Quran learner, I want to choose a constrained target passage before reciting so that the app knows what text to compare against.
 
 Acceptance criteria:
 
 - the user can choose a constrained target passage
+- MVP starts with surah plus ayah-range selection
 - the selected target is visible before recording starts
 - the app stores the target metadata with the session
 
@@ -31,6 +32,7 @@ Acceptance criteria:
 - the app sends or processes the selected recording for analysis
 - the analysis is tied to the selected target passage
 - the system returns a structured comparison result
+- low-confidence outcomes never sound definitive and instead recommend retry or manual verification
 
 ### Story 4
 
@@ -41,6 +43,7 @@ Acceptance criteria:
 - the result distinguishes likely omission, insertion, and substitution
 - low-confidence results are labeled clearly
 - the feedback is readable in Arabic and understandable without technical terms
+- Arabic learner-facing copy is primary and English support mirrors the same trust rules
 
 ### Story 5
 

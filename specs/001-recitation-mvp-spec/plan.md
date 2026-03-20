@@ -16,7 +16,7 @@ Build the first end-to-end recitation revision flow in Expo/React Native: the le
 **Target Platform**: iOS and Android phones through Expo-managed workflow  
 **Project Type**: Mobile app with a thin analysis-service integration boundary  
 **Performance Goals**: First interaction under 2 minutes, screen transitions feel instant, result rendering under 200 ms after a response is received  
-**Constraints**: Arabic-first UX, explicit low-confidence labeling, no tajweed grading in V1, no non-recitation modules, low-friction retry flow, intermittent network tolerance for analysis requests  
+**Constraints**: Arabic-first UX, explicit low-confidence labeling, no tajweed grading in V1, no non-recitation modules in Phase 1, low-friction retry flow, intermittent network tolerance for analysis requests  
 **Scale/Scope**: Single mobile app, one primary learner flow, short constrained passages in MVP, local history only, one analysis provider abstraction
 
 ## Constitution Check
@@ -76,7 +76,7 @@ src/
 
 - Use an analysis adapter boundary instead of binding the mobile UI directly to a specific ASR provider.
 - Start with local mocked analysis responses and contract fixtures to validate UX, state, and confidence handling before the real speech spike.
-- Keep target selection constrained to short page/surah/ayah ranges so the comparison contract stays deterministic in V1.
+- Keep target selection constrained to short passages so the comparison contract stays deterministic in V1, starting with surah plus ayah-range selection before page-level targeting.
 - Store session history locally in the app during MVP to avoid premature account and backend requirements.
 
 ## Phase 1: Design Outputs
@@ -89,10 +89,10 @@ src/
 ## Phase 2: Implementation Preview
 
 1. Create the feature-first Expo structure under `src/`.
-2. Implement target selection and local session state.
+2. Implement target selection and local session state around surah plus ayah-range selection first.
 3. Implement recording shell with permission and cancellation handling.
 4. Implement analysis adapter with mock fixtures that conform to the contract.
-5. Implement result screen with confidence-aware feedback and retry flow.
+5. Implement result screen with confidence-aware feedback and retry flow that never presents low-confidence output as definitive.
 6. Add local session history and basic tests around contract parsing and flow state.
 7. Use the resulting contract and fixtures as the baseline for `SPIKE-001`.
 
