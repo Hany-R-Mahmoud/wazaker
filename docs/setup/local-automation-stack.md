@@ -69,6 +69,7 @@ Required runtime notes:
 - `NODE_FUNCTION_ALLOW_BUILTIN=*` is required because several checked-in Code nodes use `require('node:http')`, `require('node:https')`, and `require('node:crypto')` for durable local HTTP orchestration.
 - `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` is required because the workflows read repo automation settings from `$env`.
 - `GITHUB_WEBHOOK_SECRET` must match the GitHub webhook configuration for the router workflow to validate signatures.
+- the local runner should also receive unattended GitHub auth for repo-wide PR automation, either from `AUTOMATION_GITHUB_TOKEN` or the persisted local file `.automation/github.token`
 
 ### automation-runner
 
@@ -174,7 +175,7 @@ Checked-in workflow definitions live in:
 ### GitHub PR Automation Supervisor
 
 - workflow id: `GhPrAutoSup01`
-- schedule: every `30` minutes
+- schedule: every `10` minutes
 - status: active
 
 ### Flow
@@ -205,6 +206,45 @@ Checked-in workflow definitions live in:
 - runs the repo `pr_summary` script for the current branch
 - records the generated repo artifact path from `docs/pr-reviews/`
 - writes an automation-side snapshot to `docs/automation/github-pr-summaries/`
+
+### GitHub Open PR Sweep
+
+- workflow id: `GhOpenPrSweep01`
+- schedule: every `1` hour
+- status: active when enabled
+
+### Flow
+
+1. `Schedule Trigger`
+2. `Launch Open PR Sweep`
+
+### Behavior
+
+- runs only from clean `main`
+- launches the repo-wide PR sweep through `pr_sweep_open`
+- keeps open automation-created PRs progressing through review and merge
+- writes durable sweep output to `docs/automation/github-pr-sweeps/`
+
+### Main Clean Check
+
+- workflow id: `MainCleanCheck01`
+- schedule: every `1` hour
+- status: active when enabled
+
+### Flow
+
+1. `Schedule Trigger`
+2. `Promote Dirty Main Or Sweep PRs`
+
+### Behavior
+
+- checks whether the current repo state is dirty while on `main`
+- creates a new `codex/auto/*` branch before committing any tracked changes
+- derives the branch name and commit title from the changed files
+- pushes and opens a PR for the promoted branch
+- switches the repo back to clean `main`
+- triggers the open PR sweep so the new PR enters the existing review-and-merge loop
+- writes durable controller output to `docs/automation/main-clean-check/`
 
 ### Plane Guarded Delivery Pipeline
 
@@ -245,6 +285,7 @@ The repo now also includes checked-in workflow definitions for the next automati
 - `UI Consistency Audit`
 - `Error Recovery Agent`
 - `GitHub Open PR Sweep`
+- `Main Clean Check`
 
 ## Validation Completed
 

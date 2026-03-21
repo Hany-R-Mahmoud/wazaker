@@ -12,9 +12,6 @@ if command -v direnv >/dev/null 2>&1; then
 fi
 
 if [[ -n "$github_token" ]]; then
-  if [[ "$has_direnv" -eq 1 ]]; then
-    exec direnv exec "$repo_root" env GH_TOKEN="$github_token" GITHUB_TOKEN="$github_token" "$@"
-  fi
   exec env GH_TOKEN="$github_token" GITHUB_TOKEN="$github_token" "$@"
 fi
 

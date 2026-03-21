@@ -7,6 +7,7 @@ automation_dir="$repo_root/.automation"
 pid_file="$automation_dir/runner.pid"
 log_file="$automation_dir/runner.log"
 token_file="$automation_dir/runner.token"
+github_token_file="$automation_dir/github.token"
 
 mkdir -p "$automation_dir"
 
@@ -30,7 +31,22 @@ PY
 fi
 
 token="$(cat "$token_file")"
+github_token="${AUTOMATION_GITHUB_TOKEN:-${GITHUB_TOKEN:-${GH_TOKEN:-}}}"
 
+if [[ -z "$github_token" && -f "$github_token_file" ]]; then
+  github_token="$(tr -d '\r\n' < "$github_token_file")"
+fi
+
+if [[ -z "$github_token" ]] && command -v gh >/dev/null 2>&1; then
+  github_token="$(gh auth token 2>/dev/null || true)"
+fi
+
+if [[ -n "$github_token" ]]; then
+  umask 077
+  printf '%s\n' "$github_token" > "$github_token_file"
+fi
+
+AUTOMATION_GITHUB_TOKEN="$github_token" \
 AUTOMATION_RUNNER_TOKEN="$token" \
 AUTOMATION_RUNNER_PORT="${AUTOMATION_RUNNER_PORT:-3210}" \
 nohup node "$repo_root/scripts/automation-runner.mjs" >> "$log_file" 2>&1 &

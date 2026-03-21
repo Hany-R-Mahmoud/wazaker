@@ -155,9 +155,11 @@ The recurring version of this flow is now owned by `n8n` through the local `auto
 
 Active automation mapping:
 
-- `GitHub PR Automation Supervisor` checks the current branch every `30` minutes
+- `GitHub PR Automation Supervisor` checks the current branch every `10` minutes
 - it runs `pr_publish` when a clean feature branch is ahead of `main` without an open PR
 - it runs `pr_autofinish` when an open PR exists for the current branch
+- `Main Clean Check` runs every `1` hour, branches off dirty `main`, commits on the new branch, opens the PR, then returns the repo to clean `main`
+- `GitHub Open PR Sweep` runs every `1` hour and advances open PRs from clean `main` through the existing `pr-autofinish` path
 - `Plane Guarded Delivery Pipeline` can hand a prepared implementation task into this PR flow after branch preparation and publication
 - `GitHub PR And Commit Summary` refreshes repo summary artifacts every `2` hours
 
@@ -165,6 +167,8 @@ Durable automation reports land in:
 
 - `docs/automation/github-pr-automation/`
 - `docs/automation/github-pr-summaries/`
+- `docs/automation/github-pr-sweeps/`
+- `docs/automation/main-clean-check/`
 
 The repo scripts remain the source of truth for PR behavior; `n8n` now provides the scheduling, gating, and durable report trail around them.
 
@@ -177,6 +181,7 @@ Use a dedicated automation token path instead:
 - `AUTOMATION_GITHUB_TOKEN` for repo-wide PR sweep and other headless GitHub actions
 - `GITHUB_WEBHOOK_SECRET` for webhook verification
 - `AUTOMATION_RUNNER_TOKEN` for `n8n -> automation-runner`
+- local runner bootstrap may persist the unattended GitHub token at `.automation/github.token` so restarts do not silently lose repo-wide PR auth
 
 Human `gh` login remains useful for local fallback and debugging, but it should not be the primary auth path for unattended workflows.
 
@@ -190,4 +195,4 @@ Human `gh` login remains useful for local fallback and debugging, but it should 
 - `bash ./scripts/pr-resolve-review.sh` depends on review artifacts already fetched to `docs/pr-reviews/`.
 - `bash ./scripts/pr-thread-sync.sh` now uses `agent-reviews` for actionable bot review threads; unresolved human threads still block merge.
 - `bash ./scripts/pr-autofinish.sh` is the preferred no-interruption path once a PR is open.
-- `node ./scripts/pr-open-sweep.mjs` is intended to run with `AUTOMATION_GITHUB_TOKEN`; if that token is missing, treat sweep automation as paused rather than falling back to a human shell session.
+- `node ./scripts/pr-open-sweep.mjs` is intended to run with unattended GitHub auth from `AUTOMATION_GITHUB_TOKEN` or `.automation/github.token`; if both are missing, fail the sweep loudly so `n8n` records a real automation failure instead of a misleading success.

@@ -82,6 +82,8 @@ Current runtime output paths:
 - `docs/automation/plane-task-expansions/`
 - `docs/automation/github-pr-automation/`
 - `docs/automation/github-pr-summaries/`
+- `docs/automation/github-pr-sweeps/`
+- `docs/automation/main-clean-check/`
 - `docs/automation/delivery-runs/`
 - `docs/automation/maintenance/`
 
@@ -119,7 +121,7 @@ These are local runtime artifacts and are intentionally git-ignored.
 
 ### `GhPrAutoSup01` — GitHub PR Automation Supervisor
 
-- trigger: every `30` minutes
+- trigger: every `10` minutes
 - inputs: repo status from `automation-runner`
 - helpers: `pr_publish`, `pr_autofinish`
 - output: `docs/automation/github-pr-automation/`
@@ -130,6 +132,20 @@ These are local runtime artifacts and are intentionally git-ignored.
 - inputs: repo status from `automation-runner`
 - helpers: `pr_summary`
 - output: `docs/automation/github-pr-summaries/`
+
+### `GhOpenPrSweep01` — GitHub Open PR Sweep
+
+- trigger: every `1` hour
+- inputs: repo status from `automation-runner`
+- helpers: `pr_sweep_open`
+- output: `docs/automation/github-pr-sweeps/`
+
+### `MainCleanCheck01` — Main Clean Check
+
+- trigger: every `1` hour
+- inputs: repo status from `automation-runner`
+- helpers: `promote_main_changes`, `pr_sweep_open`
+- output: `docs/automation/main-clean-check/`
 
 ### `PlnGuardedDelivery01` — Plane Guarded Delivery Pipeline
 
@@ -155,6 +171,8 @@ These workflow definitions are stored in `automation/n8n/` as exported JSON and 
 - `SpeechQa01` — Speech QA Regression
 - `UiConsistency01` — UI Consistency Audit
 - `ErrorRecovery01` — Error Recovery Agent
+- `GhOpenPrSweep01` — GitHub Open PR Sweep
+- `MainCleanCheck01` — Main Clean Check
 
 Live validation checklist: [webhook-autonomy-hardening.md](./webhook-autonomy-hardening.md)
 
@@ -179,6 +197,7 @@ Current hard safety rules:
 - task expansion drafts
 - Plane backlog maintenance
 - PR supervision and PR summary refresh
+- open PR sweeping and dirty-main promotion into tracked PR branches
 - guarded task-intake and branch-prep automation
 
 ### Still intentionally human-controlled

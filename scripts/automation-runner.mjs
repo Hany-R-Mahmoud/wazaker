@@ -45,6 +45,7 @@ const actionMap = {
   plane_sync_backlog: ['bash', './scripts/plane-sync-backlog.sh'],
   plane_dedupe_backlog: ['bash', './scripts/plane-dedupe-backlog.sh'],
   main_sync: ['bash', './scripts/main-sync.sh'],
+  promote_main_changes: ['node', './scripts/promote-main-changes.mjs'],
   service_health_report: ['node', './scripts/service-health-report.mjs'],
   restart_service: ['node', './scripts/restart-service.mjs'],
   codebase_map_refresh: ['node', './scripts/codebase-map.mjs'],

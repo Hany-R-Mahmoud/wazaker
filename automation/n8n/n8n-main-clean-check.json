@@ -1,0 +1,61 @@
+[
+  {
+    "id": "MainCleanCheck01",
+    "name": "Main Clean Check",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 1
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          0
+        ],
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "jsCode": "const http = require('node:http');\nconst https = require('node:https');\nconst runnerBase = $env.AUTOMATION_RUNNER_BASE_URL;\nconst runnerToken = $env.AUTOMATION_RUNNER_TOKEN;\nconst requestTimeoutMs = Number($env.AUTOMATION_RUNNER_REQUEST_TIMEOUT_MS || 30000);\nif (!runnerBase) throw new Error('AUTOMATION_RUNNER_BASE_URL is not configured');\n\nconst headers = {\n  'Content-Type': 'application/json',\n  ...(runnerToken ? { Authorization: `Bearer ${runnerToken}` } : {}),\n};\n\nconst request = (urlString, options = {}) => new Promise((resolve, reject) => {\n  const transport = String(urlString).startsWith('https://') ? https : http;\n  const timeoutMs = Number(options.timeoutMs || requestTimeoutMs);\n  const req = transport.request(urlString, {\n    method: options.method || 'GET',\n    headers: options.headers || {},\n  }, (res) => {\n    let body = '';\n    res.on('data', (chunk) => {\n      body += chunk.toString();\n    });\n    res.on('end', () => {\n      resolve({\n        statusCode: res.statusCode || 0,\n        body,\n      });\n    });\n  });\n  req.setTimeout(timeoutMs, () => {\n    req.destroy(new Error(`Request timed out after ${timeoutMs}ms: ${urlString}`));\n  });\n  req.on('error', reject);\n  if (options.body) {\n    req.write(options.body);\n  }\n  req.end();\n});\n\nconst parseJson = (value, fallback, contextLabel) => {\n  if (!value) {\n    return fallback;\n  }\n  try {\n    return JSON.parse(value);\n  } catch (error) {\n    const message = error instanceof Error ? error.message : String(error);\n    throw new Error(`Could not parse JSON from ${contextLabel}: ${message}`);\n  }\n};\n\nconst statusResponse = await request(`${runnerBase}/repo/status`, { headers });\nif (statusResponse.statusCode < 200 || statusResponse.statusCode >= 300) {\n  throw new Error(`Runner repo status failed: ${statusResponse.statusCode} ${statusResponse.body}`);\n}\nconst repoStatus = parseJson(statusResponse.body, {}, 'repo/status');\n\nlet action = 'noop';\nlet reason = 'Main is already clean.';\nlet promotionResult = null;\nlet sweepResult = null;\n\nif (repoStatus.branch === 'main' && !repoStatus.clean) {\n  action = 'promote_main_changes';\n  reason = 'Dirty main detected; branch, commit, push, and PR promotion will run now.';\n\n  const promotionResponse = await request(`${runnerBase}/jobs`, {\n    method: 'POST',\n    headers,\n    body: JSON.stringify({ action, mode: 'sync', args: [] }),\n  });\n  if (promotionResponse.statusCode < 200 || promotionResponse.statusCode >= 300) {\n    throw new Error(`promote_main_changes failed: ${promotionResponse.statusCode} ${promotionResponse.body}`);\n  }\n  promotionResult = parseJson(promotionResponse.body, null, 'jobs/promote_main_changes');\n} else if (repoStatus.branch !== \"main\") {\n  reason = `Repository is on ${repoStatus.branch}; skipping dirty-main promotion but still launching the repo-wide PR sweep.`;\n} else {\n  reason = 'Main is clean; launch the open PR sweep to keep automation-created branches progressing toward merge.';\n}\n\nconst sweepResponse = await request(`${runnerBase}/jobs`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ action: 'pr_sweep_open', mode: 'async', args: [], dedupeKey: 'open-pr-sweep' }),\n});\nif (![200, 202].includes(sweepResponse.statusCode)) {\n  throw new Error(`pr_sweep_open failed: ${sweepResponse.statusCode} ${sweepResponse.body}`);\n}\nsweepResult = parseJson(sweepResponse.body, null, 'jobs/pr_sweep_open');\n\nconst timestamp = new Date().toISOString().replace(/[:]/g, '-');\nconst reportRelativePath = `main-clean-check/${timestamp}.md`;\nconst reportContent = [\n  '# Main Clean Check',\n  '',\n  `Generated: ${new Date().toISOString()}`\n  ,`Branch: ${repoStatus.branch}`\n  ,`Working tree clean: ${repoStatus.clean}`\n  ,'',\n  `Action: ${action}`\n  ,reason,\n  '',\n  '## Repo Status',\n  '',\n  '```json',\n  JSON.stringify(repoStatus, null, 2),\n  '```',\n  '',\n  '## Promotion Result',\n  '',\n  promotionResult ? '```json\\n' + JSON.stringify(promotionResult, null, 2) + '\\n```' : 'No branch promotion was needed.',\n  '',\n  '## Sweep Result',\n  '',\n  sweepResult ? '```json\\n' + JSON.stringify(sweepResult, null, 2) + '\\n```' : 'No sweep job was launched.',\n].join('\\n');\n\nconst writeResponse = await request(`${runnerBase}/reports/write`, {\n  method: 'POST',\n  headers,\n  body: JSON.stringify({ relativePath: reportRelativePath, content: reportContent }),\n});\nif (writeResponse.statusCode < 200 || writeResponse.statusCode >= 300) {\n  throw new Error(`Runner report write failed: ${writeResponse.statusCode} ${writeResponse.body}`);\n}\n\nreturn [{\n  json: {\n    generatedAt: new Date().toISOString(),\n    action,\n    reason,\n    reportRelativePath,\n    repoStatus,\n    promotionResult,\n    sweepResult,\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          260,
+          0
+        ],
+        "name": "Promote Dirty Main Or Sweep PRs"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Promote Dirty Main Or Sweep PRs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "versionId": "ec1f6d9b-6fa0-4dfb-b7ae-6b74ae59610a",
+    "pinData": {},
+    "tags": []
+  }
+]

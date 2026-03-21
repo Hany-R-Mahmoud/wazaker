@@ -4,16 +4,9 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { getRepoStatus, repoRoot, runCommand, writeReport } from './lib/automation-platform.mjs';
+import { repoRoot, runCommand, writeReport } from './lib/automation-platform.mjs';
+import { resolveGithubToken } from './lib/github-token.mjs';
 import { evaluateOpenPullRequest } from './lib/pr-sweep.mjs';
-
-const githubToken = process.env.AUTOMATION_GITHUB_TOKEN || '';
-
-function requireGitHubToken() {
-  if (!githubToken) {
-    throw new Error('AUTOMATION_GITHUB_TOKEN must be configured for PR sweeping.');
-  }
-}
 
 function parseOriginRepo(remoteUrl) {
   const normalized = String(remoteUrl || '').trim();
@@ -24,8 +17,7 @@ function parseOriginRepo(remoteUrl) {
   throw new Error(`Could not parse origin remote URL: ${normalized}`);
 }
 
-async function githubRequest(pathname) {
-  requireGitHubToken();
+async function githubRequest(pathname, githubToken) {
   const controller = new AbortController();
   const timeoutMs = Number(process.env.GITHUB_REQUEST_TIMEOUT_MS || 10000);
   const timeoutHandle = setTimeout(() => controller.abort(new Error(`GitHub API request timed out after ${timeoutMs}ms`)), timeoutMs);
@@ -64,13 +56,13 @@ async function githubRequest(pathname) {
   return json;
 }
 
-async function githubRequestAll(pathname, { perPage = 100 } = {}) {
+async function githubRequestAll(pathname, { githubToken, perPage = 100 } = {}) {
   const separator = pathname.includes('?') ? '&' : '?';
   const items = [];
 
   for (let page = 1; ; page += 1) {
     const requestPath = `${pathname}${separator}per_page=${perPage}&page=${page}`;
-    const json = await githubRequest(requestPath);
+    const json = await githubRequest(requestPath, githubToken);
     if (!Array.isArray(json)) {
       return json;
     }
@@ -84,6 +76,20 @@ async function githubRequestAll(pathname, { perPage = 100 } = {}) {
 
 function sanitizeBranchName(branchName) {
   return String(branchName).replace(/[^a-zA-Z0-9._/-]+/g, '-');
+}
+
+async function allowWorktreeDirenv(worktreeDir) {
+  const direnvExists = await runCommand('direnv', ['version']);
+  if (direnvExists.code !== 0) {
+    return;
+  }
+
+  const allowResult = await runCommand('direnv', ['allow', worktreeDir], {
+    cwd: worktreeDir,
+  });
+  if (allowResult.code !== 0) {
+    throw new Error(`Could not allow direnv for ${worktreeDir}: ${allowResult.stderr || allowResult.stdout}`);
+  }
 }
 
 async function cleanupSweepBranch(worktreeDir, localBranch) {
@@ -124,13 +130,14 @@ async function sweepPullRequest(pr) {
   }
 
   try {
+    await allowWorktreeDirenv(worktreeDir);
     await runCommand('git', ['branch', '--set-upstream-to', `origin/${pr.branch}`, localBranch], { cwd: worktreeDir });
     const result = await runCommand('bash', ['./scripts/pr-autofinish.sh', String(pr.number)], {
       cwd: worktreeDir,
       env: {
         ...process.env,
-        GH_TOKEN: githubToken,
-        GITHUB_TOKEN: githubToken,
+        GH_TOKEN: pr.githubToken,
+        GITHUB_TOKEN: pr.githubToken,
       },
     });
 
@@ -150,33 +157,25 @@ async function sweepPullRequest(pr) {
 }
 
 export async function main() {
+  const { token: githubToken, source: githubTokenSource } = await resolveGithubToken();
   if (!githubToken) {
-    process.stdout.write('AUTOMATION_GITHUB_TOKEN is not configured. Unattended PR sweep is paused.\n');
-    process.exitCode = 0;
-    return {
-      paused: true,
-      reason: 'AUTOMATION_GITHUB_TOKEN is not configured',
-    };
-  }
-
-  const repoStatus = await getRepoStatus();
-  if (repoStatus.branch !== 'main') {
-    throw new Error(`PR sweep only runs from main. Current branch: ${repoStatus.branch}`);
-  }
-  if (!repoStatus.clean) {
-    throw new Error('PR sweep requires a clean working tree.');
+    throw new Error(
+      'GitHub PR sweep requires unattended GitHub auth. Configure AUTOMATION_GITHUB_TOKEN or .automation/github.token.',
+    );
   }
 
   const remoteUrl = (await runCommand('git', ['config', '--get', 'remote.origin.url'])).stdout.trim();
   const repo = parseOriginRepo(remoteUrl);
-  const pulls = await githubRequestAll(`/repos/${repo.owner}/${repo.name}/pulls?state=open`);
+  const pulls = await githubRequestAll(`/repos/${repo.owner}/${repo.name}/pulls?state=open`, {
+    githubToken,
+  });
   const evaluatedPulls = pulls.map((pr) => ({
     pr,
     evaluation: evaluateOpenPullRequest(pr, repo.owner),
   }));
   const candidates = evaluatedPulls
     .filter(({ evaluation }) => evaluation.eligible)
-    .map(({ pr, evaluation }) => ({ ...evaluation, pr }));
+    .map(({ pr, evaluation }) => ({ ...evaluation, pr, githubToken }));
   const skipped = evaluatedPulls
     .filter(({ evaluation }) => !evaluation.eligible)
     .map(({ pr, evaluation }) => ({
@@ -213,6 +212,7 @@ export async function main() {
     '',
     `Generated: ${new Date().toISOString()}`,
     `Repository: ${repo.owner}/${repo.name}`,
+    `GitHub token source: ${githubTokenSource}`,
     '',
     '## Eligible PRs',
     '',
@@ -241,7 +241,7 @@ export async function main() {
   return {
     generatedAt: new Date().toISOString(),
     repo,
-    repoStatus,
+    githubTokenSource,
     candidateCount: candidates.length,
     skippedCount: skipped.length,
     results,
