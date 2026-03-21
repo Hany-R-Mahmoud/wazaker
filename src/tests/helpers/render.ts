@@ -1,5 +1,5 @@
 import { render, type RenderOptions } from '@testing-library/react-native';
-import { type ReactElement } from 'react';
+import { createElement, type ReactElement } from 'react';
 
 import { AppProviders } from '../../app/providers/app-providers';
 
@@ -8,7 +8,8 @@ export function renderWithProviders(
   options?: Omit<RenderOptions, 'wrapper'>,
 ) {
   return render(ui, {
-    wrapper: AppProviders,
+    wrapper: ({ children }) =>
+      createElement(AppProviders, { disableRecitationHydration: true }, children),
     ...options,
   });
 }

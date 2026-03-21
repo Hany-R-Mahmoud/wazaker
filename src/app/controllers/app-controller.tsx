@@ -1,5 +1,5 @@
-import { RecordingScreen } from '../../features/recitation/screens/recording-screen';
+import { RecitationNavigator } from '../navigation/recitation-navigator';
 
 export function AppController() {
-  return <RecordingScreen />;
+  return <RecitationNavigator />;
 }
