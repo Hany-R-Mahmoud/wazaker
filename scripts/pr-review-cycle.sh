@@ -39,9 +39,16 @@ node ./scripts/lib/pr-review-loop-budget.mjs "$state_file" ensure "$(jq -nc \
   --argjson maxWatchTimeouts "$max_bot_review_timeouts" \
   '{prNumber: $prNumber, branchName: $branchName, maxTriggerComments: $maxTriggerComments, maxWatchTimeouts: $maxWatchTimeouts}')" >/dev/null
 
+comments_file="$output_dir/${safe_branch}-review-comments.json"
+
 cycle=1
 while (( cycle <= max_cycles )); do
   echo "Review cycle $cycle of $max_cycles for PR #$pr_number"
+
+  bash ./scripts/pr-refresh-review-artifacts.sh "$pr_number" "$branch_name" >/dev/null
+  if [[ -f "$comments_file" ]] && jq -e 'length > 0' "$comments_file" >/dev/null 2>&1; then
+    echo "Actionable bot review comments already exist; skipping CodeRabbit retrigger and resolving current findings first."
+  else
 
   current_trigger_count="$(node ./scripts/lib/pr-review-loop-budget.mjs "$state_file" show | jq -r '.triggerCommentCount')"
   if (( current_trigger_count >= max_coderabbit_trigger_comments )); then
@@ -68,6 +75,7 @@ while (( cycle <= max_cycles )); do
     --argjson cycle "$cycle" \
     --arg url "$trigger_comment_url" \
     '{cycle: $cycle, url: $url}')" >/dev/null
+  fi
 
   watch_output=""
   watch_status=0

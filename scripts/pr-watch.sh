@@ -34,13 +34,7 @@ settle_window_start_epoch="$(date +%s)"
 
 count=1
 while (( count <= max_checks )); do
-  bash ./scripts/with-github-env.sh gh pr view "$pr_view_ref" \
-    --json number,url,title,reviewDecision,latestReviews,reviews,comments,statusCheckRollup,mergeStateStatus \
-    > "$pr_json_file"
-
-  npx agent-reviews --pr "$(jq -r '.number' "$pr_json_file")" --unresolved --bots-only --json > "$raw_comments_file"
-  python3 ./scripts/pr-filter-agent-reviews.py "$raw_comments_file" "$comments_file" >/dev/null
-  node ./scripts/pr-review-gate.mjs "$pr_json_file" "$comments_file" > "$gate_file"
+  bash ./scripts/pr-refresh-review-artifacts.sh "$pr_view_ref" "$branch_name" >/dev/null
 
   now_epoch="$(date +%s)"
   seconds_since_watch_start=$(( now_epoch - settle_window_start_epoch ))
