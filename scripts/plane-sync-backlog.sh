@@ -46,14 +46,24 @@ build_description_html() {
   local summary
   local acceptance_html
   local labels_html
+  local notes_html
+  local depends_on_html
+  local agent_owner
 
   external_id="$(printf '%s' "$item_json" | jq -r '.id')"
   summary="$(printf '%s' "$item_json" | jq -r '.summary')"
+  agent_owner="$(printf '%s' "$item_json" | jq -r '.agentOwner // empty')"
   acceptance_html="$(
     printf '%s' "$item_json" | jq -r '.acceptance[]?' | escape_html | sed 's/^/<li>/; s/$/<\/li>/'
   )"
   labels_html="$(
     printf '%s' "$item_json" | jq -r '.labels[]?' | escape_html | sed 's/^/<li><code>/; s/$/<\/code><\/li>/'
+  )"
+  notes_html="$(
+    printf '%s' "$item_json" | jq -r '.notes[]?' | escape_html | sed 's/^/<li>/; s/$/<\/li>/'
+  )"
+  depends_on_html="$(
+    printf '%s' "$item_json" | jq -r '.dependsOn[]?' | escape_html | sed 's/^/<li><code>/; s/$/<\/code><\/li>/'
   )"
 
   cat <<EOF
@@ -61,10 +71,13 @@ build_description_html() {
 <p>$(printf '%s' "$summary" | escape_html)</p>
 <h3>Acceptance Criteria</h3>
 <ul>${acceptance_html}</ul>
+$(if [[ -n "$notes_html" ]]; then printf '<h3>Notes</h3>\n<ul>%s</ul>\n' "$notes_html"; fi)
+$(if [[ -n "$depends_on_html" ]]; then printf '<h3>Depends On</h3>\n<ul>%s</ul>\n' "$depends_on_html"; fi)
 <h3>Repo Metadata</h3>
 <ul>
   <li><strong>External ID:</strong> <code>${external_id}</code></li>
   <li><strong>Source:</strong> <code>docs/product/plane-backlog.json</code></li>
+  $(if [[ -n "$agent_owner" ]]; then printf '<li><strong>Agent Owner:</strong> <code>%s</code></li>' "$(printf '%s' "$agent_owner" | escape_html)"; fi)
 </ul>
 <h3>Labels</h3>
 <ul>${labels_html}</ul>

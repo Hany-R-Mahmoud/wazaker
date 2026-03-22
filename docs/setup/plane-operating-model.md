@@ -2,73 +2,70 @@
 
 ## Purpose
 
-Plane is the execution system for `wazaker`. It is not the product source of truth.
+Plane is the execution mirror for `wazaker`. Repo docs remain the canonical source of truth for product, architecture, refactor decisions, and agent rules.
 
-Use this split deliberately:
+## Source Of Truth Split
 
-- GitHub repo docs define truth for product, architecture, research, and decisions.
-- Plane mirrors execution work as epics, stories, spikes, and tasks.
-- PR branches and merged changes feed status updates back into Plane.
+- Product truth: `docs/product/`
+- Architecture truth: `docs/architecture/`
+- Refactor baseline: `docs/refactor/`
+- Team and routing truth: `docs/agents/`
+- Execution mirror: Plane
 
-This avoids a common failure mode where backlog details drift away from actual implementation and architecture.
+## Canonical Backlog Mirror
 
-## Source Of Truth
+The current canonical backlog mirror is:
 
-- Vision and MVP scope: `docs/product/`
-- Architecture and ADRs: `docs/architecture/`
-- Research and evaluation: `docs/research/`
-- Design references: `design/`
-- Execution mirror: Plane project
+- `docs/product/plane-backlog.json`
+
+It is aligned to:
+
+- `docs/product/roadmap-v2.md`
+- `docs/product/tarteel-alignment.md`
+- `docs/architecture/infrastructure.md`
 
 ## What Lives In Plane
 
 - epics
-- user stories
-- spikes
-- implementation tasks
-- bug reports
-- phase and milestone status
+- tasks
+- parent-child relationships
+- execution status
+- assignee visibility
+- labels for owner, workstream, and phase
 
-## What Does Not Live Only In Plane
+## What Must Exist In The Repo First
 
-Do not create product truth only in Plane for:
+Do not create or rely on Plane-only truth for:
 
-- acceptance criteria that matter to implementation
+- product scope
 - architecture decisions
-- ASR evaluation findings
-- UX rules for religious-trust-sensitive feedback
-
-Those must exist in the repo first, then be mirrored into Plane.
-
-Implementation-ready feature work should also have the upstream spec-kit artifacts in the repo before it is pushed into delivery.
+- scoring safety rules
+- refactor keep/replace/retire decisions
+- runtime security boundaries
 
 ## Assignment Model
 
-Do not fake separate human accounts for agents in Plane.
-
-Use this model instead:
-
 - `Assignee`
-  - default to the founder / actual human operator
-  - or leave unassigned if you do not want personal task noise
+  Default to the founder / real human operator when personal accountability is needed.
 
 - `Owner label`
-  - represent the agent or role that logically owns the work
+  Represent the logical agent or role that owns the workstream.
 
-- `Lane label`
-  - represent the delivery stream
+- `Workstream label`
+  Represent the type of work.
 
-- `Type label`
-  - represent epic, story, task, spike, or bug if Plane fields are insufficient
+## Recommended Owner Labels
 
-### Recommended Owner Labels
-
+- `owner:founder`
 - `owner:orchestrator`
 - `owner:product-discovery`
 - `owner:systems-architect`
 - `owner:mobile-engineering`
 - `owner:fullstack-engineering`
 - `owner:interface-and-design`
+- `owner:infrastructure-operations`
+- `owner:data-foundation`
+- `owner:automation-operations`
 - `owner:speech-evaluation`
 - `owner:quran-domain-product`
 - `owner:reviewer`
@@ -76,130 +73,42 @@ Use this model instead:
 - `owner:security`
 - `owner:docs`
 
-### Recommended Lane Labels
+## Recommended Workstream Labels
 
-- `lane:ops`
-- `lane:product`
-- `lane:mobile`
-- `lane:ai`
-- `lane:backend`
-- `lane:ux`
-- `lane:qa`
+- `refactor`
+- `new-feature`
+- `infra`
+- `data`
+- `ai-ops`
+- `frontend`
+- `backend`
+- `qa`
+- `human-gate`
+- `automation`
 
-### Recommended Phase Labels
+## Recommended Phase Labels
 
-- `phase:foundation`
-- `phase:mvp`
-- `phase:spike`
-- `phase:v2`
+- `phase-0`
+- `phase-1`
+- `phase-2`
 
-## Phase 4 Entry Rule
+## Dependency Model
 
-Before a feature enters delivery automation:
+- `parentId` in the backlog mirror is applied as a real Plane parent-child relationship
+- `dependsOn` remains in the canonical repo backlog and is mirrored into the Plane description
 
-1. the feature must have repo-side spec artifacts
-2. the Plane item must be non-shallow and implementation-ready
-3. the guarded delivery pipeline must be able to point back to the canonical repo artifact
-
-## Working Agreement
-
-### Ticket And Story Quality Rule
-
-Plane tickets and user stories must not stay shallow.
-
-Every active Plane item must include:
-
-- a concrete summary of the problem or outcome
-- implementation-relevant acceptance criteria or done criteria
-- links to the canonical repo artifact when the task depends on product, architecture, research, or setup decisions
-- outcome notes when the task is completed, including what changed, what was decided, and any follow-up needed
-
-Use this rule permanently for all new and updated work items.
-
-If the canonical details do not exist yet in the repo, create or update the repo artifact first, then mirror the execution view into Plane.
-
-### Orchestrator Agent
-
-- maintains epic structure
-- decides sequencing
-- opens implementation-ready tasks only after upstream specs exist
-
-### Product Discovery Agent
-
-- owns story quality
-- keeps acceptance criteria clear and testable
-
-### Systems Architect Agent
-
-- owns spikes, contracts, and architecture tasks
-
-### Mobile Engineering Agent
-
-- owns Expo app implementation tasks
-
-### Interface And Design Agent
-
-- owns UX, feedback clarity, and bilingual UI tasks
-
-### Reviewer And Tester Agents
-
-- own review, validation, and release-readiness tasks
+Until a dedicated dependency-linking API path is implemented in the sync scripts, dependency truth remains repo-canonical first.
 
 ## Backlog Flow
 
-1. Write or update the canonical repo artifact.
-2. Regenerate the Plane backlog export from `docs/product/plane-backlog.json`.
-3. Import or sync the generated CSV into Plane.
-4. Move only active work into the current milestone / iteration.
-5. Tie each PR branch back to a Plane issue ID in the PR summary where practical.
+1. Update the canonical repo artifact.
+2. Update `docs/product/plane-backlog.json`.
+3. Generate `docs/product/plane-backlog.csv`.
+4. Sync to Plane through `bash ./scripts/plane-sync-backlog.sh`.
+5. Use Plane for sequencing, state, and delivery visibility.
 
-## Automation Model
+## Automation Rule
 
-The repository will automate:
+The sync scripts must not invent product truth. They mirror repo-side truth into Plane.
 
-- checked-in backlog structure
-- CSV export for Plane import
-- direct Plane sync through the official work-items API
-- role ownership labels
-- predictable issue descriptions from repo data
-
-The repository uses the official Plane REST API only when credentials are intentionally supplied through environment variables.
-
-Required environment variables:
-
-- `PLANE_API_KEY`
-- `PLANE_WORKSPACE_SLUG`
-- `PLANE_PROJECT_ID`
-
-Optional:
-
-- `PLANE_API_BASE_URL`
-- `PLANE_DEFAULT_ASSIGNEE_EMAIL`
-
-Use:
-
-```sh
-bash ./scripts/plane-sync-backlog.sh
-```
-
-For convenience, the script will also load a repo-local ignored `.env.local` file if it exists.
-
-This script:
-
-- reads `docs/product/plane-backlog.json`
-- fetches states, labels, and work items from Plane
-- optionally resolves a real Plane assignee from `PLANE_DEFAULT_ASSIGNEE_EMAIL`
-- creates missing labels
-- creates or updates work items
-- keeps matching stable through a hidden repo-owned sync marker in `description_html`
-- falls back to unique exact-title matching when the remote description marker is unavailable
-
-## Current Recommended Setup
-
-- Use `docs/product/plane-backlog.json` as the repo-side canonical backlog mirror.
-- Generate `docs/product/plane-backlog.csv` before backlog imports.
-- Use Plane for status, sequencing, and execution visibility.
-- Use `bash ./scripts/plane-sync-backlog.sh` when API credentials are available.
-- Use `bash ./scripts/plane-dedupe-backlog.sh` if a partial sync or retry created duplicates.
-- If you want every synced item assigned to your real Plane user, set `PLANE_DEFAULT_ASSIGNEE_EMAIL`.
-- Keep acceptance criteria and spec details in GitHub docs and link them from Plane items.
+If a task needs more detail, enrich the repo artifact first, then sync again.

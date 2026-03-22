@@ -4,6 +4,16 @@
 
 This document records the local, free automation stack used for `wazaker` project operations.
 
+## Status Note
+
+This document describes the original local-first automation baseline.
+
+After the 2026-03-22 refactor reset, the planned production-target runtime is documented in:
+
+- `docs/architecture/infrastructure.md`
+
+That target moves runtime orchestration toward a VPS with `n8n`, OpenClaw, self-hosted Supabase, Whisper.cpp, and Groq. Keep this document as historical and developer-baseline context until the migration is complete.
+
 Use it to keep the setup reproducible and to avoid drifting back to manual-only orchestration.
 
 ## Stack

@@ -1,16 +1,29 @@
 # wazaker
 
-Mobile app to help Quran learners read, revise, and assess recitation with AI support.
+Arabic-first mobile app for Quran recitation practice and memorization, with guided reference audio, ayah-focused recording, and confidence-aware AI feedback.
 
 ## Current Focus
 
-Phase 1 is narrowly scoped to the recitation revision experience:
+The project has been re-baselined around a Tarteel-inspired Phase 1 launch for a small early user cohort.
 
-- select a passage or page
-- recite from memory
-- compare recitation against expected Quran text
-- return clear, trustworthy feedback
-- let the user retry and track progress
+Phase 1 target:
+
+- user authentication
+- home dashboard
+- Surah browser
+- Mushaf reading experience
+- Al-Husary reference audio playback
+- ayah-by-ayah recording
+- AI-scored feedback with confidence gating
+- session history and basic progress visibility
+- Arabic-first UI with English support
+
+Phase 2 target:
+
+- memorization mode
+- goals and streaks
+- progress trends
+- mistake history
 
 ## Source Of Truth
 
@@ -18,25 +31,35 @@ Phase 1 is narrowly scoped to the recitation revision experience:
 - Architecture: `docs/architecture/`
 - Research: `docs/research/`
 - Team and workflow: `docs/agents/`
+- Refactor roadmap: `docs/product/roadmap-v2.md`
 - Design links and workflow: `design/links.md`
 
-## Non-Goals For V1
-
-The following are explicitly out of scope for the first release:
+## Non-Goals For Phases 1 And 2
 
 - prayer times
 - qibla
 - azkar
-- competitions
-- store or commerce
-- broad utility-app expansion
+- social sharing
+- commerce
+- teacher marketplace
+- advanced tajweed rule engine
+- leaderboards
 
 ## Immediate Next Steps
 
-1. Validate the recitation recognition approach on short passages.
-2. Define the error taxonomy and feedback rules.
-3. Design the mobile user flow for record, result, and retry.
-4. Create the implementation backlog from the approved scope.
+1. Finish the repo-side refactor baseline and Plane backlog sync.
+2. Clear the human gates for VPS, Groq, Plane, and QUL access.
+3. Stand up the target infrastructure on the VPS.
+4. Import Quranic content and reference-audio metadata into Supabase.
+5. Refactor the app toward the new end-to-end Phase 1 flow.
+
+## Delivery Rules
+
+- This repo is not greenfield; preserve working foundations that already pay off.
+- The analysis-service interface remains a protected architectural boundary.
+- `npm test` and `npm run typecheck` must stay green after every implementation task.
+- User audio must stay on the VPS in production workflows.
+- Low-confidence AI results must never be shown as definitive corrections.
 
 ## Spec Kit
 
@@ -68,10 +91,10 @@ Project-specific Spec Kit assets live in:
 This repository uses a PR-first workflow.
 
 - start from `main`
-- create a `codex/*` branch
+- create a feature branch
 - push and open a PR
 - resolve review comments on the same branch
-- merge to `main`
+- merge only after review approval
 - sync local `main`
 
 Reference: [docs/setup/github-flow.md](/Users/hanyramadan/wazaker/docs/setup/github-flow.md)

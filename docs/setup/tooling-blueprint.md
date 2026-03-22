@@ -5,46 +5,62 @@
 ### Code And Documentation
 
 - GitHub repository: `wazaker`
-- repo is the source of truth for product, architecture, and research docs
+- repo docs remain the canonical truth for product, architecture, refactor, and team decisions
 
 ### Project Management
 
 - Plane
-- use Plane for epics, stories, milestones, and execution status
-- workspace: https://app.plane.so/wazaker/
-- project: https://app.plane.so/wazaker/projects/3bddb944-c6c3-4fe1-aaec-a6b1be247789/issues
+- workspace: `wazaker`
+- project: `3bddb944-c6c3-4fe1-aaec-a6b1be247789`
 
 ### Design
 
-- Stitch for ideation and screen exploration
-- Stitch project: https://stitch.withgoogle.com/u/2/projects/2691052854315164041?pli=1
-- Penpot for approved designs, flows, and reusable design assets
-- Penpot project: https://design.penpot.app/#/dashboard/files?team-id=ddc4a96c-d2ad-80ac-8007-b96e3466a50b&project-id=5b4e6c3a-cdc2-8047-8007-b974e538e199
+- Stitch for ideation and flow exploration
+- Penpot for approved designs and reusable design assets
+
+### Production Runtime Targets
+
+- Hostinger VPS
+- OpenClaw
+- `n8n`
+- self-hosted Supabase
+- Whisper.cpp
+- Groq API
+
+### Local Development
+
+- Codex
+- Expo dev server
+- local repo scripts
+- optional local Ollama for developer-side helpers only
 
 ## Artifact Map
 
-- user stories: `docs/product/user-stories.md` and mirrored into Plane
-- Plane backlog source: `docs/product/plane-backlog.json`
-- Plane import CSV: `docs/product/plane-backlog.csv`
-- MVP scope: `docs/product/mvp-scope.md`
-- architecture decisions: `docs/architecture/adrs/`
-- research: `docs/research/`
-- design links: `design/links.md`
+- product vision: `docs/product/vision.md`
+- launch scope: `docs/product/mvp-scope.md`
+- roadmap: `docs/product/roadmap-v2.md`
+- Tarteel alignment: `docs/product/tarteel-alignment.md`
+- Plane backlog mirror: `docs/product/plane-backlog.json`
+- architecture overview: `docs/architecture/system-overview.md`
+- infrastructure target: `docs/architecture/infrastructure.md`
+- navigation target: `docs/architecture/navigation-map.md`
+- refactor inventory: `docs/refactor/asset-inventory.md`
 
 ## Automation Targets
 
-- local repo scaffolding
-- docs and backlog seeds
-- Plane backlog export generation
-- Plane work-item sync via official API
-- setup checklists
-- integration placeholders through `.env.example`
-- local `n8n + Ollama + automation-runner` project-operations workflows documented in `docs/setup/local-automation-stack.md`
-- checked-in workflow definitions under `automation/n8n/`
+- Plane backlog sync
+- GitHub to Plane reporting
+- PR review automation
+- scoring workflow orchestration
+- health monitoring
+- daily operational reporting
+- guarded repo delivery flow
 
 ## Expected Manual Approval Points
 
-- GitHub login or token fix
-- Plane workspace creation or authorization
-- Penpot workspace creation or authorization
-- Stitch project access
+- VPS purchase and access
+- Groq account and API key
+- GitHub token
+- Plane token
+- QUL account and data access
+- Supabase runtime secrets
