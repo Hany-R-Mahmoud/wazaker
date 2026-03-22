@@ -35,20 +35,28 @@ api() {
 
 all_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,created_at")"
 
-mapfile -t source_rows < <(jq -r '.items[] | [.id, .title] | @tsv' "$source_file")
+mapfile -t source_rows < <(jq -r '.items[] | [.id, (.legacyId // ""), .title] | @tsv' "$source_file")
 
 duplicate_count=0
 
 for row in "${source_rows[@]}"; do
-  IFS=$'\t' read -r external_id title <<< "$row"
+  IFS=$'\t' read -r external_id legacy_external_id title <<< "$row"
   marker="<!-- wazaker-sync-id:${external_id} -->"
+  legacy_marker=""
+  if [[ -n "$legacy_external_id" ]]; then
+    legacy_marker="<!-- wazaker-sync-id:${legacy_external_id} -->"
+  fi
 
   matches_json="$(
-    printf '%s' "$all_items_json" | jq -c --arg marker "$marker" --arg title "$title" '
+    printf '%s' "$all_items_json" | jq -c --arg marker "$marker" --arg legacy_marker "$legacy_marker" --arg title "$title" '
       [
         (.results // .)[]?
         | select(
             ((.description_html // "") | contains($marker))
+            or (
+              ($legacy_marker != "")
+              and ((.description_html // "") | contains($legacy_marker))
+            )
             or ((.name // "") == $title)
           )
       ]

@@ -15,7 +15,7 @@ tmp_file="$(mktemp "${output_file}.tmp.XXXXXX")"
 trap 'rm -f "$tmp_file"' EXIT
 
 {
-  printf 'External ID,Type,Title,Summary,State,Priority,Parent ID,Agent Owner,Labels,Acceptance Criteria\n'
+  printf 'External ID,Type,Title,Summary,State,Priority,Parent ID,Agent Owner,Labels,Acceptance Criteria,Depends On,Notes\n'
   jq -r '
     .items[]
     | [
@@ -28,7 +28,9 @@ trap 'rm -f "$tmp_file"' EXIT
         .parentId,
         .agentOwner,
         (.labels | join("|")),
-        (.acceptance | join(" | "))
+        (.acceptance | join(" | ")),
+        ((.dependsOn // []) | join("|")),
+        ((.notes // []) | join(" | "))
       ]
     | @csv
   ' "$source_file"
