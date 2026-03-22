@@ -9,6 +9,9 @@ if [[ -f ".env.local" ]]; then
   set +a
 fi
 
+# shellcheck disable=SC1091
+source "$(cd "$(dirname "$0")" && pwd)/lib/plane-api.sh"
+
 plane_base_url="${PLANE_API_BASE_URL:-https://api.plane.so}"
 workspace_slug="${PLANE_WORKSPACE_SLUG:-wazaker}"
 project_id="${PLANE_PROJECT_ID:-3bddb944-c6c3-4fe1-aaec-a6b1be247789}"
@@ -27,23 +30,7 @@ if [[ ! -f "$source_file" ]]; then
 fi
 
 api() {
-  local method="$1"
-  local path="$2"
-  local data="${3:-}"
-
-  if [[ -n "$data" ]]; then
-    curl -sS -L \
-      -X "$method" \
-      -H "X-API-Key: $api_key" \
-      -H "Content-Type: application/json" \
-      "$plane_base_url$path" \
-      --data "$data"
-  else
-    curl -sS -L \
-      -X "$method" \
-      -H "X-API-Key: $api_key" \
-      "$plane_base_url$path"
-  fi
+  plane_api_request "$@"
 }
 
 all_items_json="$(api GET "/api/v1/workspaces/${workspace_slug}/projects/${project_id}/work-items/?per_page=200&fields=id,name,description_html,created_at")"
