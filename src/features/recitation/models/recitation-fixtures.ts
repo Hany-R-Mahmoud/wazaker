@@ -111,7 +111,7 @@ export const lowConfidenceAnalysisFixture: AnalyzeRecitationResponse = {
       endTokenIndex: 4,
       message: {
         ar: 'المقطع غير واضح بما يكفي، لذلك لا نقدّم حكمًا نهائيًا.',
-        en: 'This segment is too unclear for a definitive judgment.',
+        en: 'This segment is too unclear for a final judgment.',
       },
     },
   ],

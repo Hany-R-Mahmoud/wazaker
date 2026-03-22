@@ -178,10 +178,10 @@ export function RecitationSessionProvider({
           setSessionHistoryState(createSuccessAsyncState(sessions));
         } catch (error) {
           console.warn('Failed to persist completed recitation attempt.', error);
-          setSessionHistoryState(
+          setSessionHistoryState((currentState) =>
             createErrorAsyncState(
               'The result is ready, but saving it locally failed.',
-              sessionHistoryState.data,
+              currentState.data,
             ),
           );
         }

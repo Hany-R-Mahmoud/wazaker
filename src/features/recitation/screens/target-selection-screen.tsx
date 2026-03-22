@@ -34,26 +34,26 @@ export function TargetSelectionScreen({ onContinue }: TargetSelectionScreenProps
           <Text style={styles.sectionArabic}>{targetSelectionScreenCopy.suggestedTargets.label.ar}</Text>
           <Text style={styles.sectionEnglish}>{targetSelectionScreenCopy.suggestedTargets.label.en}</Text>
           <View accessibilityRole="radiogroup">
-          {recitationFixtureTargets.map((target) => {
-            const isSelected = target.id === currentTarget.id;
-            const handleTargetSelection = (): void => {
-              selectTarget(target);
-            };
+            {recitationFixtureTargets.map((target) => {
+              const isSelected = target.id === currentTarget.id;
+              const handleTargetSelection = (): void => {
+                selectTarget(target);
+              };
 
-            return (
-              <Pressable
-                key={target.id}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                onPress={handleTargetSelection}
-                style={[styles.targetCard, isSelected && styles.targetCardSelected]}
-              >
-                <Text style={styles.targetArabic}>{target.displayNameAr}</Text>
-                <Text style={styles.targetEnglish}>{target.displayNameEn}</Text>
-                <Text style={styles.targetMeta}>{target.canonicalReference}</Text>
-              </Pressable>
-            );
-          })}
+              return (
+                <Pressable
+                  key={target.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected }}
+                  onPress={handleTargetSelection}
+                  style={[styles.targetCard, isSelected && styles.targetCardSelected]}
+                >
+                  <Text style={styles.targetArabic}>{target.displayNameAr}</Text>
+                  <Text style={styles.targetEnglish}>{target.displayNameEn}</Text>
+                  <Text style={styles.targetMeta}>{target.canonicalReference}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
