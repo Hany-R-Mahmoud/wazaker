@@ -2,40 +2,47 @@
 
 ## Core Execution Sequence
 
-1. Orchestrator Agent
-2. Product Discovery Agent
-3. Systems Architect Agent
-4. Interface And Design Agent
-5. Mobile Engineering Agent
-6. Fullstack Engineering Agent
-7. Reviewer / Tester / Security / Docs as gates
+1. Founder / Product Owner clears human gates and accepts direction
+2. Orchestrator aligns the roadmap and backlog
+3. Product Discovery and Systems Architect re-baseline product and architecture truth
+4. Infrastructure Operations and Data Foundation establish the runtime and content layer
+5. Automation Operations migrates and upgrades the workflow stack
+6. Mobile Engineering, Fullstack Engineering, and Interface And Design deliver the app flow
+7. Speech Evaluation validates the scoring core
+8. Reviewer / Tester / Security / Docs act as gates
 
 ## Role Routing Rules
 
+- human accounts, keys, purchases, and confirmations go to the founder
 - planning ambiguity goes to the orchestrator
-- scope and prioritization questions go to product discovery
-- boundary and contract decisions go to systems architecture
+- scope and user-value questions go to product discovery
+- contract and privacy-boundary questions go to systems architecture
+- VPS and container work goes to infrastructure operations
+- Quran dataset ingestion and integrity go to data foundation
+- workflow automation goes to automation operations
 - mobile UX and device behavior go to mobile engineering
-- backend or integration work goes to fullstack engineering
-- design clarity and bilingual flow go to interface and design
-- correctness checks go to reviewer and tester
+- backend and Supabase integration go to fullstack engineering
+- bilingual flow and result clarity go to interface and design
+- scoring-quality evidence goes to speech evaluation
+- correctness and release readiness go to reviewer and tester
 
 ## Permanent Specialist Roles
 
 - speech-evaluation
 - quran-domain-product
+- infrastructure-operations
+- data-foundation
+- automation-operations
 
 ## Control Plane Roles
 
-- `n8n` owns orchestration and recurring delivery operations
-- `Ollama` owns low-risk summary, classification, and expansion drafts
-- Codex skills own implementation, review judgment, testing, and documentation
+- OpenClaw routes Groq-backed agent work on the target VPS runtime
+- `n8n` owns recurring workflow execution and event routing
+- local Ollama remains a dev-only helper layer for Codex sessions
+- Codex skills own repo-side planning, implementation, review judgment, testing, and documentation
 
-## Phase 4 Entry
+## Current Canonical References
 
-Phase 4 starts only after the operating-system docs and guarded delivery pipeline are complete.
-
-See:
-
-- [operating-model.md](/Users/hanyramadan/wazaker/docs/agents/operating-model.md)
-- [spec-kit-readiness.md](/Users/hanyramadan/wazaker/docs/setup/spec-kit-readiness.md)
+- [operating-model.md](./operating-model.md)
+- [team-charter.md](./team-charter.md)
+- [roadmap-v2.md](../product/roadmap-v2.md)

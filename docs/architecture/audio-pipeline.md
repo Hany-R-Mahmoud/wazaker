@@ -2,58 +2,67 @@
 
 ## Objective
 
-Determine whether a learner's recitation matches the selected Quran target closely enough to produce helpful feedback.
+Score an ayah-level user recitation against Quran reference text and Al-Husary timing data without overstating certainty.
 
-## Proposed Pipeline
+## Target Production Pipeline
 
-1. Mobile client records audio.
-2. Audio is normalized into the backend or analysis layer format.
-3. The selected target passage metadata is attached to the request.
-4. A speech recognition component produces recognized Arabic text and, if possible, token timing.
-5. An alignment component compares recognized output to expected target text.
-6. A comparison layer classifies mismatch types and confidence.
-7. The result is returned as a learner-facing summary plus machine-usable detail.
+1. First, the mobile client records one ayah.
+2. Next, the mobile client uploads audio to Supabase Storage.
+3. Finally, the mobile client creates a `recitation_sessions` row with `status = pending`.
+4. `n8n` detects the pending session.
+5. `n8n` fetches the audio file from Supabase Storage.
+6. `n8n` sends the file to the VPS transcription service backed by Whisper.cpp.
+7. The transcription service returns Arabic text, word timings, and confidence values.
+8. `n8n` loads reference words and Al-Husary timestamps for the same Surah and ayah.
+9. A scoring step compares user output to the reference with normalization and timing tolerance.
+10. `n8n` writes `overall_score`, `word_results`, and final status back to Supabase.
+11. The mobile app polls through the existing analysis-service boundary and renders the result.
 
 ## Required Output Shape
 
-- target metadata
-- transcript or token sequence
-- alignment result
-- mismatch classification
-- confidence score
+- Surah and ayah identity
+- transcription text
+- per-word timing
+- per-word confidence
+- per-word status: `correct` | `incorrect` | `uncertain`
+- overall score
 - learner-facing summary
+
+## Confidence Gate
+
+This is the most important rule in the pipeline.
+
+- if confidence is below the threshold, the word status must be `uncertain`
+- uncertain words must not be counted as incorrect
+- the UI must render uncertain words distinctly from incorrect words
+
+Current target threshold from the refactor plan:
+
+- `< 0.75` confidence becomes `uncertain`
+
+This threshold remains adjustable based on validation findings.
+
+## Current Interface Rule
+
+The mobile app must continue to depend on the `analysis-service` contract, not on direct workflow details.
+
+That means:
+
+- the current interface is preserved
+- the implementation behind it can move from fixtures to Supabase polling
+- tests can keep using fixture-backed responses
 
 ## Known Risks
 
-- reciter pauses and self-corrections can look like errors
-- generic Arabic ASR may perform poorly on Quranic recitation
-- diacritics and orthographic normalization need explicit rules
-- confidence must be exposed honestly or trust will collapse
+- Arabic transcription quality may vary across ayahs and recitation speed
+- pauses and self-corrections can distort naive word matching
+- word timestamps may require fallback logic if Whisper output is incomplete
+- VPS CPU performance may become a bottleneck if the cohort grows
 
-## Required Technical Spike
+## Validation Gate
 
-Before implementation, test short passages using multiple speakers and real phone recordings to answer:
+Real scoring is not considered ship-ready until Surah Al-Fatiha validation shows that:
 
-- which recognition option performs best on constrained Quran recitation
-- whether token-level alignment is reliable enough for feedback
-- where confidence thresholds should block or soften correction
-
-## Phase 2 Spike Shape
-
-The first spike should not start by wiring the Expo app directly to a production provider. It should start as an evaluation harness with:
-
-1. canonical target passages from Quran.com
-2. real phone recordings from a constrained sample set
-3. one baseline transcription path
-4. one quality-comparator transcription path
-5. normalization rules applied before scoring
-6. a structured results template for go/no-go decisions
-
-## Current Provider Bias
-
-At this stage, the most practical path is:
-
-- baseline: OpenAI `whisper-1`
-- comparator: OpenAI `gpt-4o-transcribe`
-
-This is a speed and evidence decision, not a final architectural commitment. If these paths fail the spike, the next step is to evaluate Quran-specific model routes or partner APIs before exposing learner-facing correction.
+- correct recitation scores remain directionally strong
+- clearly wrong words can be surfaced without inflating false negatives
+- silent or weak audio stays uncertain rather than producing misleading red words

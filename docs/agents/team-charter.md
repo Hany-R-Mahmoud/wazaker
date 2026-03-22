@@ -2,45 +2,75 @@
 
 ## Team Objective
 
-Build a focused mobile product for Quran recitation revision with AI support, starting from the highest-risk capability and avoiding super-app scope creep.
+Build an Arabic-first mobile Quran practice product with a strong end-to-end user journey: browse, read, listen, record, score, review, and improve.
 
-## Active Roles
+## Human Authority
 
 ### Founder / Product Owner
 
-- owns vision and acceptance criteria
-- decides scope and religious trust bar
+- owns vision and scope
+- clears human gates and external accounts
+- decides trust bar and shipping bar
+- approves final merge and launch decisions
+
+## Active Delivery Roles
 
 ### Orchestrator Agent
 
-- plans phases
-- maintains role boundaries
-- converts ambiguity into execution-ready tasks
+- owns epic sequencing
+- turns ambiguity into execution-ready backlog structure
+- keeps the plan aligned to the canonical repo artifacts
 
 ### Product Discovery Agent
 
-- shapes user stories
-- maintains scope and feature priorities
-- keeps research findings actionable
+- owns scope clarity
+- shapes user stories and acceptance criteria
+- protects focus against feature sprawl
 
 ### Systems Architect Agent
 
-- defines service boundaries, data model, and analysis contracts
-- owns feasibility assumptions
+- owns contracts, boundaries, and runtime shape
+- keeps the analysis-service boundary stable
+- guards the privacy and confidence rules
 
 ### Mobile Engineering Agent
 
 - owns Expo / React Native app delivery
-- ensures the recitation flow works well on real devices
+- builds screens, state flow, and device behavior
 
 ### Fullstack Engineering Agent
 
-- owns APIs, persistence, and integration boundaries
-- keeps the end-to-end flow coherent
+- owns Supabase integration, APIs, and persistence boundaries
+- keeps app-to-backend flows coherent
 
 ### Interface And Design Agent
 
-- owns user flow clarity, feedback presentation, and bilingual UX quality
+- owns the Arabic-first UX
+- owns result clarity, navigation flow, and theming quality
+
+### Infrastructure Operations Agent
+
+- owns VPS, Docker, network boundaries, and service availability
+
+### Data Foundation Agent
+
+- owns Quran content ingestion, import tooling, and verification
+
+### Automation Operations Agent
+
+- owns `n8n`, GitHub/Plane automations, and operational workflow health
+
+## Specialist Roles
+
+### Speech Evaluation Agent
+
+- owns transcription quality evaluation
+- owns score-quality validation and confidence threshold evidence
+
+### Quran Domain Product Agent
+
+- owns learner-trust-sensitive product rules
+- guards against overclaiming religious correctness from weak AI output
 
 ## Permanent Gate Roles
 
@@ -49,40 +79,37 @@ Build a focused mobile product for Quran recitation revision with AI support, st
 - security
 - docs
 
-## Specialist Roles
+## Control Plane Roles
 
-### Speech Evaluation Agent
+### OpenClaw Commander
 
-- evaluates ASR options for Quran recitation
-- owns recognition benchmarking and error taxonomy evidence
-
-### Quran Domain Product Agent
-
-- defines what user-facing recitation feedback should and should not claim
-- keeps the product aligned with learner expectations and trust
-
-## Operating System Roles
+- coordinates Groq-backed agent execution on the VPS target runtime
 
 ### n8n Control Plane
 
 - owns recurring orchestration
-- owns scheduling and workflow routing
-- owns durable automation reporting
+- owns workflow routing and retries
+- owns durable agent-run reporting
 
-### Ollama Helper Layer
+### Groq Runtime
 
-- owns low-risk local model tasks
-- supports summaries, task expansion drafts, and classification
-- does not replace reviewer, tester, or product judgment
+- provides reasoning, review, summarization, and decomposition support
+- must never receive user recitation audio
 
-## Phase 4 Rule
+### Local Ollama Helper Layer
 
-After phases 1 through 3, feature work should return to spec-driven delivery rather than more general setup work.
+- remains dev-only support for local Codex sessions and experiments
+- is not part of the target production scoring path
 
-Use:
+## Execution Rule
 
-- `speckit-clarify`
-- `speckit-specify`
-- `speckit-plan`
-- `speckit-tasks`
-- `speckit-analyze`
+Work follows the refactor roadmap in epic order:
+
+1. human gates
+2. re-baseline
+3. infrastructure
+4. data foundation
+5. automation upgrade
+6. core app refactor
+7. AI core
+8. Phase 2 features

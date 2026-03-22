@@ -2,9 +2,7 @@
 
 ## Purpose
 
-This document defines the permanent operating model for human-led work, Codex skills, local open-source helpers, and `n8n`.
-
-Use it as the team contract before phase 4 feature work starts.
+This document defines the operating model for human-led work, Codex skills, VPS agents, and automation workflows after the 2026-03-22 refactor reset.
 
 ## Control Layers
 
@@ -12,24 +10,33 @@ Use it as the team contract before phase 4 feature work starts.
 
 Owns:
 
-- vision
 - scope
 - trust bar
+- human gates
 - final product decisions
+- final merge and release approval
 
 ### Codex + Skills
 
-Own the high-judgment engineering work.
+Own high-judgment repo work:
 
-Use Codex and repo skills for:
-
-- feature planning
+- planning
 - implementation
 - architecture
 - debugging
 - review judgment
 - testing strategy
-- documentation updates
+- documentation
+
+### OpenClaw
+
+Owns Groq-backed agent command on the VPS target runtime.
+
+Use OpenClaw for:
+
+- routed agent execution
+- long-running remote reasoning tasks
+- agent-command orchestration above raw `n8n` workflows
 
 ### n8n
 
@@ -37,31 +44,30 @@ Owns orchestration and recurring operations.
 
 Use `n8n` for:
 
-- schedule-based tasks
-- integration routing
-- PR supervision
-- delivery intake
-- maintenance workflows
+- webhooks
+- scheduled tasks
+- workflow branching and retries
+- scoring automation
+- GitHub and Plane routing
 - durable operational reporting
 
-### Ollama Helpers
+### Groq Runtime
 
-Own low-risk supporting intelligence.
+Owns external reasoning support for:
 
-Use local open-source models for:
-
+- planning
+- decomposition
 - summaries
-- categorization
-- shallow-task expansion drafts
-- report writing
-- simple candidate ranking
+- PR review when allowed
+- light operational text generation
 
-Do not use them as the final authority for:
+Groq must not receive user recitation audio or other sensitive learner audio payloads.
 
-- code correctness
-- merge approval
-- product trust claims
-- learner-facing evaluation logic
+### Local Ollama Helpers
+
+Own low-risk local support for Codex sessions and developer workflows only.
+
+They are not part of the target production recitation pipeline.
 
 ## Permanent Roles
 
@@ -73,6 +79,9 @@ Do not use them as the final authority for:
 - mobile-engineering
 - fullstack-engineering
 - interface-and-design
+- infrastructure-operations
+- data-foundation
+- automation-operations
 
 ### Permanent Gates
 
@@ -81,63 +90,48 @@ Do not use them as the final authority for:
 - security
 - docs
 
-These roles are not optional. They may not all act on every task, but they remain part of the system.
-
 ### Specialist Roles
 
 - speech-evaluation
 - quran-domain-product
 
-These are now real parts of the team model, not “future maybe” roles.
+## Routing Rules
 
-## Tool Routing
-
-### Use Codex Skills When
-
-- the task changes source code
-- the task changes architecture
-- tradeoffs matter
-- correctness matters more than speed
-- repo context must be read deeply
-
-### Use Ollama When
-
-- the task is repetitive
-- the output is advisory rather than authoritative
-- the work benefits from a draft or summary first
-- the prompt is narrow and bounded
-
-### Use n8n When
-
-- work must recur
-- work depends on multiple tools
-- timing, branching, or retries matter
-- you want durable operational traces
-
-## Delivery Routing Rules
-
-### Product / Scope Questions
+### Product / Scope
 
 Route to:
 
 - product-discovery
-- quran-domain-product when user trust or religious clarity matters
+- quran-domain-product when learner trust or religious clarity matters
 
-### System / Integration Questions
+### Architecture / Boundaries
 
 Route to:
 
 - systems-architect
-- fullstack-engineering when APIs or service boundaries are involved
+- fullstack-engineering for app-to-backend boundary implementation
 
-### Mobile UX And App Behavior
+### Mobile Delivery
 
 Route to:
 
 - mobile-engineering
 - interface-and-design
 
-### Evaluation And ASR Feasibility
+### VPS / Runtime / Services
+
+Route to:
+
+- infrastructure-operations
+- automation-operations when service orchestration is workflow-driven
+
+### Quran Data / Reference Content
+
+Route to:
+
+- data-foundation
+
+### Evaluation And ASR Quality
 
 Route to:
 
@@ -150,8 +144,8 @@ Route to:
 
 - reviewer
 - tester
-- security when trust boundaries or secrets are involved
-- docs whenever canonical repo truth changes
+- security
+- docs
 
 ## Plane Alignment
 
@@ -159,12 +153,16 @@ Plane owner labels should mirror this document exactly.
 
 Current expected owner labels:
 
+- `owner:founder`
 - `owner:orchestrator`
 - `owner:product-discovery`
 - `owner:systems-architect`
 - `owner:mobile-engineering`
 - `owner:fullstack-engineering`
 - `owner:interface-and-design`
+- `owner:infrastructure-operations`
+- `owner:data-foundation`
+- `owner:automation-operations`
 - `owner:speech-evaluation`
 - `owner:quran-domain-product`
 - `owner:reviewer`
@@ -172,20 +170,16 @@ Current expected owner labels:
 - `owner:security`
 - `owner:docs`
 
-## Phase 4 Entry Rule
+## Operating Rules
 
-Phase 4 starts when:
+- The repo is not greenfield. Audit before replacing.
+- Preserve the analysis-service interface contract.
+- Keep `npm test` and `npm run typecheck` green after implementation tasks.
+- Do not let low-confidence AI output become definitive learner-facing correction.
+- Keep user audio inside the VPS-controlled runtime.
 
-1. the automation operating model is documented
-2. the guarded delivery pipeline exists
-3. the team routing model is documented
-4. the next product feature is ready to enter the spec-kit flow
+## Execution Order
 
-Once those are true, product work should follow:
+Use the roadmap order in `docs/product/roadmap-v2.md`.
 
-1. `speckit-clarify`
-2. `speckit-specify`
-3. `speckit-plan`
-4. `speckit-tasks`
-5. `speckit-analyze`
-6. implementation and gated review
+Do not start a downstream epic until upstream blockers are cleared.

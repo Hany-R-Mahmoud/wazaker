@@ -1,944 +1,968 @@
 {
   "project": "wazaker",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "generatedFrom": [
-    "docs/product/backlog-seed.md",
-    "docs/product/user-stories.md"
+    "master-refactor-plan.md v1.0 (2026-03-22)",
+    "docs/product/roadmap-v2.md",
+    "docs/product/tarteel-alignment.md",
+    "docs/architecture/infrastructure.md"
   ],
   "items": [
     {
-      "id": "EPIC-FOUNDATION",
+      "id": "EPIC-0",
+      "legacyId": "EPIC-FOUNDATION",
       "type": "epic",
-      "title": "Project Foundation",
-      "summary": "Establish the repo, PM, design, and workflow foundations for Wazaker.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
+      "title": "EPIC 0 — Human Gates",
+      "summary": "Clear all human-only blockers for infrastructure, API access, and data access before technical delivery proceeds.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
       "parentId": "",
+      "dependsOn": [],
       "labels": [
-        "phase:foundation",
-        "lane:ops",
-        "owner:orchestrator"
+        "type:epic",
+        "human-gate",
+        "phase-0",
+        "owner:founder"
       ],
       "acceptance": [
-        "GitHub, Plane, Penpot, and Stitch links are registered in repo docs.",
-        "The PR workflow is documented and automated.",
-        "The backlog can be exported into Plane-ready CSV."
+        "All required external accounts and tokens exist and are stored securely.",
+        "The VPS and data-access prerequisites are confirmed.",
+        "Downstream infrastructure and automation work is unblocked."
       ]
     },
     {
-      "id": "EPIC-DELIVERY-OS",
+      "id": "EPIC-1",
+      "legacyId": "EPIC-DELIVERY-OS",
       "type": "epic",
-      "title": "Delivery Operating System",
-      "summary": "Finalize the automation control plane, team model, and guarded delivery pipeline so Wazaker can return to product execution on top of a stable operating system.",
-      "priority": "high",
+      "title": "EPIC 1 — Codebase Audit And Re-Baseline",
+      "summary": "Re-baseline product, architecture, navigation, and planning artifacts to the new Tarteel-inspired target while preserving working foundations.",
+      "priority": "urgent",
       "state": "Done",
       "agentOwner": "orchestrator",
       "parentId": "",
+      "dependsOn": [
+        "EPIC-0"
+      ],
       "labels": [
-        "phase:foundation",
-        "lane:ops",
+        "type:epic",
+        "refactor",
+        "phase-0",
         "owner:orchestrator"
       ],
       "acceptance": [
-        "The automation operating model is documented, with clear ownership boundaries and durable report paths.",
-        "The permanent agent and skill team structure is documented and aligned with Plane ownership labels.",
-        "A guarded Plane-task-to-PR delivery pipeline exists and is wired into n8n for future implementation work."
+        "Asset-inventory, product, architecture, and navigation docs reflect the new target.",
+        "Existing high-value foundations are explicitly preserved.",
+        "The repo now has a canonical roadmap for the new plan."
       ]
     },
     {
-      "id": "EPIC-PRODUCT",
+      "id": "EPIC-2",
+      "legacyId": "EPIC-PRODUCT",
       "type": "epic",
-      "title": "Product Definition",
-      "summary": "Lock the MVP promise, constraints, and user-facing trust model.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "product-discovery",
+      "title": "EPIC 2 — VPS Infrastructure Setup",
+      "summary": "Stand up the target runtime on the VPS with n8n, Supabase, Whisper.cpp, and Groq-backed OpenClaw.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "infrastructure-operations",
       "parentId": "",
+      "dependsOn": [
+        "EPIC-0"
+      ],
       "labels": [
-        "phase:mvp",
-        "lane:product",
-        "owner:product-discovery"
+        "type:epic",
+        "infra",
+        "phase-1",
+        "owner:infrastructure-operations"
       ],
       "acceptance": [
-        "MVP promise and explicit non-goals are documented.",
-        "The first approved user flow is defined.",
-        "Bilingual content rules are agreed."
+        "Core services run on the VPS.",
+        "Health-check automation verifies the runtime regularly.",
+        "Security and network boundaries are confirmed."
+      ]
+    },
+    {
+      "id": "EPIC-3",
+      "legacyId": "EPIC-FEASIBILITY",
+      "type": "epic",
+      "title": "EPIC 3 — Data Foundation",
+      "summary": "Import Quranic text, reference audio metadata, and timestamp data into Supabase for the app and scoring workflows.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "data-foundation",
+      "parentId": "",
+      "dependsOn": [
+        "EPIC-2"
+      ],
+      "labels": [
+        "type:epic",
+        "data",
+        "phase-1",
+        "owner:data-foundation"
+      ],
+      "acceptance": [
+        "Supabase contains the Quranic reference schema and imported content.",
+        "Al-Fatiha data is verified end to end.",
+        "Import scripts are idempotent and reusable."
+      ]
+    },
+    {
+      "id": "EPIC-4",
+      "legacyId": "EPIC-MOBILE",
+      "type": "epic",
+      "title": "EPIC 4 — Automation And Agent Stack Upgrade",
+      "summary": "Migrate and upgrade the automation layer and agent runtime for the VPS target environment.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "",
+      "dependsOn": [
+        "EPIC-2"
+      ],
+      "labels": [
+        "type:epic",
+        "automation",
+        "ai-ops",
+        "phase-1",
+        "owner:automation-operations"
+      ],
+      "acceptance": [
+        "VPS n8n has the required workflows.",
+        "GitHub and Plane automations are upgraded to the new runtime.",
+        "Agent runtime skills are versioned and aligned to the new roles."
+      ]
+    },
+    {
+      "id": "EPIC-5",
+      "type": "epic",
+      "title": "EPIC 5 — Core App Refactor",
+      "summary": "Refactor the app to deliver the Phase 1 Tarteel-aligned user journey end to end.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "",
+      "dependsOn": [
+        "EPIC-1",
+        "EPIC-3"
+      ],
+      "labels": [
+        "type:epic",
+        "refactor",
+        "frontend",
+        "phase-1",
+        "owner:mobile-engineering"
+      ],
+      "acceptance": [
+        "A signed-in user can browse, listen, record, score, and review results.",
+        "The real Whisper transcription and Supabase polling path are part of the Phase 1 launch journey.",
+        "The Phase 1 user journey is runnable on device.",
+        "The preserved foundations remain intact and tests stay green."
+      ]
+    },
+    {
+      "id": "EPIC-6",
+      "type": "epic",
+      "title": "EPIC 6 — AI Core",
+      "summary": "Replace mock analysis with the real Whisper scoring pipeline while preserving confidence-aware trust rules.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "speech-evaluation",
+      "parentId": "",
+      "dependsOn": [
+        "EPIC-2",
+        "EPIC-5"
+      ],
+      "labels": [
+        "type:epic",
+        "ai-ops",
+        "backend",
+        "phase-1",
+        "owner:speech-evaluation"
+      ],
+      "acceptance": [
+        "Real audio can be scored end to end as part of the Phase 1 launch path.",
+        "Confidence gating is enforced in stored and rendered results.",
+        "Validation evidence exists before stronger learner-facing claims."
+      ]
+    },
+    {
+      "id": "EPIC-7",
+      "type": "epic",
+      "title": "EPIC 7 — Phase 2 Features",
+      "summary": "Add memorization and progress features after the Phase 1 and AI core paths are validated.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "",
+      "dependsOn": [
+        "EPIC-5",
+        "EPIC-6"
+      ],
+      "labels": [
+        "type:epic",
+        "new-feature",
+        "phase-2",
+        "owner:mobile-engineering"
+      ],
+      "acceptance": [
+        "Memorization and progress features build on the stable Phase 1 flow.",
+        "Progress data comes from real recitation sessions.",
+        "Phase 2 remains scoped after the Phase 1 launch."
+      ]
+    },
+
+    {
+      "id": "TASK-0-1",
+      "type": "task",
+      "title": "Purchase Hostinger KVM 4 VPS",
+      "summary": "Provision the target Hostinger VPS and confirm SSH and OpenClaw access.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "infra", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "The VPS is provisioned and reachable over SSH.",
+        "OpenClaw is visible and running.",
+        "Access details are stored securely outside the repo."
+      ]
+    },
+    {
+      "id": "TASK-0-2",
+      "type": "task",
+      "title": "Create Groq free account and store API key",
+      "summary": "Create the Groq account and secure the API key for the VPS agent runtime.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "infra", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "The account exists with a working API key.",
+        "The key is stored securely and not committed to the repo.",
+        "A test request succeeds."
+      ]
+    },
+    {
+      "id": "TASK-0-3",
+      "type": "task",
+      "title": "Generate GitHub Personal Access Token for n8n automation",
+      "summary": "Create the GitHub token needed for webhook and PR automations.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "infra", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "The token exists with the required repo scopes.",
+        "The token is stored securely.",
+        "Automation can use the token without manual re-entry."
+      ]
+    },
+    {
+      "id": "TASK-0-4",
+      "type": "task",
+      "title": "Generate Plane API key for n8n automation",
+      "summary": "Create the Plane token and capture the workspace and project identifiers.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "infra", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "The token exists and is stored securely.",
+        "Workspace slug and project ID are recorded.",
+        "Plane automation has the required credentials."
+      ]
+    },
+    {
+      "id": "TASK-0-5",
+      "type": "task",
+      "title": "Sign up at QUL and confirm Al-Husary data availability",
+      "summary": "Confirm the required QUL reference data is available for the planned scoring architecture.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "data", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "QUL access is confirmed.",
+        "Al-Husary ayah audio and timestamps are verified or an alternative is reported.",
+        "The data-foundation plan can proceed with confidence."
+      ]
+    },
+    {
+      "id": "TASK-0-6",
+      "type": "task",
+      "title": "Confirm Tarteel API is still unavailable (final check)",
+      "summary": "Perform one final check for a public Tarteel API before the architecture proceeds without it.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-0",
+      "dependsOn": [],
+      "labels": ["type:task", "human-gate", "phase-0", "owner:founder"],
+      "acceptance": [
+        "Tarteel API status is confirmed.",
+        "If an API exists, the plan is revisited before Epic 6.",
+        "If no API exists, the current architecture assumption stands."
+      ]
+    },
+
+    {
+      "id": "TASK-1-1",
+      "type": "task",
+      "title": "Audit existing codebase against new Tarteel-aligned target",
+      "summary": "Classify current assets as keep, refactor, replace, or retire against the new product direction.",
+      "priority": "urgent",
+      "state": "Done",
+      "agentOwner": "orchestrator",
+      "parentId": "EPIC-1",
+      "dependsOn": [],
+      "labels": ["type:task", "refactor", "phase-0", "owner:orchestrator"],
+      "acceptance": [
+        "The repo has a written asset inventory.",
+        "Protected foundations are called out explicitly.",
+        "The audit is based on current code, not assumptions."
       ],
       "notes": [
-        "Phase 1 is limited to the recitation revision flow; non-recitation modules move to Phase 2 after Phase 1 is complete.",
-        "The canonical MVP learner flow is: select target, record recitation, analyze, show feedback, retry the same target.",
-        "Arabic is primary and English support must preserve the same trust rules.",
-        "Low-confidence feedback must never sound definitive and must direct the learner to retry or verify manually."
+        "Completed in docs/refactor/asset-inventory.md."
       ]
     },
     {
-      "id": "EPIC-FEASIBILITY",
-      "type": "epic",
-      "title": "Recitation Feasibility Spike",
-      "summary": "Evaluate whether the speech-recognition and alignment approach is good enough for Quran revision.",
+      "id": "TASK-1-2",
+      "type": "task",
+      "title": "Update product vision and scope docs to Tarteel-aligned target",
+      "summary": "Refresh the canonical product docs to match the new launch and Phase 2 direction.",
       "priority": "urgent",
-      "state": "In Progress",
-      "agentOwner": "speech-evaluation",
-      "parentId": "",
-      "labels": [
-        "phase:spike",
-        "lane:ai",
-        "owner:speech-evaluation"
-      ],
-      "acceptance": [
-        "At least one candidate ASR path is tested on short Quran passages.",
-        "Confidence and error taxonomy are documented.",
-        "A proceed-or-stop recommendation exists."
-      ]
-    },
-    {
-      "id": "EPIC-MOBILE",
-      "type": "epic",
-      "title": "Mobile App Foundation",
-      "summary": "Build the first runnable Expo shell for the recitation MVP.",
-      "priority": "high",
-      "state": "In Progress",
-      "agentOwner": "mobile-engineering",
-      "parentId": "",
-      "labels": [
-        "phase:mvp",
-        "lane:mobile",
-        "owner:mobile-engineering"
-      ],
-      "acceptance": [
-        "The app boots in Expo.",
-        "The recitation flow shell exists.",
-        "The app supports Arabic and English structure."
-      ]
-    },
-    {
-      "id": "US-001",
-      "type": "story",
-      "title": "Select target passage before recitation",
-      "summary": "As a Quran learner, I want to choose a constrained target passage before reciting so that the app knows what text to compare against.",
-      "priority": "high",
-      "state": "Backlog",
+      "state": "Done",
       "agentOwner": "product-discovery",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:story",
-        "lane:product",
-        "owner:product-discovery"
-      ],
+      "parentId": "EPIC-1",
+      "dependsOn": ["TASK-1-1"],
+      "labels": ["type:task", "refactor", "phase-0", "owner:product-discovery"],
       "acceptance": [
-        "The user can choose a constrained target passage.",
-        "MVP starts with surah plus ayah-range selection.",
-        "The selected target is visible before recording starts.",
-        "The app stores the target metadata with the session."
+        "Vision and MVP scope reflect the new launch target.",
+        "Tarteel alignment is documented explicitly.",
+        "User stories match the new flow."
+      ],
+      "notes": [
+        "Completed in docs/product/vision.md, docs/product/mvp-scope.md, docs/product/user-stories.md, and docs/product/tarteel-alignment.md."
       ]
     },
     {
-      "id": "US-002",
-      "type": "story",
-      "title": "Record recitation on device",
-      "summary": "As a Quran learner, I want to record my recitation from the phone so that I can test my memorization without another person present.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:story",
-        "lane:mobile",
-        "owner:mobile-engineering"
-      ],
-      "acceptance": [
-        "The app requests microphone permission clearly.",
-        "The user can start, stop, and retry recording.",
-        "The app handles cancellation and permission denial gracefully."
-      ]
-    },
-    {
-      "id": "US-003",
-      "type": "story",
-      "title": "Compare recitation against expected text",
-      "summary": "As a Quran learner, I want the app to compare my recitation to the expected text so that I can find mistakes in revision.",
-      "priority": "urgent",
-      "state": "Backlog",
-      "agentOwner": "systems-architect",
-      "parentId": "EPIC-FEASIBILITY",
-      "labels": [
-        "type:story",
-        "lane:ai",
-        "owner:systems-architect"
-      ],
-      "acceptance": [
-        "The analysis is tied to the selected target passage.",
-        "The system returns a structured comparison result.",
-        "The response format is stable enough for mobile UI integration."
-      ]
-    },
-    {
-      "id": "US-004",
-      "type": "story",
-      "title": "Show revision feedback clearly",
-      "summary": "As a Quran learner, I want to see what I missed or changed so that I know what to revise.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "interface-and-design",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:story",
-        "lane:ux",
-        "owner:interface-and-design"
-      ],
-      "acceptance": [
-        "Feedback distinguishes likely omission, insertion, and substitution.",
-        "Low-confidence results are labeled clearly.",
-        "The feedback is readable in Arabic and understandable without technical terms.",
-        "Low-confidence results never sound definitive and instead recommend retry or manual verification."
-      ]
-    },
-    {
-      "id": "US-005",
-      "type": "story",
-      "title": "Retry immediately after results",
-      "summary": "As a Quran learner, I want to retry immediately after feedback so that I can improve within the same study session.",
-      "priority": "medium",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:story",
-        "lane:mobile",
-        "owner:mobile-engineering"
-      ],
-      "acceptance": [
-        "The user can start a new attempt from the result view.",
-        "Previous session data is preserved.",
-        "The flow is fast enough for repeat use."
-      ]
-    },
-    {
-      "id": "US-101",
-      "type": "story",
-      "title": "US1 Revise a selected passage end to end",
-      "summary": "Deliver the first complete learner flow: select a target, record, analyze with the mock service, and view structured feedback tied to that target.",
-      "priority": "urgent",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:story",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001"
-      ],
-      "acceptance": [
-        "The selected target, recording flow, mock analysis, and result feedback work as one coherent slice.",
-        "The flow is suitable for an MVP walkthrough without depending on production ASR.",
-        "The implementation stays bounded to the Phase 1 + Phase 2 foundations and US1 scope."
-      ]
-    },
-    {
-      "id": "US-102",
-      "type": "story",
-      "title": "US2 Retry within the same revision session",
-      "summary": "Let the learner retry immediately from the result view while preserving earlier attempts in the same session.",
-      "priority": "medium",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:story",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001"
-      ],
-      "acceptance": [
-        "A learner can start a retry from the result screen.",
-        "Previous attempts remain available in session history.",
-        "The retry flow preserves the same selected target."
-      ]
-    },
-    {
-      "id": "US-103",
-      "type": "story",
-      "title": "US3 Understand uncertain results safely",
-      "summary": "Surface low-confidence feedback carefully so the app does not overstate correctness or trustworthiness.",
-      "priority": "medium",
-      "state": "Backlog",
-      "agentOwner": "interface-and-design",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:story",
-        "lane:ux",
-        "phase:mvp",
-        "owner:interface-and-design",
-        "spec:001"
-      ],
-      "acceptance": [
-        "Low-confidence regions are labeled clearly.",
-        "The UI avoids definitive language when confidence is weak.",
-        "The learner is guided to retry or verify manually when needed."
-      ]
-    },
-    {
-      "id": "TASK-011",
+      "id": "TASK-1-3",
       "type": "task",
-      "title": "Create feature-first recitation app structure",
-      "summary": "Implement T001 by creating the `src/app/`, `src/features/recitation/`, `src/shared/`, and `src/test/` structure that the MVP flow will build on.",
-      "priority": "urgent",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "phase:setup"
-      ],
-      "acceptance": [
-        "The feature-first directory structure exists.",
-        "App entrypoints are ready to route into feature modules.",
-        "The layout supports later tests and shared modules cleanly."
-      ]
-    },
-    {
-      "id": "TASK-012",
-      "type": "task",
-      "title": "Add recitation MVP dependencies and scripts",
-      "summary": "Implement T002 by updating package dependencies and scripts for navigation, recording, validation, and focused testing.",
-      "priority": "urgent",
+      "title": "Update architecture docs to reflect new infrastructure",
+      "summary": "Refresh system and audio architecture docs for the VPS, Supabase, Whisper, and Groq runtime model.",
+      "priority": "high",
       "state": "Done",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "phase:setup"
-      ],
+      "agentOwner": "systems-architect",
+      "parentId": "EPIC-1",
+      "dependsOn": ["TASK-1-2"],
+      "labels": ["type:task", "refactor", "phase-0", "owner:systems-architect"],
       "acceptance": [
-        "Dependencies needed for the MVP shell are installed and declared.",
-        "Scripts exist for type-checking and focused test execution.",
-        "The repo can support the recitation feature flow without ad hoc setup."
+        "System overview reflects the new runtime split.",
+        "Audio pipeline reflects Supabase and asynchronous scoring.",
+        "Infrastructure boundaries are documented."
+      ],
+      "notes": [
+        "Completed in docs/architecture/system-overview.md, docs/architecture/audio-pipeline.md, and docs/architecture/infrastructure.md."
       ]
     },
     {
-      "id": "TASK-013",
+      "id": "TASK-1-4",
       "type": "task",
-      "title": "Add bilingual theme and copy foundations",
-      "summary": "Implement T003 by creating shared theme and i18n primitives for the Arabic-first recitation experience.",
+      "title": "Produce keep/replace decision for navigation and screen structure",
+      "summary": "Define the target screen map for Phase 1 and Phase 2 and classify what exists today.",
       "priority": "high",
       "state": "Done",
       "agentOwner": "interface-and-design",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:ux",
-        "phase:mvp",
-        "owner:interface-and-design",
-        "spec:001",
-        "phase:setup"
-      ],
+      "parentId": "EPIC-1",
+      "dependsOn": ["TASK-1-1"],
+      "labels": ["type:task", "refactor", "frontend", "phase-0", "owner:interface-and-design"],
       "acceptance": [
-        "Shared theme tokens exist for the recitation flow.",
-        "Bilingual copy structure exists for the first screens.",
-        "Arabic-first layout choices are reusable across the MVP."
+        "The new screen hierarchy is documented.",
+        "Existing screens are classified as keep-refactor, replace, or new-build.",
+        "No premature implementation is mixed into the audit."
+      ],
+      "notes": [
+        "Completed in docs/architecture/navigation-map.md."
       ]
     },
+
     {
-      "id": "TASK-014",
+      "id": "TASK-2-1",
       "type": "task",
-      "title": "Create recitation domain types",
-      "summary": "Implement T004 by creating the domain types for targets, attempts, analysis results, and learner-safe feedback.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "systems-architect",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:architecture",
-        "phase:mvp",
-        "owner:systems-architect",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "Recitation domain types are defined centrally.",
-        "Target and result structures align with the spec data model.",
-        "The types support the mock analysis boundary and UI state."
-      ]
-    },
-    {
-      "id": "TASK-015",
-      "type": "task",
-      "title": "Implement runtime schemas for recitation inputs and results",
-      "summary": "Implement T005 by adding runtime validation schemas for target selection and comparison results.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "systems-architect",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:architecture",
-        "phase:mvp",
-        "owner:systems-architect",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "Runtime schemas validate target selection payloads.",
-        "Comparison results are validated before UI consumption.",
-        "Schema failures can surface safe errors."
-      ]
-    },
-    {
-      "id": "TASK-016",
-      "type": "task",
-      "title": "Create mockable analysis service interface",
-      "summary": "Implement T006 by defining the analysis service interface that the MVP will use before real ASR integration.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "systems-architect",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:architecture",
-        "phase:mvp",
-        "owner:systems-architect",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "A mockable analysis service contract exists.",
-        "The interface aligns with the documented contract artifact.",
-        "The mobile flow can depend on the interface instead of a real backend."
-      ]
-    },
-    {
-      "id": "TASK-017",
-      "type": "task",
-      "title": "Add fixture-backed mock analysis responses",
-      "summary": "Implement T007 by creating deterministic analysis fixtures for MVP flow and tests.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "tester",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:test",
-        "phase:mvp",
-        "owner:tester",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "Fixture-backed analysis responses exist for happy and uncertain cases.",
-        "The fixtures support UI testing without paid AI services.",
-        "The mock service can consume them directly."
-      ]
-    },
-    {
-      "id": "TASK-018",
-      "type": "task",
-      "title": "Implement local session persistence and history repository",
-      "summary": "Implement T008 by adding local storage and repository logic for recitation session history.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "fullstack-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:fullstack-engineering",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "Session history persists locally.",
-        "Saved attempts can be loaded back into the app shell.",
-        "The repository is mockable and safe for tests."
-      ]
-    },
-    {
-      "id": "TASK-019",
-      "type": "task",
-      "title": "Create app navigation and shared recitation flow state",
-      "summary": "Implement T009 by setting up the navigation shell and shared state that connect selection, recording, and results.",
+      "title": "Add n8n to docker-compose.yml alongside OpenClaw",
+      "summary": "Add and boot the n8n service on the VPS next to the existing OpenClaw runtime.",
       "priority": "urgent",
       "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "phase:foundation"
-      ],
+      "agentOwner": "infrastructure-operations",
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-0-1"],
+      "labels": ["type:task", "infra", "phase-1", "owner:infrastructure-operations"],
       "acceptance": [
-        "Navigation exists for the recitation flow shell.",
-        "Shared state can move target and attempt data across screens.",
-        "The app no longer depends on a single demo screen."
+        "n8n is accessible on the VPS.",
+        "An admin account is created.",
+        "The service is running under Docker."
       ]
     },
     {
-      "id": "TASK-020",
+      "id": "TASK-2-2",
       "type": "task",
-      "title": "Add safe async error and loading helpers",
-      "summary": "Implement T010 by creating shared helpers for loading, empty, and user-safe error states.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "EPIC-MOBILE",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "Async helpers exist for loading and error states.",
-        "User-safe messaging is reusable across the flow.",
-        "The helpers support future real backend integration."
-      ]
-    },
-    {
-      "id": "TASK-021",
-      "type": "task",
-      "title": "Add analysis contract fixture tests",
-      "summary": "Implement T011 by adding focused contract tests around the analysis fixture boundary for US1.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "tester",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:test",
-        "phase:mvp",
-        "owner:tester",
-        "spec:001",
-        "story:us1"
-      ],
-      "acceptance": [
-        "Analysis fixture tests exist.",
-        "The tests verify stable result shape and safe parsing.",
-        "The tests protect the first end-to-end learner flow."
-      ]
-    },
-    {
-      "id": "TASK-022",
-      "type": "task",
-      "title": "Add attempt lifecycle flow-state tests",
-      "summary": "Implement T012 by testing the recitation flow state transitions for US1.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "tester",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:test",
-        "phase:mvp",
-        "owner:tester",
-        "spec:001",
-        "story:us1"
-      ],
-      "acceptance": [
-        "State transition tests exist for the attempt lifecycle.",
-        "The tests cover start, submit, success, and safe failure transitions.",
-        "Flow-state regressions are easier to catch."
-      ]
-    },
-    {
-      "id": "TASK-023",
-      "type": "task",
-      "title": "Build target selection screen",
-      "summary": "Implement T013 by creating the first real target selection screen for surah and ayah range, with page-level selection deferred unless it stays validation-safe in the same slice.",
+      "title": "Deploy Supabase self-hosted via Docker",
+      "summary": "Deploy the self-hosted Supabase stack on the VPS and isolate it on the internal network.",
       "priority": "urgent",
       "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "story:us1"
-      ],
+      "agentOwner": "infrastructure-operations",
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-2-1"],
+      "labels": ["type:task", "infra", "backend", "phase-1", "owner:infrastructure-operations"],
       "acceptance": [
-        "A learner can choose a target passage.",
-        "The target screen supports the MVP selection modes.",
-        "The selected target flows into later steps."
+        "Supabase Studio is accessible.",
+        "Anon and service-role keys are captured securely.",
+        "OpenClaw cannot reach Supabase directly."
       ]
     },
     {
-      "id": "TASK-024",
+      "id": "TASK-2-3",
       "type": "task",
-      "title": "Implement target selection state and validation",
-      "summary": "Implement T014 by adding selection state management and validation rules for target input.",
-      "priority": "high",
-      "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "story:us1"
-      ],
-      "acceptance": [
-        "Invalid target selections are blocked safely.",
-        "Valid selections persist into the recording flow.",
-        "Selection state is testable and reusable."
-      ]
-    },
-    {
-      "id": "TASK-025",
-      "type": "task",
-      "title": "Build recording screen shell",
-      "summary": "Implement T015 by creating the recording screen shell with permission prompts and record controls.",
+      "title": "Install and test Whisper.cpp on VPS",
+      "summary": "Install Whisper.cpp in server mode and verify Arabic transcription performance on the VPS.",
       "priority": "urgent",
       "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "story:us1"
-      ],
+      "agentOwner": "infrastructure-operations",
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-2-1"],
+      "labels": ["type:task", "infra", "phase-1", "owner:infrastructure-operations"],
       "acceptance": [
-        "The recording shell requests permission safely.",
-        "The user can start and stop a recording attempt.",
-        "Cancellation and denial paths are handled."
+        "Whisper.cpp is installed and reachable over HTTP.",
+        "Arabic audio transcription succeeds.",
+        "Response time is acceptable for the planned early cohort."
       ]
     },
     {
-      "id": "TASK-026",
+      "id": "TASK-2-4",
       "type": "task",
-      "title": "Implement recording orchestration and attempt creation",
-      "summary": "Implement T016 by wiring record lifecycle behavior into a reusable recitation recorder hook.",
+      "title": "Configure OpenClaw to use Groq API",
+      "summary": "Configure OpenClaw to use Groq as its reasoning backend and verify workflow triggering.",
       "priority": "high",
       "state": "Backlog",
-      "agentOwner": "mobile-engineering",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:mobile",
-        "phase:mvp",
-        "owner:mobile-engineering",
-        "spec:001",
-        "story:us1"
-      ],
+      "agentOwner": "infrastructure-operations",
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-2-1", "TASK-0-2"],
+      "labels": ["type:task", "infra", "ai-ops", "phase-1", "owner:infrastructure-operations"],
       "acceptance": [
-        "Attempt creation is tied to the selected target.",
-        "Recording state transitions are managed centrally.",
-        "The hook is suitable for retry and future backend wiring."
+        "OpenClaw uses Groq rather than local Ollama.",
+        "Reasoning and code models are configured.",
+        "OpenClaw can trigger n8n successfully."
       ]
     },
     {
-      "id": "TASK-027",
+      "id": "TASK-2-5",
       "type": "task",
-      "title": "Implement analysis submission and result mapping",
-      "summary": "Implement T017 by submitting the recorded attempt through the mock analysis boundary and mapping the result for UI use.",
+      "title": "Build Workflow 0 — Health check",
+      "summary": "Create the first VPS n8n workflow to verify Supabase, Whisper, and Groq health regularly.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-2-1", "TASK-2-2", "TASK-2-3"],
+      "labels": ["type:task", "infra", "automation", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "The workflow runs every five minutes.",
+        "Results are logged to agent operations storage.",
+        "Failures are captured without noisy human escalation on the first miss."
+      ]
+    },
+    {
+      "id": "TASK-2-6",
+      "type": "task",
+      "title": "Create Supabase database schema for agent operations",
+      "summary": "Create the operational tables and extensions required for agent memory and workflow logging.",
       "priority": "urgent",
       "state": "Backlog",
       "agentOwner": "fullstack-engineering",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:integration",
-        "phase:mvp",
-        "owner:fullstack-engineering",
-        "spec:001",
-        "story:us1"
-      ],
+      "parentId": "EPIC-2",
+      "dependsOn": ["TASK-2-2"],
+      "labels": ["type:task", "backend", "infra", "phase-1", "owner:fullstack-engineering"],
       "acceptance": [
-        "Mock analysis responses are submitted and mapped successfully.",
-        "Result data remains tied to the chosen target passage.",
-        "UI-facing structures are stable and safe."
+        "Agent memory and logging tables exist.",
+        "pgvector is enabled for future use.",
+        "The health-check workflow can write logs successfully."
+      ]
+    },
+
+    {
+      "id": "TASK-3-1",
+      "type": "task",
+      "title": "Create Supabase schema for Quranic content",
+      "summary": "Create the Supabase schema for Surahs, words, reference audio, and timestamps.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "data-foundation",
+      "parentId": "EPIC-3",
+      "dependsOn": ["TASK-2-6"],
+      "labels": ["type:task", "backend", "data", "phase-1", "owner:data-foundation"],
+      "acceptance": [
+        "The Quranic content tables exist with indexes.",
+        "Foreign keys are valid.",
+        "The schema supports ayah-level lookup and timing retrieval."
       ]
     },
     {
-      "id": "TASK-028",
+      "id": "TASK-3-2",
       "type": "task",
-      "title": "Build result screen with structured feedback states",
-      "summary": "Implement T018 by building the first result screen for omission, insertion, substitution, and uncertainty feedback.",
+      "title": "Download QUL data assets",
+      "summary": "Download the required QUL JSON assets and upload reference audio to Supabase Storage.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "founder",
+      "parentId": "EPIC-3",
+      "dependsOn": ["TASK-0-5", "TASK-3-1"],
+      "labels": ["type:task", "data", "human-gate", "phase-1", "owner:founder"],
+      "acceptance": [
+        "Required JSON data exists in the repo data folder.",
+        "Audio files are uploaded to the storage bucket rather than committed to git.",
+        "The import scripts have the source assets they need."
+      ]
+    },
+    {
+      "id": "TASK-3-3",
+      "type": "task",
+      "title": "Write and run QUL import scripts",
+      "summary": "Create idempotent scripts that load Surahs, words, timestamps, and audio metadata into Supabase.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "data-foundation",
+      "parentId": "EPIC-3",
+      "dependsOn": ["TASK-3-1", "TASK-3-2"],
+      "labels": ["type:task", "data", "backend", "phase-1", "owner:data-foundation"],
+      "acceptance": [
+        "The import scripts are idempotent.",
+        "Core row counts are populated.",
+        "At least Al-Fatiha is fully usable for testing."
+      ]
+    },
+    {
+      "id": "TASK-3-4",
+      "type": "task",
+      "title": "Verify data integrity with test queries",
+      "summary": "Verify that imported Quranic content and reference audio metadata are correct and queryable.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "EPIC-3",
+      "dependsOn": ["TASK-3-3"],
+      "labels": ["type:task", "data", "qa", "phase-1", "owner:tester"],
+      "acceptance": [
+        "The verification queries pass for Al-Fatiha.",
+        "Timing data is ordered and complete for the tested slice.",
+        "The imported dataset is usable for Phase 1."
+      ]
+    },
+
+    {
+      "id": "TASK-4-1",
+      "type": "task",
+      "title": "Migrate existing n8n workflow definitions to VPS",
+      "summary": "Import the checked-in n8n workflows into the VPS runtime and update runtime-specific credentials and URLs.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-2-1"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "Checked-in workflow definitions are imported to the VPS runtime.",
+        "Runtime credentials and URLs are updated safely.",
+        "Workflows activate without import errors."
+      ]
+    },
+    {
+      "id": "TASK-4-2",
+      "type": "task",
+      "title": "Build GitHub → Plane automation workflow",
+      "summary": "Create a push-triggered workflow that summarizes branch activity and comments on or creates the corresponding Plane task.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-4-1", "TASK-0-3", "TASK-0-4"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "Push events are received and summarized.",
+        "The correct Plane task is commented on or created.",
+        "The workflow logs its actions."
+      ]
+    },
+    {
+      "id": "TASK-4-3",
+      "type": "task",
+      "title": "Build GitHub PR → automated code review workflow",
+      "summary": "Create a PR review workflow that posts Groq review comments only when CodeRabbit has not already handled the review.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-4-1", "TASK-0-3"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "PR events trigger the workflow.",
+        "Duplicate bot reviews are avoided when CodeRabbit is already active.",
+        "Review actions are logged."
+      ]
+    },
+    {
+      "id": "TASK-4-4",
+      "type": "task",
+      "title": "Build Plane new task → decomposition workflow",
+      "summary": "Create a Plane-triggered decomposition workflow that expands sufficiently detailed work into child tasks.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-4-1", "TASK-0-4"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "Well-described tasks are decomposed into subtasks.",
+        "Vague tasks are flagged for clarification instead.",
+        "All actions are logged."
+      ]
+    },
+    {
+      "id": "TASK-4-5",
+      "type": "task",
+      "title": "Build daily standup workflow",
+      "summary": "Create a weekday standup workflow that summarizes recent commits, open tasks, and failed agent runs.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-4-1", "TASK-0-4"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
+      "acceptance": [
+        "The workflow runs on weekday mornings Cairo time.",
+        "The summary covers completed work, in-progress work, and blockers.",
+        "The summary is posted back into the execution system."
+      ]
+    },
+    {
+      "id": "TASK-4-6",
+      "type": "task",
+      "title": "Update and version all skills.md files for new agent roles",
+      "summary": "Create the runtime skills set for orchestration, review, planning, connectors, error handling, standups, specs, and speech QA.",
+      "priority": "high",
+      "state": "Done",
+      "agentOwner": "docs",
+      "parentId": "EPIC-4",
+      "dependsOn": ["TASK-1-2"],
+      "labels": ["type:task", "ai-ops", "phase-1", "owner:docs"],
+      "acceptance": [
+        "The required skills files exist.",
+        "Each skill has version and model metadata.",
+        "The agent runtime roles are aligned to the new plan."
+      ],
+      "notes": [
+        "Completed in the repo-level skills/ directory."
+      ]
+    },
+
+    {
+      "id": "TASK-5-1",
+      "type": "task",
+      "title": "Configure Supabase client in app",
+      "summary": "Add the Supabase client to the app without breaking the existing analysis-service abstraction.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-2-2", "TASK-1-1"],
+      "labels": ["type:task", "frontend", "backend", "phase-1", "owner:fullstack-engineering"],
+      "acceptance": [
+        "The app has a typed Supabase client entrypoint.",
+        "Environment variables are documented and wired safely.",
+        "Tests and type checks remain green."
+      ]
+    },
+    {
+      "id": "TASK-5-2",
+      "type": "task",
+      "title": "Implement user authentication screens",
+      "summary": "Add sign-in and sign-up flows backed by Supabase Auth and route users into the new app flow.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-1"],
+      "labels": ["type:task", "frontend", "backend", "phase-1", "owner:fullstack-engineering"],
+      "acceptance": [
+        "Auth screens render and use the shared i18n pattern.",
+        "Users can sign up, sign in, and sign out.",
+        "Navigation respects auth state."
+      ]
+    },
+    {
+      "id": "TASK-5-3",
+      "type": "task",
+      "title": "Build Home / Dashboard screen",
+      "summary": "Create the authenticated landing screen with quick entry into recitation practice and recent session context.",
+      "priority": "high",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-2"],
+      "labels": ["type:task", "frontend", "phase-1", "owner:mobile-engineering"],
+      "acceptance": [
+        "The home screen renders for signed-in users.",
+        "It shows an empty state or the latest session summary.",
+        "The quick-start flow opens the Surah browser."
+      ]
+    },
+    {
+      "id": "TASK-5-4",
+      "type": "task",
+      "title": "Build Surah browser screen",
+      "summary": "Create the searchable Surah browser backed by Supabase Quran metadata.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-3-4", "TASK-5-1"],
+      "labels": ["type:task", "frontend", "backend", "phase-1", "owner:mobile-engineering"],
+      "acceptance": [
+        "All 114 Surahs are browsable.",
+        "Search works correctly.",
+        "Selecting a Surah opens the Mushaf screen."
+      ]
+    },
+    {
+      "id": "TASK-5-5",
+      "type": "task",
+      "title": "Build Mushaf reader screen with reference audio playback",
+      "summary": "Create the Mushaf view with ayah-level playback and word highlighting backed by reference timestamps.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-3-4", "TASK-5-4"],
+      "labels": ["type:task", "frontend", "backend", "phase-1", "owner:mobile-engineering"],
+      "acceptance": [
+        "Quran text displays correctly in Arabic.",
+        "Reference audio plays per ayah.",
+        "Word highlighting and ayah recording entry points work."
+      ]
+    },
+    {
+      "id": "TASK-5-6",
+      "type": "task",
+      "title": "Refactor recording screen for production audio capture",
+      "summary": "Upgrade the existing recording screen from a shell into a real ayah-context capture, playback, and submission flow.",
+      "priority": "urgent",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-5", "TASK-1-1"],
+      "labels": ["type:task", "frontend", "refactor", "phase-1", "owner:mobile-engineering"],
+      "acceptance": [
+        "The recording screen receives ayah context as route params.",
+        "Users can record, replay, and submit audio.",
+        "Submission triggers the scoring path and shows loading state."
+      ]
+    },
+    {
+      "id": "TASK-5-7",
+      "type": "task",
+      "title": "Build recitation result screen",
+      "summary": "Create the result screen with overall score, word statuses, retry, and navigation actions.",
       "priority": "urgent",
       "state": "Backlog",
       "agentOwner": "interface-and-design",
-      "parentId": "US-101",
-      "labels": [
-        "type:task",
-        "lane:ux",
-        "phase:mvp",
-        "owner:interface-and-design",
-        "spec:001",
-        "story:us1"
-      ],
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-6"],
+      "labels": ["type:task", "frontend", "phase-1", "owner:interface-and-design"],
       "acceptance": [
-        "The result screen renders the expected feedback states.",
-        "Uncertain feedback is visually distinct.",
-        "The screen is usable for the first MVP walkthrough."
+        "The result screen shows overall and word-level feedback.",
+        "Low-confidence words render as uncertain rather than wrong.",
+        "Try-again and next-ayah actions work correctly."
       ]
     },
     {
-      "id": "TASK-001",
+      "id": "TASK-5-8",
       "type": "task",
-      "title": "Create first Spec Kit feature spec for recitation MVP",
-      "summary": "Write the Phase 1 recitation revision spec as the first execution artifact on top of the operating system.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:task",
-        "lane:product",
-        "owner:orchestrator"
-      ],
-      "acceptance": [
-        "The spec defines the selected passage, recording, analysis, feedback, and retry flow.",
-        "The spec states explicit V1 non-goals.",
-        "The spec is ready for plan generation."
-      ]
-    },
-    {
-      "id": "TASK-002",
-      "type": "task",
-      "title": "Generate technical implementation plan for recitation MVP",
-      "summary": "Create the first plan.md and supporting design artifacts so implementation and the ASR spike can proceed from a shared technical blueprint.",
+      "title": "Create Supabase schema for app user data",
+      "summary": "Create the user profile and recitation-session tables with row-level security.",
       "priority": "urgent",
-      "state": "Done",
-      "agentOwner": "systems-architect",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:task",
-        "lane:architecture",
-        "owner:systems-architect"
-      ],
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-2-6"],
+      "labels": ["type:task", "backend", "phase-1", "owner:fullstack-engineering"],
       "acceptance": [
-        "A technical plan exists for the recitation MVP.",
-        "Research decisions, data model, and contracts are documented.",
-        "The plan is ready to break down into implementation tasks and inform the ASR feasibility spike."
+        "The user and session tables exist.",
+        "RLS policies are active.",
+        "Basic insert and select behavior works for a user."
       ]
     },
     {
-      "id": "TASK-003",
+      "id": "TASK-5-9",
       "type": "task",
-      "title": "Break recitation MVP plan into implementation tasks",
-      "summary": "Generate the dependency-aware task breakdown so implementation, QA, and the ASR spike can be sequenced cleanly.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
-      "parentId": "EPIC-PRODUCT",
-      "labels": [
-        "type:task",
-        "lane:product",
-        "owner:orchestrator"
-      ],
+      "title": "Build session history screen",
+      "summary": "Move session history to Supabase-backed user data while preserving the repository abstraction pattern.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-7", "TASK-5-8"],
+      "labels": ["type:task", "frontend", "phase-1", "owner:mobile-engineering"],
       "acceptance": [
-        "A tasks.md file exists for the recitation MVP.",
-        "Tasks are grouped by user story and include file paths.",
-        "Dependencies and MVP-first sequencing are explicit."
+        "History loads from Supabase rather than only local storage.",
+        "Sessions are listed per user.",
+        "Past result detail can be reopened."
       ]
     },
     {
-      "id": "TASK-004",
+      "id": "TASK-5-10",
       "type": "task",
-      "title": "Build key-free local ASR benchmark harness",
-      "summary": "Create the local sample manifest, normalization rules, and offline evaluation scripts needed to run the feasibility spike without paid APIs.",
+      "title": "End-to-end smoke test of Phase 1 user journey",
+      "summary": "Validate the full launch journey from auth through result and history on a real device or simulator.",
       "priority": "urgent",
-      "state": "Done",
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "EPIC-5",
+      "dependsOn": ["TASK-5-7", "TASK-5-9", "TASK-6-3"],
+      "labels": ["type:task", "qa", "phase-1", "owner:tester"],
+      "acceptance": [
+        "The complete Phase 1 journey passes end to end.",
+        "The real Whisper transcription and polling path are included in the smoke test.",
+        "Any failures are captured as follow-up tasks.",
+        "No crashes or unhandled errors appear during the flow."
+      ]
+    },
+
+    {
+      "id": "TASK-6-1",
+      "type": "task",
+      "title": "Build Whisper transcription service on VPS",
+      "summary": "Create the thin transcription service that exposes Whisper results to the scoring workflow.",
+      "priority": "urgent",
+      "state": "Backlog",
       "agentOwner": "speech-evaluation",
-      "parentId": "EPIC-FEASIBILITY",
-      "labels": [
-        "type:task",
-        "lane:ai",
-        "owner:speech-evaluation"
-      ],
+      "parentId": "EPIC-6",
+      "dependsOn": ["TASK-2-3"],
+      "labels": ["type:task", "backend", "ai-ops", "phase-1", "owner:speech-evaluation"],
       "acceptance": [
-        "A local sample manifest exists for the short-passage spike.",
-        "Normalization rules are documented and reusable.",
-        "A local benchmark runner can score transcript outputs without a paid provider."
+        "The service accepts audio uploads and returns text, word timings, and confidence.",
+        "Arabic transcription works for test audio.",
+        "n8n can call the service."
       ]
     },
     {
-      "id": "TASK-005",
+      "id": "TASK-6-2",
       "type": "task",
-      "title": "Document local Whisper baseline findings and recommendation",
-      "summary": "Capture the first real free/local benchmark results and make an explicit recommendation about whether the local route is good enough for learner-facing recitation feedback.",
+      "title": "Build audio scoring workflow in n8n",
+      "summary": "Create the scoring workflow that turns pending sessions into scored sessions using Whisper and reference data.",
       "priority": "urgent",
-      "state": "Done",
-      "agentOwner": "speech-evaluation",
-      "parentId": "EPIC-FEASIBILITY",
-      "labels": [
-        "type:task",
-        "lane:ai",
-        "owner:speech-evaluation"
-      ],
+      "state": "Backlog",
+      "agentOwner": "automation-operations",
+      "parentId": "EPIC-6",
+      "dependsOn": ["TASK-6-1", "TASK-3-3"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
       "acceptance": [
-        "A findings document compares the local base and small Whisper runs.",
-        "The recommendation is explicit about whether the trust bar is met.",
-        "The next action is clear for the feasibility epic."
+        "Pending sessions trigger the workflow.",
+        "Confidence gating is enforced in stored word results.",
+        "Scored sessions are written back to Supabase with logs."
       ]
     },
     {
-      "id": "TASK-006",
+      "id": "TASK-6-3",
       "type": "task",
-      "title": "Adopt agent-reviews-first PR automation based on live trial",
-      "summary": "Document the live trial on PR #7, replace fragile custom bot-thread handling with agent-reviews, and record the expected workflow improvement as a long-term reference.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "review-and-pr-operations",
-      "parentId": "EPIC-FOUNDATION",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:review-and-pr-operations"
-      ],
-      "acceptance": [
-        "A written trial note captures what succeeded, what failed, and the recommended direction.",
-        "The PR workflow uses agent-reviews for actionable bot comment detection and thread resolution.",
-        "Bot status noise no longer blocks merge or triggers no-op review cycles."
-      ]
-    },
-    {
-      "id": "TASK-007",
-      "type": "task",
-      "title": "Stand up local automation stack with n8n and Ollama",
-      "summary": "Install and validate the free local automation stack for repo operations, starting with Ollama, Docker, and n8n on the project Mac so Plane and GitHub workflows can be automated without paid APIs.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
-      "parentId": "EPIC-FOUNDATION",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:orchestrator",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "The local machine has the required tooling installed for Ollama, Docker Desktop, and n8n.",
-        "An n8n instance runs locally with persistent storage and can reach the local Ollama service.",
-        "A first workflow target is defined for project operations, not product runtime behavior.",
-        "The setup path is documented in ordered steps that match the Apple Silicon 16GB development machine."
-      ]
-    },
-    {
-      "id": "TASK-008",
-      "type": "task",
-      "title": "Finalize the automation operating model and workflow map",
-      "summary": "Document the live n8n control plane, move legacy repo scripts under the automation runner, define durable report locations, and record the manual versus automated boundary clearly enough that the operating system can be trusted.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
-      "parentId": "EPIC-DELIVERY-OS",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:orchestrator",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "The live automation map is documented with workflow IDs, triggers, inputs, outputs, and failure notes.",
-        "Durable runtime outputs are routed outside transient n8n execution history.",
-        "Legacy repo scripts that should run on a schedule are exposed through the automation runner and assigned to managed workflows."
-      ]
-    },
-    {
-      "id": "TASK-009",
-      "type": "task",
-      "title": "Finalize the permanent agent and skill operating model",
-      "summary": "Turn the provisional team charter into the final operating model for Codex, Ollama, n8n, and repo skills so future delivery work routes cleanly through the right role with less ambiguity.",
-      "priority": "high",
-      "state": "Done",
-      "agentOwner": "orchestrator",
-      "parentId": "EPIC-DELIVERY-OS",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:orchestrator",
-        "phase:foundation"
-      ],
-      "acceptance": [
-        "The permanent team structure names the active roles, on-demand gates, and Ollama-assisted helper agents.",
-        "Plane owner labels and repo-side agent docs describe the same routing model.",
-        "The spec-kit entry point for phase 4 is documented so feature work can resume on top of the operating system."
-      ]
-    },
-    {
-      "id": "TASK-010",
-      "type": "task",
-      "title": "Build the guarded Plane task to PR delivery pipeline",
-      "summary": "Create a guarded delivery pipeline that can take a Plane task, prepare a safe branch, invoke Codex implementation, open a PR, hand review handling to the existing PR automation flow, and release the pipeline lock only after merge.",
+      "title": "Replace mock analysis service with real Supabase polling",
+      "summary": "Swap the fixture-backed analysis implementation for the real upload and polling flow while preserving the interface contract.",
       "priority": "urgent",
-      "state": "Done",
-      "agentOwner": "review-and-pr-operations",
-      "parentId": "EPIC-DELIVERY-OS",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:review-and-pr-operations",
-        "phase:foundation"
-      ],
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-6",
+      "dependsOn": ["TASK-6-2", "TASK-5-6"],
+      "labels": ["type:task", "frontend", "refactor", "phase-1", "owner:fullstack-engineering"],
       "acceptance": [
-        "A guarded repo-side delivery script set exists for task preparation, implementation, and PR publication.",
-        "The automation runner exposes the delivery actions to n8n and enforces one active delivery run at a time.",
-        "A managed n8n workflow can inspect Plane tasks, refuse unsafe states, and hand safe delivery work to the repo pipeline."
+        "The analysis-service interface remains unchanged.",
+        "Real audio uploads and polling work.",
+        "Mock fixtures remain available for test paths."
       ]
     },
     {
-      "id": "TASK-029",
+      "id": "TASK-6-4",
       "type": "task",
-      "title": "Bound the CodeRabbit re-review loop with durable review budgets",
-      "summary": "Stop the PR automation from endlessly retriggering CodeRabbit when review comments keep reappearing after each push. Track a durable per-PR review budget, stop automatic retries after a small fixed limit, and leave a clear artifact that explains whether the loop stopped because of repeated settle-window timeouts, repeated manual retriggers, or a no-op resolver pass that still left actionable bot comments behind.",
+      "title": "Validate scoring accuracy on Surah Al-Fatiha",
+      "summary": "Run the validation cases for correct, incorrect, silent, and fast recitation before treating real scoring as ship-ready.",
       "priority": "urgent",
-      "state": "Done",
-      "agentOwner": "review-and-pr-operations",
-      "parentId": "EPIC-DELIVERY-OS",
-      "labels": [
-        "type:task",
-        "lane:ops",
-        "owner:review-and-pr-operations",
-        "phase:foundation"
-      ],
+      "state": "Backlog",
+      "agentOwner": "tester",
+      "parentId": "EPIC-6",
+      "dependsOn": ["TASK-6-3"],
+      "labels": ["type:task", "qa", "phase-1", "owner:tester"],
       "acceptance": [
-        "The PR review loop stores a durable per-PR state file that records how many manual CodeRabbit retriggers and review timeouts have already happened.",
-        "Automatic review retries stop after a bounded budget instead of continuing forever, and the stop reason is written to a durable artifact for the branch.",
-        "The GitHub flow documentation explains the new retry-budget controls and the manual next step once automation pauses.",
-        "The implementation is verified by automated tests and script syntax checks."
+        "All planned test cases are executed and documented.",
+        "If scores are weak, the ship posture is adjusted rather than overclaimed.",
+        "The validation report exists in repo docs."
+      ]
+    },
+
+    {
+      "id": "TASK-7-1",
+      "type": "task",
+      "title": "Build hidden verses memorization mode",
+      "summary": "Add the Phase 2 memorization mode on top of the Mushaf and scoring flow.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-7",
+      "dependsOn": ["TASK-5-5"],
+      "labels": ["type:task", "frontend", "new-feature", "phase-2", "owner:mobile-engineering"],
+      "acceptance": [
+        "The mode can hide text.",
+        "Correct recitation reveals text progressively.",
+        "Mode state resets cleanly between sessions."
       ]
     },
     {
-      "id": "SPIKE-001",
-      "type": "spike",
-      "title": "Benchmark first ASR option on short passages",
-      "summary": "Run the first speech-recognition benchmark on a constrained Quran sample set and document quality limits.",
-      "priority": "urgent",
-      "state": "In Progress",
-      "agentOwner": "speech-evaluation",
-      "parentId": "EPIC-FEASIBILITY",
-      "labels": [
-        "type:spike",
-        "lane:ai",
-        "owner:speech-evaluation"
-      ],
+      "id": "TASK-7-2",
+      "type": "task",
+      "title": "Build goals and streaks system",
+      "summary": "Add Phase 2 goal and streak features on top of authenticated recitation-session data.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "fullstack-engineering",
+      "parentId": "EPIC-7",
+      "dependsOn": ["TASK-5-8"],
+      "labels": ["type:task", "frontend", "backend", "new-feature", "phase-2", "owner:fullstack-engineering"],
       "acceptance": [
-        "The sample set is defined.",
-        "At least one ASR path is measured.",
-        "Mismatch patterns and confidence issues are documented."
+        "Goal and streak data is stored correctly.",
+        "The goals screen renders the current state.",
+        "Streaks update from real session activity."
+      ]
+    },
+    {
+      "id": "TASK-7-3",
+      "type": "task",
+      "title": "Build mistake history and progress screen",
+      "summary": "Add Phase 2 trend and mistake-history views using recitation-session results.",
+      "priority": "medium",
+      "state": "Backlog",
+      "agentOwner": "mobile-engineering",
+      "parentId": "EPIC-7",
+      "dependsOn": ["TASK-5-9"],
+      "labels": ["type:task", "frontend", "backend", "new-feature", "phase-2", "owner:mobile-engineering"],
+      "acceptance": [
+        "The screen shows per-Surah progress trends.",
+        "Frequent mistakes are derived correctly from stored results.",
+        "The visualizations work with at least one real user dataset."
       ]
     }
   ]

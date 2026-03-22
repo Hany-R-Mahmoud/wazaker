@@ -4,6 +4,24 @@
 
 This document defines the live operating model for the `wazaker` automation layer.
 
+## Status Note
+
+This file describes the checked-in automation baseline and the repo-owned workflow model.
+
+After the 2026-03-22 refactor reset, the target runtime direction is:
+
+- VPS-hosted `n8n`
+- Groq-backed OpenClaw
+- self-hosted Supabase
+- Whisper.cpp on the VPS
+
+Use this document together with:
+
+- `docs/architecture/infrastructure.md`
+- `docs/product/roadmap-v2.md`
+
+Treat the local-only details below as the current baseline and migration source, not the final production architecture.
+
 Use it to answer three questions quickly:
 
 1. what `n8n` owns
@@ -56,7 +74,7 @@ They own:
 
 ### Ollama
 
-Local `Ollama` is the helper reasoning layer for low-risk automation tasks.
+Local `Ollama` is now a developer-side helper layer for low-risk automation tasks and local Codex sessions.
 
 It owns:
 
@@ -70,6 +88,7 @@ It does not own:
 - final merge approval
 - blind code changes outside the guarded delivery pipeline
 - learner-facing religious-trust decisions
+- production recitation scoring
 
 ## Durable Output Paths
 

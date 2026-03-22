@@ -1,45 +1,61 @@
 # MVP Scope
 
-## In Scope
+## Phase 1 Launch Scope
 
-- bilingual mobile app shell for Arabic and English
-- Quran passage or page selection
-- recording flow for personal recitation
-- recitation upload or processing flow
-- expected-text comparison against selected target
-- result screen with basic error feedback
-- retry flow
-- session history stored locally
+- Arabic-first mobile app with English support
+- user authentication through Supabase Auth
+- home dashboard
+- Surah browser
+- Mushaf reading view
+- word-by-word Quran text rendering
+- Al-Husary reference audio playback per ayah
+- ayah-focused recording flow
+- AI-scored recitation feedback with confidence bands
+- session history
+- basic progress visibility
+- dark and light theme support
 
-## Explicitly Out Of Scope
+## Phase 2 Scope
+
+- memorization mode with hidden text
+- goals and streaks
+- mistake history
+- progress trends and summary views
+- voice search as a later exploratory feature
+
+## Explicitly Out Of Scope For Phases 1 And 2
 
 - prayer times
 - qibla
 - azkar
-- social/community features
-- competitions
+- social sharing
 - commerce or store
-- generalized Islamic super-app behavior
-- advanced tajweed scoring
 - teacher marketplace
-- account system unless required by the chosen backend
+- advanced tajweed rule engine
+- leaderboards
+- multi-qari support
+- offline-first full Quran download
 
-These modules are deferred to Phase 2 after the recitation revision Phase 1 MVP is complete.
+## Launch Success Criteria
 
-## MVP Success Criteria
+- a signed-in user can browse a Surah and open a Mushaf screen
+- the user can play reference audio for an ayah
+- the user can record a recitation attempt for that ayah
+- the app can render word-level results as correct, incorrect, and uncertain presentation buckets while preserving the underlying comparison kinds
+- low-confidence words are shown as uncertain rather than wrong
+- the recitation result is saved and visible in session history
 
-- a learner can select a short passage and complete one full recitation check
-- the system can classify basic mismatch types on a constrained target passage
-- the result is understandable enough for a learner to retry without instruction
-- the recognition pipeline is good enough on short passages to justify implementation
+## Highest-Risk Assumptions
 
-## Highest-Risk Assumption
+- the Whisper-based transcription and scoring path can produce useful ayah-level results without violating the trust bar
+- the QUL reference data is sufficient for Al-Husary-aligned scoring and playback
+- the VPS can support the production path for a small early cohort without requiring a larger infrastructure jump
 
-An Arabic/Quran-aware recognition and alignment pipeline can be accurate enough on constrained passages to produce useful feedback.
+## Delivery Rules
 
-## Approved Delivery Rules
-
-- The canonical Phase 1 learner flow is: select target, record recitation, analyze, show feedback, retry the same target.
-- MVP target selection starts with surah plus ayah range. Page-level selection remains optional for a later slice if validation stays simple.
-- Low-confidence analysis must never be presented as definite correction; the app should guide the learner to retry or verify manually.
-- The first runnable MVP shell may ship with a mock analysis service while real ASR remains gated behind the feasibility spike.
+- Preserve the analysis-service boundary; only the implementation behind it changes.
+- Preserve the typed Zod domain model where possible.
+- Presentation buckets map `match` to correct, `substitution` or `omission` or `insertion` to incorrect, and `uncertain` to uncertain.
+- Preserve the bilingual copy system and feature-first structure.
+- User audio must remain inside the VPS-controlled pipeline.
+- Any word below the confidence threshold must render as uncertain, not incorrect.
