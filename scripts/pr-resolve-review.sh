@@ -14,6 +14,17 @@ if [[ ! -f "$comments_file" ]]; then
   exit 1
 fi
 
+current_head="$(git rev-parse HEAD)"
+upstream_ref=""
+upstream_head=""
+upstream_remote=""
+upstream_branch=""
+if upstream_ref="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)"; then
+  upstream_head="$(git rev-parse '@{upstream}')"
+  upstream_remote="${upstream_ref%%/*}"
+  upstream_branch="${upstream_ref#*/}"
+fi
+
 has_actionable_comments() {
   jq -e 'length > 0' "$comments_file" >/dev/null 2>&1
 }
@@ -47,8 +58,10 @@ Tasks:
 2. If the extracted review prompts file exists and contains review prompts, use those prompts as the primary fix instructions.
 3. Apply the smallest coherent fixes needed for valid review findings.
 4. Do not change unrelated behavior.
-5. Run lightweight validation if relevant.
-6. Summarize what was fixed and what remains uncertain.
+5. Do not run git commit, git push, or any other git history-changing command.
+6. Leave all git staging, commit, and push steps to the outer resolver script.
+7. Run lightweight validation if relevant.
+8. Summarize what was fixed and what remains uncertain.
 EOF
 
 if [[ "$has_extracted_prompts" == false ]]; then
@@ -117,14 +130,37 @@ fi
 
 rm -f "$prompt_file" "$codex_output_file"
 
+head_after_codex="$(git rev-parse HEAD)"
+if [[ "$head_after_codex" != "$current_head" ]]; then
+  echo "Codex changed git history directly during review resolution, which is not allowed in automation."
+  exit 1
+fi
+
 if [[ -n "$(git status --porcelain)" ]]; then
   git add -A
   if ! git diff --cached --quiet; then
+    if [[ -z "$upstream_ref" || "$upstream_ref" != */* || -z "$upstream_remote" || -z "$upstream_branch" || -z "$upstream_head" ]]; then
+      echo "Missing upstream tracking branch; refusing to treat local-only review fixes as success."
+      exit 1
+    fi
     git commit -m "fix: address pr review feedback"
-    git push
+    git push "$upstream_remote" "HEAD:${upstream_branch}"
+    remote_head_after_push="$(git ls-remote --heads "$upstream_remote" "$upstream_branch" | awk '{print $1}')"
+    pushed_head="$(git rev-parse HEAD)"
+    if [[ -z "$remote_head_after_push" || "$remote_head_after_push" != "$pushed_head" ]]; then
+      echo "Remote branch did not advance to the pushed review-fix commit."
+      exit 1
+    fi
   else
     echo "No staged source changes produced while resolving review feedback."
   fi
 else
+  if [[ -n "$upstream_head" ]]; then
+    current_head_no_changes="$(git rev-parse HEAD)"
+    if [[ "$current_head_no_changes" != "$upstream_head" ]]; then
+      echo "Local branch diverged from upstream without a verified push; refusing to continue."
+      exit 1
+    fi
+  fi
   echo "No changes produced while resolving review feedback."
 fi

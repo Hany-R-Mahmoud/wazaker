@@ -1,4 +1,5 @@
-export function evaluateOpenPullRequest(pr, repoOwner) {
+export function evaluateOpenPullRequest(pr, repoOwner, options = {}) {
+  const blocker = options.blocker ?? null;
   if (pr?.draft) {
     return { eligible: false, reason: 'draft' };
   }
@@ -13,10 +14,32 @@ export function evaluateOpenPullRequest(pr, repoOwner) {
     return { eligible: false, reason: 'invalid-head-branch' };
   }
 
+  const headSha = String(pr?.head?.sha ?? '').trim();
+  if (
+    blocker &&
+    blocker.manualActionRequired === true &&
+    blocker.prNumber === pr?.number &&
+    blocker.branch === branch &&
+    blocker.headSha &&
+    blocker.headSha === headSha
+  ) {
+    return {
+      eligible: false,
+      reason: 'manual-action-required',
+      branch,
+      number: pr.number,
+      title: pr.title,
+      url: pr.html_url,
+      blockedAt: blocker.blockedAt ?? '',
+      stopReason: blocker.stopReason ?? '',
+    };
+  }
+
   return {
     eligible: true,
     reason: 'eligible',
     branch,
+    headSha,
     number: pr.number,
     title: pr.title,
     url: pr.html_url,

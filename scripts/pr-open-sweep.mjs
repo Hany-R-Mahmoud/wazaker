@@ -4,9 +4,96 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { repoRoot, runCommand, writeReport } from './lib/automation-platform.mjs';
+import {
+  readContext,
+  repoRoot,
+  runCommand,
+  updateContext,
+  writeReport,
+} from './lib/automation-platform.mjs';
 import { resolveGithubToken } from './lib/github-token.mjs';
 import { evaluateOpenPullRequest } from './lib/pr-sweep.mjs';
+
+const prSweepBlockerContextKey = 'pr-sweep-blockers';
+
+function loadSweepBlockers() {
+  const context = readContext(prSweepBlockerContextKey);
+  const blockers = context?.value;
+  if (!blockers || typeof blockers !== 'object' || Array.isArray(blockers)) {
+    return {};
+  }
+  return blockers;
+}
+
+function blockerKeyForPr(prNumber) {
+  return `pr-${prNumber}`;
+}
+
+function pruneClosedBlockers(blockers, openPullNumbers) {
+  const openKeys = new Set(openPullNumbers.map((number) => blockerKeyForPr(number)));
+  return Object.fromEntries(
+    Object.entries(blockers).filter(([key]) => openKeys.has(key)),
+  );
+}
+
+function persistSweepBlocker(prNumber, blocker, openPullNumbers) {
+  updateContext(prSweepBlockerContextKey, (currentValue) => {
+    const currentBlockers =
+      currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
+        ? currentValue
+        : {};
+    const next = pruneClosedBlockers(currentBlockers, openPullNumbers);
+    const key = blockerKeyForPr(prNumber);
+
+    if (blocker) {
+      next[key] = blocker;
+    } else {
+      delete next[key];
+    }
+
+    return next;
+  }, {
+    retries: 8,
+    baseDelayMs: 20,
+  });
+}
+
+function persistSweepBlockerPrune(openPullNumbers) {
+  updateContext(prSweepBlockerContextKey, (currentValue) => {
+    const currentBlockers =
+      currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
+        ? currentValue
+        : {};
+    return pruneClosedBlockers(currentBlockers, openPullNumbers);
+  }, {
+    retries: 8,
+    baseDelayMs: 20,
+  });
+}
+
+function updateSweepBlocker(blockers, pr, result) {
+  const nextBlockers = { ...blockers };
+  const key = blockerKeyForPr(pr.number);
+  const now = new Date().toISOString();
+  const existing = blockers[key];
+
+  if (result.status === 'blocked') {
+    nextBlockers[key] = {
+      prNumber: pr.number,
+      branch: pr.branch,
+      headSha: pr.headSha,
+      manualActionRequired: true,
+      blockedAt: existing?.headSha === pr.headSha ? (existing.blockedAt ?? now) : now,
+      stopReason: result.stopReason || result.stderr || 'PR sweep blocked and requires manual inspection.',
+      source: 'pr-open-sweep',
+      lastAttemptedAt: now,
+    };
+    return nextBlockers;
+  }
+
+  delete nextBlockers[key];
+  return nextBlockers;
+}
 
 function parseOriginRepo(remoteUrl) {
   const normalized = String(remoteUrl || '').trim();
@@ -93,7 +180,14 @@ async function allowWorktreeDirenv(worktreeDir) {
 }
 
 async function cleanupSweepBranch(worktreeDir, localBranch) {
-  await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+  let removeResult = await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+  if (removeResult.code !== 0) {
+    await runCommand('git', ['worktree', 'prune']);
+    removeResult = await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+    if (removeResult.code !== 0) {
+      throw new Error(`Could not remove worktree ${worktreeDir}: ${removeResult.stderr || removeResult.stdout}`);
+    }
+  }
   const branchExists = await runCommand('git', ['rev-parse', '--verify', localBranch]);
   if (branchExists.code === 0) {
     const deleteResult = await runCommand('git', ['branch', '-D', localBranch]);
@@ -144,12 +238,14 @@ async function sweepPullRequest(pr) {
     return {
       number: pr.number,
       branch: pr.branch,
+      headSha: pr.headSha,
       title: pr.title,
       url: pr.url,
       status: result.code === 0 ? 'merged-or-clean' : 'blocked',
       exitCode: result.code,
       stdout: result.stdout.trim(),
       stderr: result.stderr.trim(),
+      stopReason: result.code === 0 ? '' : (result.stderr.trim() || result.stdout.trim() || 'PR autofinish failed.'),
     };
   } finally {
     await cleanupSweepBranch(worktreeDir, localBranch);
@@ -169,13 +265,22 @@ export async function main() {
   const pulls = await githubRequestAll(`/repos/${repo.owner}/${repo.name}/pulls?state=open`, {
     githubToken,
   });
+  const openPullNumbers = pulls.map((pr) => pr.number);
+  let blockers = pruneClosedBlockers(loadSweepBlockers(), openPullNumbers);
   const evaluatedPulls = pulls.map((pr) => ({
     pr,
-    evaluation: evaluateOpenPullRequest(pr, repo.owner),
+    evaluation: evaluateOpenPullRequest(pr, repo.owner, {
+      blocker: blockers[blockerKeyForPr(pr.number)] ?? null,
+    }),
   }));
   const candidates = evaluatedPulls
     .filter(({ evaluation }) => evaluation.eligible)
-    .map(({ pr, evaluation }) => ({ ...evaluation, pr, githubToken }));
+    .map(({ pr, evaluation }) => ({
+      ...evaluation,
+      headSha: evaluation.headSha || pr?.head?.sha || null,
+      pr,
+      githubToken,
+    }));
   const skipped = evaluatedPulls
     .filter(({ evaluation }) => !evaluation.eligible)
     .map(({ pr, evaluation }) => ({
@@ -188,22 +293,39 @@ export async function main() {
   const results = [];
   for (const candidate of candidates) {
     try {
-      results.push(await sweepPullRequest(candidate));
+      const result = await sweepPullRequest(candidate);
+      results.push(result);
+      blockers = updateSweepBlocker(blockers, candidate, result);
+      persistSweepBlocker(
+        candidate.number,
+        blockers[blockerKeyForPr(candidate.number)] ?? null,
+        openPullNumbers,
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       process.stderr.write(`Failed to sweep PR #${candidate.number}: ${message}\n`);
-      results.push({
+      const result = {
         number: candidate.number,
         branch: candidate.branch,
+        headSha: candidate.headSha,
         title: candidate.title,
         url: candidate.url,
         status: 'blocked',
         exitCode: null,
         stdout: '',
         stderr: message,
-      });
+        stopReason: message,
+      };
+      results.push(result);
+      blockers = updateSweepBlocker(blockers, candidate, result);
+      persistSweepBlocker(
+        candidate.number,
+        blockers[blockerKeyForPr(candidate.number)] ?? null,
+        openPullNumbers,
+      );
     }
   }
+  persistSweepBlockerPrune(openPullNumbers);
 
   const timestamp = new Date().toISOString().replace(/[:]/g, '-');
   const reportRelativePath = `github-pr-sweeps/${timestamp}.md`;

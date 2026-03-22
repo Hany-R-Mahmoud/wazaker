@@ -4,6 +4,8 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -62,21 +64,65 @@ export function readContext(key) {
   return JSON.parse(readFileSync(contextPath, 'utf8'));
 }
 
-export function writeContext(key, value) {
-  const contextPath = contextPathForKey(key);
-  writeFileSync(
-    contextPath,
-    JSON.stringify(
-      {
-        key: sanitizeContextKey(key),
-        updatedAt: new Date().toISOString(),
-        value,
-      },
-      null,
-      2,
-    ),
+function serializeContext(key, value) {
+  return JSON.stringify(
+    {
+      key: sanitizeContextKey(key),
+      updatedAt: new Date().toISOString(),
+      value,
+    },
+    null,
+    2,
   );
+}
+
+function writeContextAtomically(key, value) {
+  const contextPath = contextPathForKey(key);
+  const tempPath = `${contextPath}.${process.pid}.tmp`;
+  writeFileSync(tempPath, serializeContext(key, value));
+  renameSync(tempPath, contextPath);
+}
+
+function sleepSync(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
+function withContextLock(key, action, options = {}) {
+  const retries = options.retries ?? 5;
+  const baseDelayMs = options.baseDelayMs ?? 25;
+  const lockPath = `${contextPathForKey(key)}.lock`;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      mkdirSync(lockPath);
+      try {
+        return action();
+      } finally {
+        rmSync(lockPath, { recursive: true, force: true });
+      }
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+      sleepSync(baseDelayMs * (attempt + 1));
+    }
+  }
+
+  throw new Error(`Could not acquire context lock for ${key}`);
+}
+
+export function writeContext(key, value) {
+  writeContextAtomically(key, value);
   return readContext(key);
+}
+
+export function updateContext(key, updater, options = {}) {
+  return withContextLock(key, () => {
+    const currentValue = readContext(key)?.value ?? null;
+    const nextValue = updater(currentValue);
+    writeContextAtomically(key, nextValue);
+    return readContext(key);
+  }, options);
 }
 
 export function listContext() {
