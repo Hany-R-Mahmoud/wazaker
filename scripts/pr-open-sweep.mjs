@@ -29,13 +29,31 @@ function blockerKeyForPr(prNumber) {
   return `pr-${prNumber}`;
 }
 
-function persistSweepBlockers(blockers) {
-  writeContext(prSweepBlockerContextKey, blockers);
+function pruneClosedBlockers(blockers, openPullNumbers) {
+  const openKeys = new Set(openPullNumbers.map((number) => blockerKeyForPr(number)));
+  return Object.fromEntries(
+    Object.entries(blockers).filter(([key]) => openKeys.has(key)),
+  );
+}
+
+function persistSweepBlockers(blockers, openPullNumbers) {
+  const current = pruneClosedBlockers(loadSweepBlockers(), openPullNumbers);
+  const next = { ...current };
+  for (const prNumber of openPullNumbers) {
+    delete next[blockerKeyForPr(prNumber)];
+  }
+  for (const [key, value] of Object.entries(blockers)) {
+    next[key] = value;
+  }
+
+  writeContext(prSweepBlockerContextKey, next);
 }
 
 function updateSweepBlocker(blockers, pr, result) {
   const nextBlockers = { ...blockers };
   const key = blockerKeyForPr(pr.number);
+  const now = new Date().toISOString();
+  const existing = blockers[key];
 
   if (result.status === 'blocked') {
     nextBlockers[key] = {
@@ -43,10 +61,10 @@ function updateSweepBlocker(blockers, pr, result) {
       branch: pr.branch,
       headSha: pr.headSha,
       manualActionRequired: true,
-      blockedAt: new Date().toISOString(),
+      blockedAt: existing?.headSha === pr.headSha ? (existing.blockedAt ?? now) : now,
       stopReason: result.stopReason || result.stderr || 'PR sweep blocked and requires manual inspection.',
       source: 'pr-open-sweep',
-      lastAttemptedAt: new Date().toISOString(),
+      lastAttemptedAt: now,
     };
     return nextBlockers;
   }
@@ -140,7 +158,14 @@ async function allowWorktreeDirenv(worktreeDir) {
 }
 
 async function cleanupSweepBranch(worktreeDir, localBranch) {
-  await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+  let removeResult = await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+  if (removeResult.code !== 0) {
+    await runCommand('git', ['worktree', 'prune']);
+    removeResult = await runCommand('git', ['worktree', 'remove', '--force', worktreeDir]);
+    if (removeResult.code !== 0) {
+      throw new Error(`Could not remove worktree ${worktreeDir}: ${removeResult.stderr || removeResult.stdout}`);
+    }
+  }
   const branchExists = await runCommand('git', ['rev-parse', '--verify', localBranch]);
   if (branchExists.code === 0) {
     const deleteResult = await runCommand('git', ['branch', '-D', localBranch]);
@@ -218,7 +243,8 @@ export async function main() {
   const pulls = await githubRequestAll(`/repos/${repo.owner}/${repo.name}/pulls?state=open`, {
     githubToken,
   });
-  let blockers = loadSweepBlockers();
+  const openPullNumbers = pulls.map((pr) => pr.number);
+  let blockers = pruneClosedBlockers(loadSweepBlockers(), openPullNumbers);
   const evaluatedPulls = pulls.map((pr) => ({
     pr,
     evaluation: evaluateOpenPullRequest(pr, repo.owner, {
@@ -227,7 +253,12 @@ export async function main() {
   }));
   const candidates = evaluatedPulls
     .filter(({ evaluation }) => evaluation.eligible)
-    .map(({ pr, evaluation }) => ({ ...evaluation, pr, githubToken }));
+    .map(({ pr, evaluation }) => ({
+      ...evaluation,
+      headSha: evaluation.headSha || pr?.head?.sha || null,
+      pr,
+      githubToken,
+    }));
   const skipped = evaluatedPulls
     .filter(({ evaluation }) => !evaluation.eligible)
     .map(({ pr, evaluation }) => ({
@@ -262,7 +293,7 @@ export async function main() {
       blockers = updateSweepBlocker(blockers, candidate, result);
     }
   }
-  persistSweepBlockers(blockers);
+  persistSweepBlockers(blockers, openPullNumbers);
 
   const timestamp = new Date().toISOString().replace(/[:]/g, '-');
   const reportRelativePath = `github-pr-sweeps/${timestamp}.md`;

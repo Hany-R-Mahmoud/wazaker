@@ -17,8 +17,12 @@ fi
 current_head="$(git rev-parse HEAD)"
 upstream_ref=""
 upstream_head=""
+upstream_remote=""
+upstream_branch=""
 if upstream_ref="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)"; then
   upstream_head="$(git rev-parse '@{upstream}')"
+  upstream_remote="${upstream_ref%%/*}"
+  upstream_branch="${upstream_ref#*/}"
 fi
 
 has_actionable_comments() {
@@ -135,13 +139,13 @@ fi
 if [[ -n "$(git status --porcelain)" ]]; then
   git add -A
   if ! git diff --cached --quiet; then
-    git commit -m "fix: address pr review feedback"
-    if [[ -z "$upstream_ref" ]]; then
+    if [[ -z "$upstream_ref" || -z "$upstream_remote" || -z "$upstream_branch" || -z "$upstream_head" ]]; then
       echo "Missing upstream tracking branch; refusing to treat local-only review fixes as success."
       exit 1
     fi
-    git push origin "HEAD:${upstream_ref#origin/}"
-    remote_head_after_push="$(git ls-remote --heads origin "${upstream_ref#origin/}" | awk '{print $1}')"
+    git commit -m "fix: address pr review feedback"
+    git push "$upstream_remote" "HEAD:${upstream_branch}"
+    remote_head_after_push="$(git ls-remote --heads "$upstream_remote" "$upstream_branch" | awk '{print $1}')"
     pushed_head="$(git rev-parse HEAD)"
     if [[ -z "$remote_head_after_push" || "$remote_head_after_push" != "$pushed_head" ]]; then
       echo "Remote branch did not advance to the pushed review-fix commit."
