@@ -46,10 +46,20 @@ if [[ -n "$github_token" ]]; then
   printf '%s\n' "$github_token" > "$github_token_file"
 fi
 
-AUTOMATION_GITHUB_TOKEN="$github_token" \
-AUTOMATION_RUNNER_TOKEN="$token" \
-AUTOMATION_RUNNER_PORT="${AUTOMATION_RUNNER_PORT:-3210}" \
-nohup node "$repo_root/scripts/automation-runner.mjs" >> "$log_file" 2>&1 &
+runner_command=(
+  env
+  "AUTOMATION_GITHUB_TOKEN=$github_token"
+  "AUTOMATION_RUNNER_TOKEN=$token"
+  "AUTOMATION_RUNNER_PORT=${AUTOMATION_RUNNER_PORT:-3210}"
+  node
+  "$repo_root/scripts/automation-runner.mjs"
+)
+
+if command -v setsid >/dev/null 2>&1; then
+  nohup setsid "${runner_command[@]}" >> "$log_file" 2>&1 < /dev/null &
+else
+  nohup "${runner_command[@]}" >> "$log_file" 2>&1 < /dev/null &
+fi
 
 echo $! > "$pid_file"
 echo "automation-runner started with pid $(cat "$pid_file")"
