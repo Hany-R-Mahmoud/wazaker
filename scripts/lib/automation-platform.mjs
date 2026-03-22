@@ -232,18 +232,48 @@ function latestReportSnapshot(relativeDirectory) {
   };
 }
 
+function unknownWorkflowStates(workflowIds) {
+  return Object.fromEntries(workflowIds.map((id) => [id, 'unknown']));
+}
+
+async function resolveGitBranchRef(branch) {
+  if (!branch) {
+    return null;
+  }
+
+  const candidates = [`refs/heads/${branch}`, `refs/remotes/origin/${branch}`];
+  for (const candidate of candidates) {
+    const result = await runCommand('git', ['rev-parse', '--verify', candidate]);
+    if (result.code === 0) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 async function loadN8nWorkflowStates(workflowIds) {
-  const databasePath = join(homedir(), '.n8n', 'database.sqlite');
+  const dbType = (process.env.DB_TYPE ?? 'sqlite').trim().toLowerCase();
+  if (dbType !== 'sqlite') {
+    return {
+      available: false,
+      error: `n8n DB_TYPE=${dbType} is not supported for workflow state checks`,
+      states: unknownWorkflowStates(workflowIds),
+    };
+  }
+
+  const userFolder = (process.env.N8N_USER_FOLDER ?? join(homedir(), '.n8n')).trim();
+  const databasePath = join(userFolder, 'database.sqlite');
   if (!existsSync(databasePath)) {
     return {
       available: false,
       error: `n8n database not found at ${databasePath}`,
-      states: {},
+      states: unknownWorkflowStates(workflowIds),
     };
   }
 
-  const quotedIds = workflowIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',');
-  const query = `select id,active from workflow_entity where id in (${quotedIds}) order by id;`;
+  const workflowIdSet = new Set(workflowIds);
+  const query = 'select id,active from workflow_entity order by id;';
   const databaseUrl = `file:${databasePath}?mode=ro&immutable=1`;
   const result = await runCommand('sqlite3', [databaseUrl, query]);
 
@@ -251,20 +281,20 @@ async function loadN8nWorkflowStates(workflowIds) {
     return {
       available: false,
       error: result.stderr.trim() || result.stdout.trim() || 'Unknown sqlite error',
-      states: {},
+      states: unknownWorkflowStates(workflowIds),
     };
   }
 
-  const states = Object.fromEntries(
-    result.stdout
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [id, active] = line.split('|');
-        return [id, active === '1'];
-      }),
-  );
+  const states = unknownWorkflowStates(workflowIds);
+  for (const line of result.stdout
+    .split('\n')
+    .map((entry) => entry.trim())
+    .filter(Boolean)) {
+    const [id, active] = line.split('|');
+    if (workflowIdSet.has(id)) {
+      states[id] = active === '1';
+    }
+  }
 
   return {
     available: true,
@@ -311,11 +341,17 @@ async function getDeliveryLockHealth() {
 
   let branchMergedIntoMain = false;
   if (branch) {
-    const mergeBase = await runCommand('git', ['merge-base', '--is-ancestor', branch, 'main']);
-    branchMergedIntoMain = mergeBase.code === 0;
+    const resolvedRef = await resolveGitBranchRef(branch);
+    if (resolvedRef) {
+      const mergeBase = await runCommand('git', ['merge-base', '--is-ancestor', resolvedRef, 'main']);
+      branchMergedIntoMain = mergeBase.code === 0;
+    }
   }
 
-  const staleThresholdHours = Number(process.env.DELIVERY_LOCK_MAX_AGE_HOURS || '12');
+  const rawThreshold = process.env.DELIVERY_LOCK_MAX_AGE_HOURS;
+  const parsedThreshold = rawThreshold == null ? NaN : Number(rawThreshold);
+  const staleThresholdHours =
+    Number.isFinite(parsedThreshold) && parsedThreshold >= 0 ? parsedThreshold : 12;
   const stale = branchMergedIntoMain || ageHours >= staleThresholdHours;
 
   return {
@@ -348,10 +384,12 @@ async function getProjectAutomationHealth() {
   const workflows = workflowSpecs.map((spec) => {
     const snapshot = latestReportSnapshot(spec.reportDir);
     const active = workflowStates.states[spec.id];
-    const fresh = Boolean(snapshot.latestReportAt) && Number(snapshot.ageHours ?? Number.POSITIVE_INFINITY) <= spec.maxAgeHours;
+    const fresh =
+      Boolean(snapshot.latestReportAt) &&
+      Number(snapshot.ageHours ?? Number.POSITIVE_INFINITY) <= spec.maxAgeHours;
     return {
       id: spec.id,
-      active: active ?? null,
+      active,
       latestReportPath: snapshot.latestReportPath,
       latestReportAt: snapshot.latestReportAt,
       ageHours: snapshot.ageHours,
