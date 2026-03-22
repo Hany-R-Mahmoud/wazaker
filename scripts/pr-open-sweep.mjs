@@ -8,7 +8,7 @@ import {
   readContext,
   repoRoot,
   runCommand,
-  writeContext,
+  updateContext,
   writeReport,
 } from './lib/automation-platform.mjs';
 import { resolveGithubToken } from './lib/github-token.mjs';
@@ -36,17 +36,39 @@ function pruneClosedBlockers(blockers, openPullNumbers) {
   );
 }
 
-function persistSweepBlockers(blockers, openPullNumbers) {
-  const current = pruneClosedBlockers(loadSweepBlockers(), openPullNumbers);
-  const next = { ...current };
-  for (const prNumber of openPullNumbers) {
-    delete next[blockerKeyForPr(prNumber)];
-  }
-  for (const [key, value] of Object.entries(blockers)) {
-    next[key] = value;
-  }
+function persistSweepBlocker(prNumber, blocker, openPullNumbers) {
+  updateContext(prSweepBlockerContextKey, (currentValue) => {
+    const currentBlockers =
+      currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
+        ? currentValue
+        : {};
+    const next = pruneClosedBlockers(currentBlockers, openPullNumbers);
+    const key = blockerKeyForPr(prNumber);
 
-  writeContext(prSweepBlockerContextKey, next);
+    if (blocker) {
+      next[key] = blocker;
+    } else {
+      delete next[key];
+    }
+
+    return next;
+  }, {
+    retries: 8,
+    baseDelayMs: 20,
+  });
+}
+
+function persistSweepBlockerPrune(openPullNumbers) {
+  updateContext(prSweepBlockerContextKey, (currentValue) => {
+    const currentBlockers =
+      currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
+        ? currentValue
+        : {};
+    return pruneClosedBlockers(currentBlockers, openPullNumbers);
+  }, {
+    retries: 8,
+    baseDelayMs: 20,
+  });
 }
 
 function updateSweepBlocker(blockers, pr, result) {
@@ -274,6 +296,11 @@ export async function main() {
       const result = await sweepPullRequest(candidate);
       results.push(result);
       blockers = updateSweepBlocker(blockers, candidate, result);
+      persistSweepBlocker(
+        candidate.number,
+        blockers[blockerKeyForPr(candidate.number)] ?? null,
+        openPullNumbers,
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       process.stderr.write(`Failed to sweep PR #${candidate.number}: ${message}\n`);
@@ -291,9 +318,14 @@ export async function main() {
       };
       results.push(result);
       blockers = updateSweepBlocker(blockers, candidate, result);
+      persistSweepBlocker(
+        candidate.number,
+        blockers[blockerKeyForPr(candidate.number)] ?? null,
+        openPullNumbers,
+      );
     }
   }
-  persistSweepBlockers(blockers, openPullNumbers);
+  persistSweepBlockerPrune(openPullNumbers);
 
   const timestamp = new Date().toISOString().replace(/[:]/g, '-');
   const reportRelativePath = `github-pr-sweeps/${timestamp}.md`;

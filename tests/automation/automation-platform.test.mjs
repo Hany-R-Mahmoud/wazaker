@@ -6,6 +6,7 @@ import {
   contextPathForKey,
   readContext,
   sanitizeContextKey,
+  updateContext,
   validateReportPath,
   writeContext,
 } from '../../scripts/lib/automation-platform.mjs';
@@ -37,6 +38,28 @@ test('writeContext persists and reads shared context', () => {
   const written = writeContext(key, { hello: 'world' });
   assert.equal(written.key, key);
   assert.deepEqual(readContext(key)?.value, { hello: 'world' });
+
+  rmSync(contextFile);
+});
+
+test('updateContext merges changes while keeping existing keys', () => {
+  const key = 'test-context-update';
+  const contextFile = contextPathForKey(key);
+  if (existsSync(contextFile)) {
+    rmSync(contextFile);
+  }
+
+  // Arrange
+  writeContext(key, { alpha: 1 });
+
+  // Act
+  const updated = updateContext(key, (currentValue) => ({
+    ...(currentValue ?? {}),
+    beta: 2,
+  }));
+
+  // Assert
+  assert.deepEqual(updated?.value, { alpha: 1, beta: 2 });
 
   rmSync(contextFile);
 });

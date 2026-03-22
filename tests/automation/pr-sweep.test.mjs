@@ -90,6 +90,7 @@ test('evaluateOpenPullRequest - when head branch is main - returns ineligible', 
 });
 
 test('evaluateOpenPullRequest - when PR head matches active blocker - returns ineligible', () => {
+  // Arrange
   const blockedPullRequest = {
     number: 5,
     title: 'Blocked PR',
@@ -102,6 +103,7 @@ test('evaluateOpenPullRequest - when PR head matches active blocker - returns in
     },
   };
 
+  // Act
   const result = evaluateOpenPullRequest(
     blockedPullRequest,
     'Hany-R-Mahmoud',
@@ -117,6 +119,7 @@ test('evaluateOpenPullRequest - when PR head matches active blocker - returns in
     },
   );
 
+  // Assert
   assert.deepEqual(result, {
     eligible: false,
     reason: 'manual-action-required',
@@ -130,6 +133,7 @@ test('evaluateOpenPullRequest - when PR head matches active blocker - returns in
 });
 
 test('evaluateOpenPullRequest - when PR head changed after blocker - returns eligible again', () => {
+  // Arrange
   const updatedPullRequest = {
     number: 6,
     title: 'Updated PR',
@@ -142,6 +146,7 @@ test('evaluateOpenPullRequest - when PR head changed after blocker - returns eli
     },
   };
 
+  // Act
   const result = evaluateOpenPullRequest(
     updatedPullRequest,
     'Hany-R-Mahmoud',
@@ -157,6 +162,7 @@ test('evaluateOpenPullRequest - when PR head changed after blocker - returns eli
     },
   );
 
+  // Assert
   assert.deepEqual(result, {
     eligible: true,
     reason: 'eligible',

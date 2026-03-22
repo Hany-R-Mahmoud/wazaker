@@ -139,7 +139,7 @@ fi
 if [[ -n "$(git status --porcelain)" ]]; then
   git add -A
   if ! git diff --cached --quiet; then
-    if [[ -z "$upstream_ref" || -z "$upstream_remote" || -z "$upstream_branch" || -z "$upstream_head" ]]; then
+    if [[ -z "$upstream_ref" || "$upstream_ref" != */* || -z "$upstream_remote" || -z "$upstream_branch" || -z "$upstream_head" ]]; then
       echo "Missing upstream tracking branch; refusing to treat local-only review fixes as success."
       exit 1
     fi
