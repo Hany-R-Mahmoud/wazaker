@@ -41,7 +41,7 @@
 - a signed-in user can browse a Surah and open a Mushaf screen
 - the user can play reference audio for an ayah
 - the user can record a recitation attempt for that ayah
-- the app can return a word-level result with correct, incorrect, and uncertain states
+- the app can render word-level results as correct, incorrect, and uncertain presentation buckets while preserving the underlying comparison kinds
 - low-confidence words are shown as uncertain rather than wrong
 - the recitation result is saved and visible in session history
 
@@ -55,6 +55,7 @@
 
 - Preserve the analysis-service boundary; only the implementation behind it changes.
 - Preserve the typed Zod domain model where possible.
+- Presentation buckets map `match` to correct, `substitution` or `omission` or `insertion` to incorrect, and `uncertain` to uncertain.
 - Preserve the bilingual copy system and feature-first structure.
 - User audio must remain inside the VPS-controlled pipeline.
 - Any word below the confidence threshold must render as uncertain, not incorrect.

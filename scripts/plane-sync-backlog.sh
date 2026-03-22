@@ -43,6 +43,7 @@ escape_html() {
 build_description_html() {
   local item_json="$1"
   local external_id
+  local legacy_external_id
   local summary
   local acceptance_html
   local labels_html
@@ -51,6 +52,7 @@ build_description_html() {
   local agent_owner
 
   external_id="$(printf '%s' "$item_json" | jq -r '.id')"
+  legacy_external_id="$(printf '%s' "$item_json" | jq -r '.legacyId // empty')"
   summary="$(printf '%s' "$item_json" | jq -r '.summary')"
   agent_owner="$(printf '%s' "$item_json" | jq -r '.agentOwner // empty')"
   acceptance_html="$(
@@ -68,6 +70,7 @@ build_description_html() {
 
   cat <<EOF
 <!-- wazaker-sync-id:${external_id} -->
+$(if [[ -n "$legacy_external_id" ]]; then printf '<!-- wazaker-sync-id:%s -->\n' "$legacy_external_id"; fi)
 <p>$(printf '%s' "$summary" | escape_html)</p>
 <h3>Acceptance Criteria</h3>
 <ul>${acceptance_html}</ul>
@@ -76,6 +79,7 @@ $(if [[ -n "$depends_on_html" ]]; then printf '<h3>Depends On</h3>\n<ul>%s</ul>\
 <h3>Repo Metadata</h3>
 <ul>
   <li><strong>External ID:</strong> <code>${external_id}</code></li>
+  $(if [[ -n "$legacy_external_id" ]]; then printf '<li><strong>Legacy External ID:</strong> <code>%s</code></li>' "$(printf '%s' "$legacy_external_id" | escape_html)"; fi)
   <li><strong>Source:</strong> <code>docs/product/plane-backlog.json</code></li>
   $(if [[ -n "$agent_owner" ]]; then printf '<li><strong>Agent Owner:</strong> <code>%s</code></li>' "$(printf '%s' "$agent_owner" | escape_html)"; fi)
 </ul>
@@ -150,15 +154,27 @@ ensure_label_id() {
 
 find_existing_work_item_id() {
   local external_id="$1"
-  local title="$2"
-  local work_items_json="$3"
+  local legacy_external_id="$2"
+  local title="$3"
+  local work_items_json="$4"
   local marker
+  local legacy_marker
   marker="<!-- wazaker-sync-id:${external_id} -->"
+  legacy_marker=""
+  if [[ -n "$legacy_external_id" ]]; then
+    legacy_marker="<!-- wazaker-sync-id:${legacy_external_id} -->"
+  fi
 
-  printf '%s' "$work_items_json" | jq -r --arg marker "$marker" --arg title "$title" '
+  printf '%s' "$work_items_json" | jq -r --arg marker "$marker" --arg legacy_marker "$legacy_marker" --arg title "$title" '
     [
       (.results // .)[]?
-      | select((.description_html // "") | contains($marker))
+      | select(
+          ((.description_html // "") | contains($marker))
+          or (
+            ($legacy_marker != "")
+            and ((.description_html // "") | contains($legacy_marker))
+          )
+        )
     ] as $marker_matches
     | if ($marker_matches | length) > 0 then
         $marker_matches[0].id
@@ -239,6 +255,7 @@ fi
 
 for item_json in "${item_lines[@]}"; do
   external_id="$(printf '%s' "$item_json" | jq -r '.id')"
+  legacy_external_id="$(printf '%s' "$item_json" | jq -r '.legacyId // empty')"
   title="$(printf '%s' "$item_json" | jq -r '.title')"
   priority="$(printf '%s' "$item_json" | jq -r '.priority')"
   state_name="$(printf '%s' "$item_json" | jq -r '.state')"
@@ -276,7 +293,7 @@ for item_json in "${item_lines[@]}"; do
       + (if ($assignee | length) > 0 then {assignees: [$assignee]} else {} end)
     ')"
 
-  existing_work_item_id="$(find_existing_work_item_id "$external_id" "$title" "$work_items_json")"
+  existing_work_item_id="$(find_existing_work_item_id "$external_id" "$legacy_external_id" "$title" "$work_items_json")"
 
   if [[ -n "$existing_work_item_id" ]]; then
     patch_response="$(api PATCH "$(work_item_url "$existing_work_item_id")" "$payload")"

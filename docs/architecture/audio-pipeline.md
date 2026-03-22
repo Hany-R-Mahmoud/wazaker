@@ -6,9 +6,9 @@ Score an ayah-level user recitation against Quran reference text and Al-Husary t
 
 ## Target Production Pipeline
 
-1. Mobile client records one ayah.
-2. Mobile client uploads audio to Supabase Storage.
-3. Mobile client creates a `recitation_sessions` row with `status = pending`.
+1. First, the mobile client records one ayah.
+2. Next, the mobile client uploads audio to Supabase Storage.
+3. Finally, the mobile client creates a `recitation_sessions` row with `status = pending`.
 4. `n8n` detects the pending session.
 5. `n8n` fetches the audio file from Supabase Storage.
 6. `n8n` sends the file to the VPS transcription service backed by Whisper.cpp.

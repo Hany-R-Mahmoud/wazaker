@@ -43,6 +43,6 @@
 
 ## Current Canonical References
 
-- [operating-model.md](/Users/hanyramadan/wazaker/docs/agents/operating-model.md)
-- [team-charter.md](/Users/hanyramadan/wazaker/docs/agents/team-charter.md)
-- [roadmap-v2.md](/Users/hanyramadan/wazaker/docs/product/roadmap-v2.md)
+- [operating-model.md](./operating-model.md)
+- [team-charter.md](./team-charter.md)
+- [roadmap-v2.md](../product/roadmap-v2.md)

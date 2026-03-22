@@ -10,6 +10,7 @@
   "items": [
     {
       "id": "EPIC-0",
+      "legacyId": "EPIC-FOUNDATION",
       "type": "epic",
       "title": "EPIC 0 — Human Gates",
       "summary": "Clear all human-only blockers for infrastructure, API access, and data access before technical delivery proceeds.",
@@ -32,6 +33,7 @@
     },
     {
       "id": "EPIC-1",
+      "legacyId": "EPIC-DELIVERY-OS",
       "type": "epic",
       "title": "EPIC 1 — Codebase Audit And Re-Baseline",
       "summary": "Re-baseline product, architecture, navigation, and planning artifacts to the new Tarteel-inspired target while preserving working foundations.",
@@ -56,6 +58,7 @@
     },
     {
       "id": "EPIC-2",
+      "legacyId": "EPIC-PRODUCT",
       "type": "epic",
       "title": "EPIC 2 — VPS Infrastructure Setup",
       "summary": "Stand up the target runtime on the VPS with n8n, Supabase, Whisper.cpp, and Groq-backed OpenClaw.",
@@ -80,6 +83,7 @@
     },
     {
       "id": "EPIC-3",
+      "legacyId": "EPIC-FEASIBILITY",
       "type": "epic",
       "title": "EPIC 3 — Data Foundation",
       "summary": "Import Quranic text, reference audio metadata, and timestamp data into Supabase for the app and scoring workflows.",
@@ -104,6 +108,7 @@
     },
     {
       "id": "EPIC-4",
+      "legacyId": "EPIC-MOBILE",
       "type": "epic",
       "title": "EPIC 4 — Automation And Agent Stack Upgrade",
       "summary": "Migrate and upgrade the automation layer and agent runtime for the VPS target environment.",
@@ -149,6 +154,7 @@
       ],
       "acceptance": [
         "A signed-in user can browse, listen, record, score, and review results.",
+        "The real Whisper transcription and Supabase polling path are part of the Phase 1 launch journey.",
         "The Phase 1 user journey is runnable on device.",
         "The preserved foundations remain intact and tests stay green."
       ]
@@ -170,11 +176,11 @@
         "type:epic",
         "ai-ops",
         "backend",
-        "phase-2",
+        "phase-1",
         "owner:speech-evaluation"
       ],
       "acceptance": [
-        "Real audio can be scored end to end.",
+        "Real audio can be scored end to end as part of the Phase 1 launch path.",
         "Confidence gating is enforced in stored and rendered results.",
         "Validation evidence exists before stronger learner-facing claims."
       ]
@@ -829,10 +835,11 @@
       "state": "Backlog",
       "agentOwner": "tester",
       "parentId": "EPIC-5",
-      "dependsOn": ["TASK-5-7", "TASK-5-9"],
+      "dependsOn": ["TASK-5-7", "TASK-5-9", "TASK-6-3"],
       "labels": ["type:task", "qa", "phase-1", "owner:tester"],
       "acceptance": [
         "The complete Phase 1 journey passes end to end.",
+        "The real Whisper transcription and polling path are included in the smoke test.",
         "Any failures are captured as follow-up tasks.",
         "No crashes or unhandled errors appear during the flow."
       ]
@@ -848,7 +855,7 @@
       "agentOwner": "speech-evaluation",
       "parentId": "EPIC-6",
       "dependsOn": ["TASK-2-3"],
-      "labels": ["type:task", "backend", "ai-ops", "phase-2", "owner:speech-evaluation"],
+      "labels": ["type:task", "backend", "ai-ops", "phase-1", "owner:speech-evaluation"],
       "acceptance": [
         "The service accepts audio uploads and returns text, word timings, and confidence.",
         "Arabic transcription works for test audio.",
@@ -865,7 +872,7 @@
       "agentOwner": "automation-operations",
       "parentId": "EPIC-6",
       "dependsOn": ["TASK-6-1", "TASK-3-3"],
-      "labels": ["type:task", "automation", "ai-ops", "phase-2", "owner:automation-operations"],
+      "labels": ["type:task", "automation", "ai-ops", "phase-1", "owner:automation-operations"],
       "acceptance": [
         "Pending sessions trigger the workflow.",
         "Confidence gating is enforced in stored word results.",
@@ -882,7 +889,7 @@
       "agentOwner": "fullstack-engineering",
       "parentId": "EPIC-6",
       "dependsOn": ["TASK-6-2", "TASK-5-6"],
-      "labels": ["type:task", "frontend", "refactor", "phase-2", "owner:fullstack-engineering"],
+      "labels": ["type:task", "frontend", "refactor", "phase-1", "owner:fullstack-engineering"],
       "acceptance": [
         "The analysis-service interface remains unchanged.",
         "Real audio uploads and polling work.",
@@ -899,7 +906,7 @@
       "agentOwner": "tester",
       "parentId": "EPIC-6",
       "dependsOn": ["TASK-6-3"],
-      "labels": ["type:task", "qa", "phase-2", "owner:tester"],
+      "labels": ["type:task", "qa", "phase-1", "owner:tester"],
       "acceptance": [
         "All planned test cases are executed and documented.",
         "If scores are weak, the ship posture is adjusted rather than overclaimed.",

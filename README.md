@@ -97,4 +97,4 @@ This repository uses a PR-first workflow.
 - merge only after review approval
 - sync local `main`
 
-Reference: [docs/setup/github-flow.md](/Users/hanyramadan/wazaker/docs/setup/github-flow.md)
+Reference: [docs/setup/github-flow.md](docs/setup/github-flow.md)
