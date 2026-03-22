@@ -16,6 +16,7 @@ export const recordingScreenCopy = {
       'هدف قصير مناسب لأول اختبار تسجيل في المرحلة الأولى.',
       'A short target that fits the first MVP recording flow.',
     ),
+    change: createBilingualText('اختر مقطعًا آخر', 'Choose another target'),
   },
   permission: {
     label: createBilingualText('إذن الميكروفون', 'Microphone permission'),
@@ -52,6 +53,19 @@ export const recordingScreenCopy = {
     start: createBilingualText('ابدأ التسجيل', 'Start recording'),
     stop: createBilingualText('أوقف التسجيل', 'Stop recording'),
     cancel: createBilingualText('إلغاء المحاولة', 'Cancel attempt'),
+  },
+  mockReview: {
+    label: createBilingualText('المراجعة التجريبية', 'Mock review'),
+    body: createBilingualText(
+      'أرسل المحاولة الحالية إلى خدمة التحليل التجريبية حتى يكون مسار النتيجة جاهزًا للخطوة التالية.',
+      'Submit the current attempt through the fixture-backed analysis service so the result path is ready for the next slice.',
+    ),
+    cta: createBilingualText('أرسل النتيجة التجريبية', 'Submit mock result'),
+    submitting: createBilingualText('جارٍ إرسال النتيجة التجريبية', 'Submitting mock result'),
+    error: createBilingualText(
+      'تعذر تجهيز النتيجة الآن. حاول مرة أخرى بعد لحظات.',
+      'The mock result could not be prepared right now. Try again in a moment.',
+    ),
   },
   notices: [
     createBilingualText(

@@ -1,11 +1,11 @@
-import { createAnalysisService, type AnalysisService } from '../../features/recitation/services/analysis-service';
+import { createAnalysisService, type AnalysisService } from '../services/analysis-service';
 import type {
   AnalyzeRecitationRequest,
   AnalyzeRecitationResponse,
   ComparisonResult,
   SessionRecord,
   TargetPassage,
-} from '../../features/recitation/types';
+} from '../types';
 
 export const recitationFixtureTargets: readonly TargetPassage[] = [
   {

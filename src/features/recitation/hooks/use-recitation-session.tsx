@@ -12,13 +12,13 @@ import {
   type AsyncState,
 } from '../../../shared/ui/async-state';
 import {
-  sessionHistoryRepository,
+  getSessionHistoryRepository,
   type SessionHistoryRepository,
 } from '../storage/session-history';
 import {
   defaultRecitationFixtureTarget,
   sampleSessionHistory,
-} from '../../../test/fixtures/recitation-analysis';
+} from '../models/recitation-fixtures';
 
 interface RecitationSessionContextValue {
   currentTarget: TargetPassage;
@@ -29,7 +29,7 @@ interface RecitationSessionContextValue {
   startAttempt: () => RecitationAttempt;
   stopAttempt: () => void;
   cancelAttempt: () => void;
-  completeAttempt: (result: ComparisonResult) => Promise<void>;
+  completeAttempt: (attempt: RecitationAttempt, result: ComparisonResult) => Promise<void>;
   dismissResult: () => void;
 }
 
@@ -56,7 +56,7 @@ function createAttempt(target: TargetPassage): RecitationAttempt {
 
 export function RecitationSessionProvider({
   children,
-  repository = sessionHistoryRepository,
+  repository = getSessionHistoryRepository(),
   shouldHydrateOnMount = true,
 }: RecitationSessionProviderProps) {
   const [currentTarget, setCurrentTarget] = useState<TargetPassage>(defaultRecitationFixtureTarget);
@@ -92,11 +92,12 @@ export function RecitationSessionProvider({
 
           return createSuccessAsyncState(nextSessions);
         });
-      } catch {
+      } catch (error) {
         if (!isMounted) {
           return;
         }
 
+        console.warn('Failed to hydrate recitation session history.', error);
         setSessionHistoryState(
           createErrorAsyncState(
             'Unable to load saved session history right now.',
@@ -121,6 +122,7 @@ export function RecitationSessionProvider({
       sessionHistoryState,
       selectTarget(target: TargetPassage): void {
         setCurrentTarget(target);
+        setCurrentAttempt(null);
         setCurrentResult(null);
       },
       startAttempt(): RecitationAttempt {
@@ -131,7 +133,7 @@ export function RecitationSessionProvider({
       },
       stopAttempt(): void {
         setCurrentAttempt((attempt) =>
-          attempt == null
+          attempt === null
             ? null
             : {
                 ...attempt,
@@ -141,7 +143,7 @@ export function RecitationSessionProvider({
       },
       cancelAttempt(): void {
         setCurrentAttempt((attempt) =>
-          attempt == null
+          attempt === null
             ? null
             : {
                 ...attempt,
@@ -150,15 +152,13 @@ export function RecitationSessionProvider({
               },
         );
       },
-      async completeAttempt(result: ComparisonResult): Promise<void> {
-        const baseAttempt =
-          currentAttempt ?? {
-            ...createAttempt(currentTarget),
-            status: 'draft',
-          };
+      async completeAttempt(
+        attempt: RecitationAttempt,
+        result: ComparisonResult,
+      ): Promise<void> {
         const completedAt = new Date().toISOString();
         const completedAttempt: RecitationAttempt = {
-          ...baseAttempt,
+          ...attempt,
           status: 'completed',
           completedAt,
         };
@@ -176,7 +176,8 @@ export function RecitationSessionProvider({
         try {
           const sessions = await repository.saveSession(sessionRecord);
           setSessionHistoryState(createSuccessAsyncState(sessions));
-        } catch {
+        } catch (error) {
+          console.warn('Failed to persist completed recitation attempt.', error);
           setSessionHistoryState(
             createErrorAsyncState(
               'The result is ready, but saving it locally failed.',

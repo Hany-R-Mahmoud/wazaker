@@ -93,4 +93,19 @@ describe('RecordingScreen', () => {
     fireEvent.press(screen.getByText('Cancel attempt'));
     expect(screen.getByText('The current attempt was cancelled without saving.')).toBeTruthy();
   });
+
+  it('ignores target-switch presses while a mock submission is in progress', async () => {
+    const handleSelectDifferentTarget = jest.fn();
+
+    renderWithProviders(<RecordingScreen onSelectDifferentTarget={handleSelectDifferentTarget} />);
+
+    fireEvent.press(screen.getByText('Submit mock result'));
+    fireEvent.press(screen.getByText('Choose another target'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Submitting mock result')).toBeTruthy();
+    });
+
+    expect(handleSelectDifferentTarget).not.toHaveBeenCalled();
+  });
 });

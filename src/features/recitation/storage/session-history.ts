@@ -1,4 +1,7 @@
-import type { SessionRecord } from '../types';
+import {
+  sessionRecordArraySchema,
+  type SessionRecord,
+} from '../types';
 
 const sessionHistoryStorageKey = 'wazaker.recitation.session-history';
 
@@ -33,10 +36,19 @@ function createBrowserSessionHistoryStore(): SessionHistoryStore | null {
 
   return {
     async getItem(key: string): Promise<string | null> {
-      return globalThis.localStorage.getItem(key);
+      try {
+        return globalThis.localStorage.getItem(key);
+      } catch (error) {
+        console.warn('Session history localStorage read failed.', error);
+        return null;
+      }
     },
     async setItem(key: string, value: string): Promise<void> {
-      globalThis.localStorage.setItem(key, value);
+      try {
+        globalThis.localStorage.setItem(key, value);
+      } catch (error) {
+        console.warn('Session history localStorage write failed.', error);
+      }
     },
   };
 }
@@ -51,14 +63,22 @@ export function createSessionHistoryRepository(
   async function readSessions(): Promise<readonly SessionRecord[]> {
     const rawValue = await store.getItem(sessionHistoryStorageKey);
 
-    if (rawValue == null) {
+    if (rawValue === null) {
       return [];
     }
 
     try {
-      const parsedValue = JSON.parse(rawValue) as SessionRecord[];
-      return sortSessions(parsedValue);
-    } catch {
+      const parsedValue = JSON.parse(rawValue);
+      const validationResult = sessionRecordArraySchema.safeParse(parsedValue);
+
+      if (!validationResult.success) {
+        console.warn('Session history payload validation failed.', validationResult.error.flatten());
+        return [];
+      }
+
+      return sortSessions(validationResult.data);
+    } catch (error) {
+      console.warn('Session history JSON parsing failed.', error);
       return [];
     }
   }
@@ -88,4 +108,12 @@ export function createSessionHistoryRepository(
   };
 }
 
-export const sessionHistoryRepository = createSessionHistoryRepository();
+let cachedSessionHistoryRepository: SessionHistoryRepository | null = null;
+
+export function getSessionHistoryRepository(): SessionHistoryRepository {
+  if (cachedSessionHistoryRepository === null) {
+    cachedSessionHistoryRepository = createSessionHistoryRepository();
+  }
+
+  return cachedSessionHistoryRepository;
+}

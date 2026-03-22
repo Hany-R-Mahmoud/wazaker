@@ -3,7 +3,7 @@ import {
   defaultRecitationFixtureTarget,
   lowConfidenceAnalysisFixture,
   mapAnalysisResponseToComparisonResult,
-} from '../test/fixtures/recitation-analysis';
+} from '../features/recitation/models/recitation-fixtures';
 
 describe('recitation analysis fixtures', () => {
   it('maps fixture analysis responses into UI-facing comparison results', () => {

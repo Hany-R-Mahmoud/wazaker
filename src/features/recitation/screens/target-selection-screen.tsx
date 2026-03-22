@@ -2,9 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { recitationFixtureTargets } from '../../../test/fixtures/recitation-analysis';
+import { recitationFixtureTargets } from '../models/recitation-fixtures';
 import { useRecitationSession } from '../hooks/use-recitation-session';
 import { recitationTheme } from '../../../shared/theme/recitation-theme';
+import { targetSelectionScreenCopy } from '../../../shared/i18n/target-selection-screen-copy';
 
 interface TargetSelectionScreenProps {
   onContinue?: () => void;
@@ -13,35 +14,38 @@ interface TargetSelectionScreenProps {
 export function TargetSelectionScreen({ onContinue }: TargetSelectionScreenProps) {
   const { currentTarget, selectTarget, sessionHistoryState } = useRecitationSession();
 
+  const handleContinue = (): void => {
+    onContinue?.();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.hero}>
-          <Text style={styles.kicker}>selected passage flow</Text>
-          <Text style={styles.titleArabic}>اختر مقطع المراجعة</Text>
-          <Text style={styles.titleEnglish}>Choose the revision target</Text>
-          <Text style={styles.bodyArabic}>
-            هذا هو أول مسار حقيقي في التطبيق: اختيار المقطع قبل التسجيل مع إبقاء الجلسات السابقة
-            ظاهرة وآمنة.
-          </Text>
-          <Text style={styles.bodyEnglish}>
-            This is the first real app flow: choose the target before recording while keeping prior
-            sessions visible and safe.
-          </Text>
+          <Text style={styles.kicker}>{targetSelectionScreenCopy.hero.kicker}</Text>
+          <Text style={styles.titleArabic}>{targetSelectionScreenCopy.hero.title.ar}</Text>
+          <Text style={styles.titleEnglish}>{targetSelectionScreenCopy.hero.title.en}</Text>
+          <Text style={styles.bodyArabic}>{targetSelectionScreenCopy.hero.body.ar}</Text>
+          <Text style={styles.bodyEnglish}>{targetSelectionScreenCopy.hero.body.en}</Text>
         </View>
 
         <View style={styles.panel}>
-          <Text style={styles.sectionArabic}>المقاطع المقترحة</Text>
-          <Text style={styles.sectionEnglish}>Suggested targets</Text>
+          <Text style={styles.sectionArabic}>{targetSelectionScreenCopy.suggestedTargets.label.ar}</Text>
+          <Text style={styles.sectionEnglish}>{targetSelectionScreenCopy.suggestedTargets.label.en}</Text>
+          <View accessibilityRole="radiogroup">
           {recitationFixtureTargets.map((target) => {
             const isSelected = target.id === currentTarget.id;
+            const handleTargetSelection = (): void => {
+              selectTarget(target);
+            };
 
             return (
               <Pressable
                 key={target.id}
-                accessibilityRole="button"
-                onPress={() => selectTarget(target)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                onPress={handleTargetSelection}
                 style={[styles.targetCard, isSelected && styles.targetCardSelected]}
               >
                 <Text style={styles.targetArabic}>{target.displayNameAr}</Text>
@@ -50,20 +54,21 @@ export function TargetSelectionScreen({ onContinue }: TargetSelectionScreenProps
               </Pressable>
             );
           })}
+          </View>
         </View>
 
         <View style={styles.panel}>
-          <Text style={styles.sectionArabic}>الجلسات المحلية</Text>
-          <Text style={styles.sectionEnglish}>Local session history</Text>
+          <Text style={styles.sectionArabic}>{targetSelectionScreenCopy.sessionHistory.label.ar}</Text>
+          <Text style={styles.sectionEnglish}>{targetSelectionScreenCopy.sessionHistory.label.en}</Text>
           <Text style={styles.bodyArabic}>
             {sessionHistoryState.phase === 'error'
-              ? 'تعذر تحميل السجل المحلي بالكامل، لكن آخر بيانات متاحة ما زالت معروضة.'
-              : 'يظهر هنا آخر ما تم حفظه محليًا حتى يبقى التكرار السريع ممكنًا.'}
+              ? targetSelectionScreenCopy.sessionHistory.degraded.ar
+              : targetSelectionScreenCopy.sessionHistory.ready.ar}
           </Text>
           <Text style={styles.bodyEnglish}>
             {sessionHistoryState.phase === 'error'
-              ? 'Local history could not be fully loaded, but the latest available data is still shown.'
-              : 'The latest saved local sessions stay visible here so fast retry remains possible.'}
+              ? targetSelectionScreenCopy.sessionHistory.degraded.en
+              : targetSelectionScreenCopy.sessionHistory.ready.en}
           </Text>
 
           {(sessionHistoryState.data ?? []).map((session) => (
@@ -75,9 +80,9 @@ export function TargetSelectionScreen({ onContinue }: TargetSelectionScreenProps
           ))}
         </View>
 
-        <Pressable accessibilityRole="button" onPress={onContinue} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Continue to recording</Text>
-          <Text style={styles.primaryButtonText}>المتابعة إلى التسجيل</Text>
+        <Pressable accessibilityRole="button" onPress={handleContinue} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{targetSelectionScreenCopy.continueCta.en}</Text>
+          <Text style={styles.primaryButtonText}>{targetSelectionScreenCopy.continueCta.ar}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

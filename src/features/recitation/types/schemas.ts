@@ -147,6 +147,27 @@ export const comparisonResultSchema = z.object({
   manualVerificationRecommended: z.boolean(),
 });
 
+export const recitationAttemptSchema = z.object({
+  id: z.string().min(1),
+  targetPassageId: z.string().min(1),
+  status: z.enum(['draft', 'recording', 'uploading', 'analyzing', 'completed', 'cancelled', 'failed']),
+  audioUri: z.string().min(1).nullable(),
+  durationMs: z.number().int().min(0),
+  startedAt: z.string().min(1),
+  completedAt: z.string().min(1).nullable(),
+  failureReason: z.string().min(1).nullable(),
+});
+
+export const sessionRecordSchema = z.object({
+  id: z.string().min(1),
+  targetPassage: targetPassageSchema,
+  attempt: recitationAttemptSchema,
+  result: comparisonResultSchema.nullable(),
+  createdAt: z.string().min(1),
+});
+
+export const sessionRecordArraySchema = z.array(sessionRecordSchema);
+
 export const analysisServiceTargetSchema = z.object({
   id: z.string().min(1),
   selectionType: selectionTypeSchema,

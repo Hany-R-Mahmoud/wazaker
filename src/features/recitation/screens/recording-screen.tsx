@@ -7,10 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './recording-screen.styles';
 import { recordingScreenCopy } from '../../../shared/i18n/recording-screen-copy';
 import { useRecitationSession } from '../hooks/use-recitation-session';
-import {
-  createFixtureAnalysisService,
-  mapAnalysisResponseToComparisonResult,
-} from '../../../test/fixtures/recitation-analysis';
+import { submitRecitationAttempt } from '../services/submit-recitation-attempt';
 
 type AttemptStatus = 'idle' | 'recording' | 'cancelled';
 type PermissionState = 'checking' | 'prompt' | 'denied' | 'ready';
@@ -61,7 +58,7 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
   const [permissionError, setPermissionError] = useState(false);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [isSubmittingResult, setIsSubmittingResult] = useState(false);
-  const [submissionError, setSubmissionError] = useState(false);
+  const [hasSubmissionError, setHasSubmissionError] = useState(false);
   const { currentAttempt, currentResult, currentTarget, startAttempt, stopAttempt, cancelAttempt, completeAttempt } =
     useRecitationSession();
 
@@ -69,12 +66,17 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
   const canStartRecording = permissionState === 'ready' && attemptStatus !== 'recording';
 
   const handlePermissionRequest = async (): Promise<void> => {
+    if (isSubmittingResult) {
+      return;
+    }
+
     setPermissionError(false);
     setIsRequestingPermission(true);
 
     try {
       await requestPermission();
-    } catch {
+    } catch (error) {
+      console.warn('Recording screen permission request failed.', error);
       setPermissionError(true);
     } finally {
       setIsRequestingPermission(false);
@@ -82,7 +84,7 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
   };
 
   const handleStartRecording = async (): Promise<void> => {
-    if (attemptStatus === 'recording') {
+    if (attemptStatus === 'recording' || isSubmittingResult) {
       return;
     }
 
@@ -96,7 +98,7 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
   };
 
   const handleStopRecording = (): void => {
-    if (attemptStatus !== 'recording') {
+    if (attemptStatus !== 'recording' || isSubmittingResult) {
       return;
     }
 
@@ -105,43 +107,32 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
   };
 
   const handleCancelAttempt = (): void => {
+    if (isSubmittingResult) {
+      return;
+    }
+
     setAttemptStatus('cancelled');
     cancelAttempt();
   };
 
   const handleSubmitForMockReview = async (): Promise<void> => {
-    const attemptId = currentAttempt?.id ?? startAttempt().id;
-    setSubmissionError(false);
+    if (isSubmittingResult) {
+      return;
+    }
+
+    const attempt = currentAttempt ?? startAttempt();
+    setHasSubmissionError(false);
     setIsSubmittingResult(true);
 
     try {
-      const response = await createFixtureAnalysisService().analyzeRecitationAttempt({
-        attemptId,
-        locale: 'ar',
-        target: {
-          id: currentTarget.id,
-          selectionType: currentTarget.selectionType,
-          pageNumber: currentTarget.pageNumber,
-          surahNumber: currentTarget.surahNumber,
-          ayahStart: currentTarget.ayahStart,
-          ayahEnd: currentTarget.ayahEnd,
-          displayName: {
-            ar: currentTarget.displayNameAr,
-            en: currentTarget.displayNameEn,
-          },
-          canonicalText: currentTarget.canonicalText,
-          canonicalReference: currentTarget.canonicalReference,
-        },
-        audio: {
-          uri: 'file:///mock/current-attempt.m4a',
-          durationMs: 12000,
-          mimeType: 'audio/m4a',
-        },
+      const comparisonResult = await submitRecitationAttempt({
+        attempt,
+        target: currentTarget,
       });
-
-      await completeAttempt(mapAnalysisResponseToComparisonResult(response));
-    } catch {
-      setSubmissionError(true);
+      await completeAttempt(attempt, comparisonResult);
+    } catch (error) {
+      console.warn('Recording screen mock analysis submission failed.', error);
+      setHasSubmissionError(true);
     } finally {
       setIsSubmittingResult(false);
     }
@@ -182,10 +173,16 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
           <Text style={styles.bodyArabic}>{currentTarget.displayNameAr}</Text>
           <Text style={styles.bodyEnglish}>{currentTarget.displayNameEn}</Text>
           <Text style={styles.bodyArabic}>{currentTarget.canonicalReference}</Text>
+          <Text style={styles.bodyArabic}>{recordingScreenCopy.target.body.ar}</Text>
           <Text style={styles.bodyEnglish}>{recordingScreenCopy.target.body.en}</Text>
-          <Pressable accessibilityRole="button" onPress={onSelectDifferentTarget} style={styles.button}>
-            <Text style={styles.buttonText}>Choose another target</Text>
-            <Text style={styles.buttonText}>اختر مقطعًا آخر</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={isSubmittingResult}
+            onPress={onSelectDifferentTarget}
+            style={[styles.button, isSubmittingResult && styles.buttonDisabled]}
+          >
+            <Text style={styles.buttonText}>{recordingScreenCopy.target.change.en}</Text>
+            <Text style={styles.buttonText}>{recordingScreenCopy.target.change.ar}</Text>
           </Pressable>
         </View>
 
@@ -205,12 +202,13 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
           <Text style={styles.bodyEnglish}>{permissionBody.en}</Text>
           <Pressable
             accessibilityRole="button"
-            disabled={isRequestingPermission || permissionState === 'ready'}
+            disabled={isSubmittingResult || isRequestingPermission || permissionState === 'ready'}
             onPress={handlePermissionRequest}
             style={[
               styles.button,
               styles.buttonPrimary,
-              (isRequestingPermission || permissionState === 'ready') && styles.buttonDisabled,
+              (isSubmittingResult || isRequestingPermission || permissionState === 'ready') &&
+                styles.buttonDisabled,
             ]}
           >
             <Text style={[styles.buttonText, styles.buttonTextPrimary]}>
@@ -231,9 +229,13 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
           <View style={styles.buttonRow}>
             <Pressable
               accessibilityRole="button"
-              disabled={!canStartRecording}
+              disabled={isSubmittingResult || !canStartRecording}
               onPress={handleStartRecording}
-              style={[styles.button, styles.buttonPrimary, !canStartRecording && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                styles.buttonPrimary,
+                (isSubmittingResult || !canStartRecording) && styles.buttonDisabled,
+              ]}
             >
               <Text style={[styles.buttonText, styles.buttonTextPrimary]}>
                 {recordingScreenCopy.recorder.start.en}
@@ -245,9 +247,12 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
 
             <Pressable
               accessibilityRole="button"
-              disabled={attemptStatus !== 'recording'}
+              disabled={isSubmittingResult || attemptStatus !== 'recording'}
               onPress={handleStopRecording}
-              style={[styles.button, attemptStatus !== 'recording' && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                (isSubmittingResult || attemptStatus !== 'recording') && styles.buttonDisabled,
+              ]}
             >
               <Text style={styles.buttonText}>{recordingScreenCopy.recorder.stop.en}</Text>
               <Text style={styles.buttonText}>{recordingScreenCopy.recorder.stop.ar}</Text>
@@ -255,8 +260,9 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
 
             <Pressable
               accessibilityRole="button"
+              disabled={isSubmittingResult}
               onPress={handleCancelAttempt}
-              style={styles.button}
+              style={[styles.button, isSubmittingResult && styles.buttonDisabled]}
             >
               <Text style={styles.buttonText}>{recordingScreenCopy.recorder.cancel.en}</Text>
               <Text style={styles.buttonText}>{recordingScreenCopy.recorder.cancel.ar}</Text>
@@ -265,16 +271,10 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
         </View>
 
         <View style={styles.panel}>
-          <Text style={styles.labelArabic}>المراجعة التجريبية</Text>
-          <Text style={styles.labelEnglish}>Mock review</Text>
-          <Text style={styles.bodyArabic}>
-            أرسل المحاولة الحالية إلى خدمة التحليل التجريبية حتى يكون مسار النتيجة جاهزًا للخطوة
-            التالية.
-          </Text>
-          <Text style={styles.bodyEnglish}>
-            Submit the current attempt through the fixture-backed analysis service so the result
-            path is ready for the next slice.
-          </Text>
+          <Text style={styles.labelArabic}>{recordingScreenCopy.mockReview.label.ar}</Text>
+          <Text style={styles.labelEnglish}>{recordingScreenCopy.mockReview.label.en}</Text>
+          <Text style={styles.bodyArabic}>{recordingScreenCopy.mockReview.body.ar}</Text>
+          <Text style={styles.bodyEnglish}>{recordingScreenCopy.mockReview.body.en}</Text>
           <Pressable
             accessibilityRole="button"
             disabled={isSubmittingResult}
@@ -286,21 +286,23 @@ export function RecordingScreen({ onSelectDifferentTarget }: RecordingScreenProp
             ]}
           >
             <Text style={[styles.buttonText, styles.buttonTextPrimary]}>
-              {isSubmittingResult ? 'Submitting mock result' : 'Submit mock result'}
+              {isSubmittingResult
+                ? recordingScreenCopy.mockReview.submitting.en
+                : recordingScreenCopy.mockReview.cta.en}
             </Text>
             <Text style={[styles.buttonText, styles.buttonTextPrimary]}>
-              {isSubmittingResult ? 'جارٍ إرسال النتيجة التجريبية' : 'أرسل النتيجة التجريبية'}
+              {isSubmittingResult
+                ? recordingScreenCopy.mockReview.submitting.ar
+                : recordingScreenCopy.mockReview.cta.ar}
             </Text>
           </Pressable>
-          {submissionError ? (
+          {hasSubmissionError ? (
             <>
-              <Text style={styles.bodyArabic}>تعذر تجهيز النتيجة الآن. حاول مرة أخرى بعد لحظات.</Text>
-              <Text style={styles.bodyEnglish}>
-                The mock result could not be prepared right now. Try again in a moment.
-              </Text>
+              <Text style={styles.bodyArabic}>{recordingScreenCopy.mockReview.error.ar}</Text>
+              <Text style={styles.bodyEnglish}>{recordingScreenCopy.mockReview.error.en}</Text>
             </>
           ) : null}
-          {currentResult != null ? (
+          {currentResult !== null ? (
             <>
               <Text style={styles.bodyArabic}>{currentResult.summaryAr}</Text>
               <Text style={styles.bodyEnglish}>{currentResult.summaryEn}</Text>
